@@ -1,46 +1,26 @@
-use whatlang::Script;
+/// script of a token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
+pub type Script = whatlang::Script;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum TokenType {
-    Word { stop_word: bool },
-    Separator,
+/// atomic item returned by `Tokenizer::next()`,
+/// it determine the type of the token and contains a `WordSlice`
+pub enum Token<'a> {
+    /// the token is a word,
+    /// meaning that it should be indexed as an important part of the document
+    Word(WordSlice<'a>),
+    /// the token is a stop word,
+    /// meaning that it can be ignored to optimize size and performance or be indexed as a Word
+    StopWord(WordSlice<'a>),
+    /// the token is a separator,
+    /// meaning that it shouln't be indexed but used to determine word proximity
+    Separator(WordSlice<'a>)
 }
 
-impl TokenType {
-    fn is_stop_word(&self) -> bool { 
-        if self == Self::Word { stop_word: true } {
-            true
-        } else {
-            false
-        }
-    }
-
-    fn is_separator(&self) -> bool {
-        if self == Self::Separator {
-            true
-        } else {
-            false
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct Token<'a> {
+/// The script, the char_index and the content of the token
+pub struct WordSlice<'a> {
+    /// content of the token
     pub word: &'a str,
-    /// index of the token in the token sequence
-    pub index: usize,
-    pub word_index: usize,
+    /// index of the first character of the token in the whole document
     pub char_index: usize,
-    token_type: TokenType,
-    script: Script,
-}
-
-impl Token {
-    pub fn is_stop_word(&self) -> bool { 
-        self.token_type.is_stop_word()
-    }
-
-    pub fn is_separator(&self) -> bool {
-        self.token_type.is_separator()
-    }
+    /// script of the token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
+    pub script: Script,
 }
