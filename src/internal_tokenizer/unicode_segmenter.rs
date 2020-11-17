@@ -2,16 +2,10 @@ use std::borrow::Cow;
 use crate::{Token, TokenKind};
 use super::InternalTokenizer;
 use unicode_segmentation::{UWordBoundIndices, UnicodeSegmentation};
-use deunicode::deunicode;
+use super::TokenStream;
 
 pub struct UnicodeSegmenter;
 pub struct UnicodeSegmenterIterator<'a>(UWordBoundIndices<'a>);
-
-impl<'a> UnicodeSegmenterIterator<'a> {
-    fn normalize(s: &'a str) -> Cow<str> {
-        Cow::Owned(deunicode(s))
-    }
-}
 
 impl<'a> Iterator for UnicodeSegmenterIterator<'a> {
     type Item = Token<'a>;
@@ -30,10 +24,11 @@ impl<'a> Iterator for UnicodeSegmenterIterator<'a> {
     }
 }
 
-impl<'a> InternalTokenizer<'a> for UnicodeSegmenter {
-    type Output = UnicodeSegmenterIterator<'a>;
-    fn tokenize(&self, s: &'a str) -> Self::Output {
-        UnicodeSegmenterIterator(s.split_word_bound_indices())
+impl InternalTokenizer for UnicodeSegmenter {
+    fn tokenize<'a>(&self, s: &'a str) -> TokenStream<'a> {
+        TokenStream {
+            inner: Box::new(UnicodeSegmenterIterator(s.split_word_bound_indices()))
+        }
     }
 }
 
