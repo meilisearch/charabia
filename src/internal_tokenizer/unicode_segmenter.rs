@@ -47,7 +47,5 @@ mod test {
         let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
         let tokens = tokenizer.tokenize(orig);
         assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
-        let tokens = tokenizer.tokenize(orig);
-        println!("{:#?}", tokens.collect::<Vec<_>>());
     }
 }

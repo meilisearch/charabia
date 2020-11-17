@@ -22,6 +22,10 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
+    pub fn text(&self) -> &str {
+        self.word.as_ref()
+    }
+
     pub fn token_len(&self) -> usize {
         todo!()
     }

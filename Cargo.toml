@@ -6,7 +6,7 @@ authors = ["Many <many@meilisearch.com>"]
 edition = "2018"
 
 [dependencies]
-once_cell = "1.4.0"
+once_cell = "1.5.2"
 whatlang = "0.9.0"
 unicode-segmentation = "1.6.0"
 jieba-rs = "0.6"
