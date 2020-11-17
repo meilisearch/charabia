@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenKind {
     Word,
     /// the token is a stop word,
@@ -26,19 +26,20 @@ impl<'a> Token<'a> {
         self.word.as_ref()
     }
 
-    pub fn token_len(&self) -> usize {
-        todo!()
+    pub fn byte_len(&self) -> usize {
+        self.byte_end - self.byte_start
     }
+
     pub fn kind(&self) -> TokenKind {
-        todo!()
+        self.kind
     }
     pub fn is_word(&self) -> bool {
-        todo!()
+        self.kind == TokenKind::Word
     }
     pub fn is_separator(&self) -> bool {
-        todo!()
+        self.kind == TokenKind::Separator
     }
     pub fn is_stopword(&self) -> bool {
-        todo!()
+        self.kind == TokenKind::StopWord
     }
 }
