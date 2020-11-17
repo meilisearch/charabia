@@ -52,18 +52,29 @@ pub struct Analyzer {
 }
 
 pub struct AnalyzedText<'a> {
-    s: Cow<'a, str>,
+    /// Reference to the original text
+    text: &'a str,
+    /// Processed text
+    processed: Cow<'a, str>,
+    /// Pipeline used to proccess the text
     pipeline: &'a Pipeline,
 }
 
 impl<'a> AnalyzedText<'a> {
     /// Returns a `TokenStream` for the Analyzed text.
     pub fn tokens(&'a self) -> TokenStream<'a> {
-        let stream = self.pipeline.1.tokenize(self.s.as_ref()).map(move |t| self.pipeline.2.normalize(t));
+        let stream = self.pipeline.1
+            .tokenize(self.processed.as_ref())
+            .map(move |t| self.pipeline.2.normalize(t));
         TokenStream {
             inner: Box::new(stream)
         }
     }
+
+    /// Attaches each token to its corresponding portion of the original text.
+    pub fn reconstruct(&'a self) -> impl Iterator<Item = (&'a str, Token<'a>)> {
+        self.tokens().map(move |t| (&self.text[t.byte_start..t.byte_end], t))
+    } 
 }
 
 impl Analyzer {
@@ -85,11 +96,12 @@ impl Analyzer {
     /// let mut tokens = analyzed.tokens();
     /// assert!("The" == tokens.next().unwrap().text());
     /// ```
-    pub fn analyze<'a>(&'a self, s: &'a str) -> AnalyzedText<'a> { 
+    pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> { 
         let pipeline = self.tokenizer_map.get(&(Script, Language)).unwrap_or_else(|| &*DEFAULT_ANALYZER);
-        let s = pipeline.0.process(s);
+        let processed = pipeline.0.process(text);
         AnalyzedText {
-            s,
+            text,
+            processed,
             pipeline,
         }
     }
