@@ -10,7 +10,7 @@ pub trait PreProcessor: Sync + Send {
     fn process<'a>(&self, s: &'a str) -> Cow<'a, str>;
 }
 
-type Pipeline = (Box<dyn PreProcessor>, Box<dyn InternalTokenizer>, Box<dyn Normalizer>);
+type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
 
 static DEFAULT_ANALYZER: Lazy<Pipeline> = Lazy::new(||
     (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
@@ -35,10 +35,25 @@ impl Normalizer for IdentityNormalizer {
     }
 }
 
+struct LowercaseNormalizer;
+
+impl Normalizer for LowercaseNormalizer {
+    fn normalize<'a>(&self, mut token: Token<'a>) -> Token<'a> {
+        token.word = Cow::Owned(token.word.to_lowercase());
+        token
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Language;
+pub enum Language {
+    English,
+    Other,
+}
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Script;
+pub enum Script {
+    Latin,
+    Other,
+}
 
 #[derive(Default)]
 pub struct AnalyzerConfig {
@@ -97,7 +112,7 @@ impl Analyzer {
     /// assert!("The" == tokens.next().unwrap().text());
     /// ```
     pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> { 
-        let pipeline = self.tokenizer_map.get(&(Script, Language)).unwrap_or_else(|| &*DEFAULT_ANALYZER);
+        let pipeline = self.tokenizer_map.get(&(Script::Other, Language::Other)).unwrap_or_else(|| &*DEFAULT_ANALYZER);
         let processed = pipeline.0.process(text);
         AnalyzedText {
             text,
@@ -117,6 +132,16 @@ mod test {
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.tokens().map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
+    }
+
+    #[test]
+    fn test_simple2() {
+        let mut tokenizer_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
+        tokenizer_map.insert((Script::Other, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
+        let analyzer = Analyzer::new(AnalyzerConfig { tokenizer_map });
+        let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+        let analyzed = analyzer.analyze(orig);
+        assert_eq!("the", analyzed.tokens().next().unwrap().text());
     }
 
     #[test]
