@@ -1,48 +1,17 @@
 use std::borrow::Cow;
-
 use std::collections::HashMap;
-use crate::internal_tokenizer::InternalTokenizer;
-use crate::Token;
+
 use once_cell::sync::Lazy;
-use crate::internal_tokenizer::{UnicodeSegmenter, TokenStream};
 
-pub trait PreProcessor: Sync + Send {
-    fn process<'a>(&self, s: &'a str) -> Cow<'a, str>;
-}
+use crate::Token;
+use crate::internal_tokenizer::{UnicodeSegmenter, TokenStream, InternalTokenizer};
+use crate::normalizer::{Normalizer, IdentityNormalizer};
+use crate::processors::{PreProcessor, IdentityPreProcessor};
 
-type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
+pub type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
 
 static DEFAULT_ANALYZER: Lazy<Pipeline> = Lazy::new(||
     (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
-
-struct IdentityPreProcessor;
-
-impl PreProcessor for IdentityPreProcessor {
-    fn process<'a>(&self, s: &'a str) -> Cow<'a, str> {
-        Cow::Borrowed(s)
-    }
-}
-
-pub trait Normalizer: Sync + Send {
-    fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;
-}
-
-struct IdentityNormalizer;
-
-impl Normalizer for IdentityNormalizer {
-    fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
-        token
-    }
-}
-
-struct LowercaseNormalizer;
-
-impl Normalizer for LowercaseNormalizer {
-    fn normalize<'a>(&self, mut token: Token<'a>) -> Token<'a> {
-        token.word = Cow::Owned(token.word.to_lowercase());
-        token
-    }
-}
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Language {
@@ -125,6 +94,7 @@ impl Analyzer {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::normalizer::LowercaseNormalizer;
 
     #[test]
     fn test_simple() {
