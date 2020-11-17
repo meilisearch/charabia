@@ -1,10 +1,11 @@
 use crate::token::Token;
-use crate::internal_tokenizer::InternalTokenizer;
+
+pub struct TokenizerConfig;
 
 struct Tokenizer<'a> {
     /// script specialized tokenizer, this can be switched during
     /// document tokenization if the document contains several scripts
-    current_tokenizer: Option<Box<dyn InternalTokenizer<'a>>>,
+    current_tokenizer: Option<Box<dyn Iterator<Item = Token<'a>>>>,
     /// current character index in the document
     current_char_index: u64,
     /// reference on the document content
@@ -14,7 +15,7 @@ struct Tokenizer<'a> {
 impl<'a> Tokenizer<'a> {
     /// create a new tokenizer detecting script
     /// and chose the specialized internal tokenizer
-    fn new(inner: &'a str) -> Self { unimplemented!() }
+    pub fn new(_inner: &'a str) -> Self { unimplemented!() }
 }
 
 impl<'a> Iterator for Tokenizer<'a> {

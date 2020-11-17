@@ -1,26 +1,40 @@
-/// script of a token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
-pub type Script = whatlang::Script;
+use std::borrow::Cow;
 
-/// atomic item returned by `Tokenizer::next()`,
-/// it determine the type of the token and contains a `WordSlice`
-pub enum Token<'a> {
-    /// the token is a word,
-    /// meaning that it should be indexed as an important part of the document
-    Word(WordSlice<'a>),
+#[derive(Debug)]
+pub enum TokenKind {
+    Word,
     /// the token is a stop word,
     /// meaning that it can be ignored to optimize size and performance or be indexed as a Word
-    StopWord(WordSlice<'a>),
+    StopWord,
     /// the token is a separator,
-    /// meaning that it shouln't be indexed but used to determine word proximity
-    Separator(WordSlice<'a>)
+    /// meaning that it shouldn't be indexed but used to determine word proximity
+    Separator
 }
 
-/// The script, the char_index and the content of the token
-pub struct WordSlice<'a> {
-    /// content of the token
-    pub word: &'a str,
-    /// index of the first character of the token in the whole document
-    pub char_index: usize,
-    /// script of the token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
-    pub script: Script,
+/// script of a token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
+#[derive(Debug)]
+pub struct Token<'a> {
+    pub kind: TokenKind,
+    pub word: Cow<'a, str>,
+    /// index of the first character of the word
+    pub byte_start: usize,
+    pub byte_end: usize,
+}
+
+impl<'a> Token<'a> {
+    pub fn token_len(&self) -> usize {
+        todo!()
+    }
+    pub fn kind(&self) -> TokenKind {
+        todo!()
+    }
+    pub fn is_word(&self) -> bool {
+        todo!()
+    }
+    pub fn is_separator(&self) -> bool {
+        todo!()
+    }
+    pub fn is_stopword(&self) -> bool {
+        todo!()
+    }
 }
