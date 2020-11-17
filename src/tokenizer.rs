@@ -118,4 +118,12 @@ mod test {
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.tokens().map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
     }
+
+    #[test]
+    fn test_reconstruct() {
+        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+        let tokens = analyzer.analyze(orig);
+        assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
 }
