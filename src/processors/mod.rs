@@ -5,7 +5,7 @@ use std::borrow::Cow;
 pub use identity::IdentityPreProcessor;
 
 #[allow(dead_code)]
-pub struct ProcessedText<'a> {
+pub(crate) struct ProcessedText<'a> {
     pub(crate) processed: Cow<'a, str>,
     pub(crate) original: &'a str,
 }
