@@ -3,6 +3,7 @@ mod unicode_segmenter;
 pub use unicode_segmenter::UnicodeSegmenter;
 
 use crate::Token;
+use crate::processors::ProcessedText;
 
 pub struct TokenStream<'a> {
     pub(crate) inner: Box<dyn Iterator<Item = Token<'a>> + 'a>
@@ -21,5 +22,5 @@ impl<'a> Iterator for TokenStream<'a> {
 /// this should be implemented as an `Iterator` with `Token` as `Item`,
 pub trait InternalTokenizer: Sync + Send {
     /// create the tokenizer based on the given `text` and `char_index`
-    fn tokenize<'a>(&self, s: &'a str) -> TokenStream<'a>;
+    fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a>;
 }

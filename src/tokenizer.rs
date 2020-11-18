@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
@@ -6,7 +5,7 @@ use once_cell::sync::Lazy;
 use crate::Token;
 use crate::internal_tokenizer::{UnicodeSegmenter, TokenStream, InternalTokenizer};
 use crate::normalizer::{Normalizer, IdentityNormalizer};
-use crate::processors::{PreProcessor, IdentityPreProcessor};
+use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
 
 pub type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
 
@@ -80,7 +79,7 @@ pub struct AnalyzedText<'a> {
     /// Reference to the original text
     text: &'a str,
     /// Processed text
-    processed: Cow<'a, str>,
+    processed: ProcessedText<'a>,
     /// Pipeline used to proccess the text
     pipeline: &'a Pipeline,
 }
@@ -89,7 +88,7 @@ impl<'a> AnalyzedText<'a> {
     /// Returns a `TokenStream` for the Analyzed text.
     pub fn tokens(&'a self) -> TokenStream<'a> {
         let stream = self.pipeline.1
-            .tokenize(self.processed.as_ref())
+            .tokenize(&self.processed)
             .map(move |t| self.pipeline.2.normalize(t));
         TokenStream {
             inner: Box::new(stream)
