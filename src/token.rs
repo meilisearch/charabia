@@ -12,7 +12,7 @@ pub enum TokenKind {
 }
 
 /// script of a token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token<'a> {
     pub kind: TokenKind,
     pub word: Cow<'a, str>,
