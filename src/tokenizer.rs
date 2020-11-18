@@ -18,10 +18,51 @@ pub enum Language {
     English,
     Other,
 }
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub enum Script {
+
+macro_rules! make_script {
+    ($($script:tt), +) => {
+        #[derive(Debug, PartialEq, Eq, Hash)]
+        pub enum Script {
+            $($script),+,
+            Other,
+        }
+
+        impl From<whatlang::Script> for Script {
+            fn from(other: whatlang::Script) -> Script {
+                match other {
+                    $(whatlang::Script::$script => Script::$script), +
+                }
+            }
+
+        }
+    };
+}
+
+make_script! {
+    Arabic,
+    Bengali,
+    Cyrillic,
+    Devanagari,
+    Ethiopic,
+    Georgian,
+    Greek,
+    Gujarati,
+    Gurmukhi,
+    Hangul,
+    Hebrew,
+    Hiragana,
+    Kannada,
+    Katakana,
+    Khmer,
     Latin,
-    Other,
+    Malayalam,
+    Mandarin,
+    Myanmar,
+    Oriya,
+    Sinhala,
+    Tamil,
+    Telugu,
+    Thai
 }
 
 #[derive(Default)]
@@ -81,7 +122,8 @@ impl Analyzer {
     /// assert!("The" == tokens.next().unwrap().text());
     /// ```
     pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> { 
-        let pipeline = self.tokenizer_map.get(&(Script::Other, Language::Other)).unwrap_or_else(|| &*DEFAULT_ANALYZER);
+        let tuple_lang = detect_lang(text);
+        let pipeline = self.tokenizer_map.get(&tuple_lang).unwrap_or_else(|| &*DEFAULT_ANALYZER);
         let processed = pipeline.0.process(text);
         AnalyzedText {
             text,
@@ -89,6 +131,13 @@ impl Analyzer {
             pipeline,
         }
     }
+}
+
+fn detect_lang(s: &str) -> (Script, Language) {
+    let script = whatlang::detect_script(s)
+        .map(Script::from)
+        .unwrap_or(Script::Other);
+    (script, Language::Other)
 }
 
 #[cfg(test)]
@@ -107,7 +156,7 @@ mod test {
     #[test]
     fn test_simple2() {
         let mut tokenizer_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        tokenizer_map.insert((Script::Other, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
+        tokenizer_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
         let analyzer = Analyzer::new(AnalyzerConfig { tokenizer_map });
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);

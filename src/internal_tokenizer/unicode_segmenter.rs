@@ -32,7 +32,6 @@ impl InternalTokenizer for UnicodeSegmenter {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -45,7 +44,8 @@ mod test {
         assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
         
         let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
-        let tokens = tokenizer.tokenize(orig);
-        assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
+        let tokens = tokenizer.tokenize(orig).collect::<Vec<_>>();
+        assert_eq!("為", tokens.first().unwrap().text());
+        assert_eq!(orig, tokens.iter().map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
     }
 }
