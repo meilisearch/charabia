@@ -111,7 +111,12 @@ impl Analyzer {
     }
 
     /// Builds an `AnalyzedText` instance with the correct analyzer pipeline, and pre-processes the
-    /// text. E.G:
+    /// text.
+    ///
+    /// If an analysis pipeline exists for the inferred `(Script, Language)`, the analyzer will look
+    /// for a user specified default `(Script::Other, Language::Other)`. If the user default is not
+    /// specified, it will fallback to `(IdentityPreProcessor, UnicodeSegmenter, IdentityNormalizer)`.
+    ///
     /// ```rust
     /// use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
     /// // defaults to unicode segmenter with identity preprocessor and normalizer.
@@ -122,7 +127,9 @@ impl Analyzer {
     /// ```
     pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> { 
         let tuple_lang = detect_lang(text);
-        let pipeline = self.tokenizer_map.get(&tuple_lang).unwrap_or_else(|| &*DEFAULT_ANALYZER);
+        let pipeline = self.tokenizer_map.get(&tuple_lang)
+            .or_else(|| self.tokenizer_map.get(&(Script::Other, Language::Other)))
+            .unwrap_or_else(|| &*DEFAULT_ANALYZER);
         let processed = pipeline.0.process(text);
         AnalyzedText {
             text,
