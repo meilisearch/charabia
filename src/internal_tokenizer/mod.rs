@@ -1,3 +1,4 @@
+mod jieba;
 mod unicode_segmenter;
 
 pub use unicode_segmenter::UnicodeSegmenter;
