@@ -29,9 +29,17 @@ impl InternalTokenizer for Jieba {
                 // iter.nth(0) == iter.next(), so nth is computed as `char_end - char_start - 1`
                 // but not for the first iteration where nth is computed as `char_end`
                 let byte_end = match *byte_index {
-                    // TODO: investgate if unwrap can fail
-                    0 => original.nth(char_end).unwrap(),
-                    _ => original.nth(char_end - char_start - 1).unwrap(),
+                    0 => original.nth(char_end),
+                    _ => original.nth(char_end - char_start - 1),
+                };
+
+                #[cfg(test)]
+                let byte_end = byte_end.unwrap();
+
+                #[cfg(not(test))]
+                let byte_end = match byte_end {
+                    Some(byte_end) => byte_end,
+                    None => return None
                 };
 
                 *byte_index = byte_end;
