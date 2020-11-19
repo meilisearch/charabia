@@ -28,6 +28,7 @@ mod test {
     fn test_compose_normalizer() {
         let token = Token {
             word: Cow::Borrowed("Æneid"),
+            char_index: 0,
             kind: TokenKind::Word,
             byte_start: 0,
             byte_end: 0,
