@@ -1,9 +1,10 @@
 use std::borrow::Cow;
+
+use jieba_rs::Jieba as JiebaTokenizer;
+
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
 use super::{InternalTokenizer, TokenStream};
-use jieba_rs::Jieba as JiebaTokenizer;
-// use deunicode::deunicode;
 
 pub struct Jieba {
     jieba: JiebaTokenizer,
