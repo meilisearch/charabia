@@ -60,7 +60,6 @@ impl Default for Jieba {
     fn default() -> Self { Jieba { jieba: JiebaTokenizer::new() } }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
