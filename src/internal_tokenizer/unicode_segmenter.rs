@@ -8,7 +8,7 @@ use super::InternalTokenizer;
 use super::TokenStream;
 
 pub struct UnicodeSegmenter;
-pub struct UnicodeSegmenterIterator<'a>(UWordBoundIndices<'a>);
+pub struct UnicodeSegmenterIterator<'a>(UWordBoundIndices<'a>, usize);
 
 impl<'a> Iterator for UnicodeSegmenterIterator<'a> {
     type Item = Token<'a>;
@@ -17,10 +17,13 @@ impl<'a> Iterator for UnicodeSegmenterIterator<'a> {
         self.0
             .next()
             .map(|(index, word)| {
+                let char_index = self.1;
+                self.1 += word.chars().count();
                 Token {
                     kind: TokenKind::Word,
                     word: Cow::Borrowed(word),
                     byte_start: index,
+                    char_index,
                     byte_end: index + word.as_bytes().len(),
                 }
             })
@@ -30,7 +33,7 @@ impl<'a> Iterator for UnicodeSegmenterIterator<'a> {
 impl InternalTokenizer for UnicodeSegmenter {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
         TokenStream {
-            inner: Box::new(UnicodeSegmenterIterator(s.processed.as_ref().split_word_bound_indices()))
+            inner: Box::new(UnicodeSegmenterIterator(s.processed.as_ref().split_word_bound_indices(), 0))
         }
     }
 }

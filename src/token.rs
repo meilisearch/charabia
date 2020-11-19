@@ -17,6 +17,8 @@ pub struct Token<'a> {
     pub kind: TokenKind,
     pub word: Cow<'a, str>,
     /// index of the first character of the word
+    pub char_index: usize,
+    /// indexes of start and end of the byte slice
     pub byte_start: usize,
     pub byte_end: usize,
 }

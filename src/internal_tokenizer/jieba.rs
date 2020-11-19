@@ -48,6 +48,7 @@ impl InternalTokenizer for Jieba {
                 Some(Token {
                     kind: TokenKind::Word,
                     word: Cow::Borrowed(jieba_token.word),
+                    char_index: char_start,
                     byte_start,
                     byte_end,
                 })
