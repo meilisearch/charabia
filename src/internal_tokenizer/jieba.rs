@@ -82,7 +82,5 @@ mod test {
         };
         let tokens = tokenizer.tokenize(&processed);
         assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
-        let tokens = tokenizer.tokenize(&processed);
-        println!("{:#?}", tokens.collect::<Vec<_>>());
     }
 }
