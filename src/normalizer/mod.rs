@@ -2,6 +2,8 @@ mod identity;
 mod lowercase;
 mod deunicoder;
 
+use std::sync::Arc;
+
 use crate::Token;
 
 pub use identity::IdentityNormalizer;
@@ -12,9 +14,23 @@ pub trait Normalizer: Sync + Send {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;
 }
 
-impl Normalizer for &[Box<dyn Normalizer>] {
+impl Normalizer for &[&dyn Normalizer] {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
         self.iter().fold(token, |token, normalizer| normalizer.normalize(token))
+    }
+}
+
+impl<T> Normalizer for Box<T>
+where T: Normalizer {
+    fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
+        self.as_ref().normalize(token)
+    }
+}
+
+impl<T> Normalizer for Arc<T>
+where T: Normalizer {
+    fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
+        self.as_ref().normalize(token)
     }
 }
 
@@ -39,7 +55,7 @@ mod test {
         let token_d = DeunicodeNormalizer.normalize(token.clone());
         assert_eq!(token_d.word, "AEneid");
         
-        let composed_normalizer: &[Box<dyn Normalizer>] = &[Box::new(LowercaseNormalizer), Box::new(DeunicodeNormalizer)];
+        let composed_normalizer: &[&dyn Normalizer] = &[&LowercaseNormalizer, &Box::new(DeunicodeNormalizer), &Arc::new(LowercaseNormalizer)];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "aeneid");
 
