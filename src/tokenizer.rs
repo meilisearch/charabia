@@ -20,7 +20,7 @@ pub enum Language {
 
 macro_rules! make_script {
     ($($script:tt), +) => {
-        #[derive(Debug, PartialEq, Eq, Hash)]
+        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
         pub enum Script {
             $($script),+,
             Other,
@@ -67,21 +67,16 @@ make_script! {
 pub struct AnalyzerConfig {
     /// language specialized tokenizer, this can be switched during
     /// document tokenization if the document contains several languages
-    pub pipeline_lang_map: HashMap<Language, Pipeline>,
-    /// script specialized tokenizer, this can be switched during
-    /// document tokenization if the document contains several scripts
-    pub pipeline_script_map: HashMap<Script, Pipeline>,
+    pub pipeline_map: HashMap<(Script, Language), Pipeline>,
 }
 
 impl Default for AnalyzerConfig {
     fn default() -> Self {
-        let pipeline_lang_map: HashMap<Language, Pipeline> = HashMap::new();
-
-        let mut pipeline_script_map: HashMap<Script, Pipeline> = HashMap::new();
-        pipeline_script_map.insert(Script::Latin, (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
-        pipeline_script_map.insert(Script::Mandarin, (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(IdentityNormalizer)));
+        let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
+        pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
+        pipeline_map.insert((Script::Mandarin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(IdentityNormalizer)));
         
-        AnalyzerConfig { pipeline_lang_map, pipeline_script_map }
+        AnalyzerConfig { pipeline_map }
     }
 }
 
@@ -140,7 +135,7 @@ impl Analyzer {
     /// assert!("The" == tokens.next().unwrap().text());
     /// ```
     pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> {
-        let pipeline = self.pipeline_from_lang(text);
+        let pipeline = self.pipeline_from(text);
         let processed = pipeline.0.process(text);
 
         AnalyzedText {
@@ -150,34 +145,33 @@ impl Analyzer {
         }
     }
 
-    /// Try to Detect Language and return the corresponding pipeline,
-    /// if no language is detected or no pipeline corresponds to the Language,
-    /// the function fallback in function `pipeline_from_script`
-    fn pipeline_from_lang<'a>(&'a self, text: &'a str) -> &Pipeline {
-        match detect_lang(text) {
-            Language::Other => self.pipeline_from_script(text),
-            language => &self.config.pipeline_lang_map.get(&language).unwrap_or(self.pipeline_from_script(text))
-        }
-    }
-
-    /// Try to Detect Script and return the corresponding pipeline,
+    /// Try to Detect Language and Script and return the corresponding pipeline,
+    /// if no Language is detected or no pipeline corresponds to the Language
+    /// the function try to get a pipeline corresponding to the script;
     /// if no Script is detected or no pipeline corresponds to the Script,
-    /// the function returns the `DEFAULT_PIPELINE`
-    fn pipeline_from_script<'a>(&'a self, text: &'a str) -> &Pipeline {
-        let script = detect_script(text);
+    /// the function try to get the default pipeline in the map;
+    /// if no default pipeline exist in the map return the librairy DEFAULT_PIPELINE.
+    fn pipeline_from<'a>(&'a self, text: &'a str) -> &Pipeline {
+        let script = self.detect_script(text);
+        let language = self.detect_lang(text);
+        self.config.pipeline_map.get(&(script, language))
+            .or_else(|| self.config.pipeline_map.get(&(script, Language::Other)))
+            .or_else(|| self.config.pipeline_map.get(&(Script::Other, Language::Other)))
+            .unwrap_or_else(|| &*DEFAULT_PIPELINE)
+    }
 
-        &self.config.pipeline_script_map.get(&script).unwrap_or(&DEFAULT_PIPELINE)
+    /// detect script with whatlang,
+    /// if no script is detected, return Script::Other
+    fn detect_script<'a>(&'a self, text: &'a str) -> Script {
+        whatlang::detect_script(text).map(Script::from).unwrap_or(Script::Other)
+    }
+    
+    /// detect lang (dummy)
+    fn detect_lang<'a>(&'a self, text: &'a str) -> Language {
+        Language::Other
     }
 }
 
-
-fn detect_script(text: &str) -> Script {
-    whatlang::detect_script(text).map(Script::from).unwrap_or(Script::Other)
-}
-
-fn detect_lang(text: &str) -> Language {
-    Language::Other
-}
 
 #[cfg(test)]
 mod test {
@@ -219,11 +213,10 @@ mod test {
 
     #[test]
     fn test_simple_latin_with_lowercase_normalizer() {
-        let pipeline_lang_map: HashMap<Language, Pipeline> = HashMap::new();
-        let mut pipeline_script_map: HashMap<Script, Pipeline> = HashMap::new();
-        pipeline_script_map.insert(Script::Latin, (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
+        let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
+        pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
         
-        let analyzer = Analyzer::new(AnalyzerConfig { pipeline_lang_map, pipeline_script_map });
+        let analyzer = Analyzer::new(AnalyzerConfig { pipeline_map });
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
         assert_eq!("the", analyzed.tokens().next().unwrap().text());
