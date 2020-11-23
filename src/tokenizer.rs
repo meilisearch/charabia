@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use once_cell::sync::Lazy;
 
 use crate::Token;
 use crate::internal_tokenizer::{Jieba, UnicodeSegmenter, TokenStream, InternalTokenizer};
-use crate::normalizer::{Normalizer, IdentityNormalizer};
+use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
 
 pub type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
@@ -75,6 +76,17 @@ impl Default for AnalyzerConfig {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
         pipeline_map.insert((Script::Mandarin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(IdentityNormalizer)));
+        
+        AnalyzerConfig { pipeline_map }
+    }
+}
+
+impl AnalyzerConfig {
+    pub fn default_with_classfier(stop_words: HashSet<String>, soft_separators: HashSet<char>, hard_separators: HashSet<char>) -> Self {
+        let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
+        let classifier = TokenClassifier { soft_separators, stop_words, hard_separators };
+        pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(classifier.clone())));
+        pipeline_map.insert((Script::Mandarin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(classifier)));
         
         AnalyzerConfig { pipeline_map }
     }
@@ -167,7 +179,7 @@ impl Analyzer {
     }
     
     /// detect lang (dummy)
-    fn detect_lang(&self, text: &str) -> Language {
+    fn detect_lang(&self, _text: &str) -> Language {
         Language::Other
     }
 }

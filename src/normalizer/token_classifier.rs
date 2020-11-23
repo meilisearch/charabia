@@ -4,11 +4,11 @@ use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
 use super::Normalizer;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct TokenClassifier {
-    hard_separators: HashSet<char>,
-    soft_separators: HashSet<char>,
-    stop_words: HashSet<String>,
+    pub(crate) hard_separators: HashSet<char>,
+    pub(crate) soft_separators: HashSet<char>,
+    pub(crate) stop_words: HashSet<String>,
 }
 
 impl Normalizer for TokenClassifier {
