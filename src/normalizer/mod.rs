@@ -1,6 +1,7 @@
 mod identity;
 mod lowercase;
 mod deunicoder;
+mod token_classifier;
 
 use std::sync::Arc;
 
@@ -54,7 +55,7 @@ mod test {
 
         let token_d = DeunicodeNormalizer.normalize(token.clone());
         assert_eq!(token_d.word, "AEneid");
-        
+
         let composed_normalizer: &[&dyn Normalizer] = &[&LowercaseNormalizer, &Box::new(DeunicodeNormalizer), &Arc::new(LowercaseNormalizer)];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "aeneid");
