@@ -1,6 +1,7 @@
 mod jieba;
 mod unicode_segmenter;
 
+pub use jieba::Jieba;
 pub use unicode_segmenter::UnicodeSegmenter;
 
 use crate::Token;

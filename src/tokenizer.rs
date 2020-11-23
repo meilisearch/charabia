@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 
 use crate::Token;
-use crate::internal_tokenizer::{UnicodeSegmenter, TokenStream, InternalTokenizer};
+use crate::internal_tokenizer::{Jieba, UnicodeSegmenter, TokenStream, InternalTokenizer};
 use crate::normalizer::{Normalizer, IdentityNormalizer};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
 
 pub type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
 
-static DEFAULT_ANALYZER: Lazy<Pipeline> = Lazy::new(||
+static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(||
     (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -64,15 +64,29 @@ make_script! {
     Thai
 }
 
-#[derive(Default)]
 pub struct AnalyzerConfig {
-    pub tokenizer_map: HashMap<(Script, Language), Pipeline>,
+    /// language specialized tokenizer, this can be switched during
+    /// document tokenization if the document contains several languages
+    pub pipeline_lang_map: HashMap<Language, Pipeline>,
+    /// script specialized tokenizer, this can be switched during
+    /// document tokenization if the document contains several scripts
+    pub pipeline_script_map: HashMap<Script, Pipeline>,
+}
+
+impl Default for AnalyzerConfig {
+    fn default() -> Self {
+        let pipeline_lang_map: HashMap<Language, Pipeline> = HashMap::new();
+
+        let mut pipeline_script_map: HashMap<Script, Pipeline> = HashMap::new();
+        pipeline_script_map.insert(Script::Latin, (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
+        pipeline_script_map.insert(Script::Mandarin, (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(IdentityNormalizer)));
+        
+        AnalyzerConfig { pipeline_lang_map, pipeline_script_map }
+    }
 }
 
 pub struct Analyzer {
-    /// script specialized tokenizer, this can be switched during
-    /// document tokenization if the document contains several scripts
-    tokenizer_map: HashMap<(Script, Language), Pipeline>,
+    config: AnalyzerConfig,
 }
 
 pub struct AnalyzedText<'a> {
@@ -106,7 +120,7 @@ impl Analyzer {
     /// and chose the specialized internal tokenizer
     pub fn new(config: AnalyzerConfig) -> Self {
         Self {
-            tokenizer_map: config.tokenizer_map,
+            config,
         }
     }
 
@@ -125,25 +139,44 @@ impl Analyzer {
     /// let mut tokens = analyzed.tokens();
     /// assert!("The" == tokens.next().unwrap().text());
     /// ```
-    pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> { 
-        let tuple_lang = detect_lang(text);
-        let pipeline = self.tokenizer_map.get(&tuple_lang)
-            .or_else(|| self.tokenizer_map.get(&(Script::Other, Language::Other)))
-            .unwrap_or_else(|| &*DEFAULT_ANALYZER);
+    pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> {
+        let pipeline = self.pipeline_from_lang(text);
         let processed = pipeline.0.process(text);
+
         AnalyzedText {
             text,
             processed,
             pipeline,
         }
     }
+
+    /// Try to Detect Language and return the corresponding pipeline,
+    /// if no language is detected or no pipeline corresponds to the Language,
+    /// the function fallback in function `pipeline_from_script`
+    fn pipeline_from_lang<'a>(&'a self, text: &'a str) -> &Pipeline {
+        match detect_lang(text) {
+            Language::Other => self.pipeline_from_script(text),
+            language => &self.config.pipeline_lang_map.get(&language).unwrap_or(self.pipeline_from_script(text))
+        }
+    }
+
+    /// Try to Detect Script and return the corresponding pipeline,
+    /// if no Script is detected or no pipeline corresponds to the Script,
+    /// the function returns the `DEFAULT_PIPELINE`
+    fn pipeline_from_script<'a>(&'a self, text: &'a str) -> &Pipeline {
+        let script = detect_script(text);
+
+        &self.config.pipeline_script_map.get(&script).unwrap_or(&DEFAULT_PIPELINE)
+    }
 }
 
-fn detect_lang(s: &str) -> (Script, Language) {
-    let script = whatlang::detect_script(s)
-        .map(Script::from)
-        .unwrap_or(Script::Other);
-    (script, Language::Other)
+
+fn detect_script(text: &str) -> Script {
+    whatlang::detect_script(text).map(Script::from).unwrap_or(Script::Other)
+}
+
+fn detect_lang(text: &str) -> Language {
+    Language::Other
 }
 
 #[cfg(test)]
@@ -152,27 +185,62 @@ mod test {
     use crate::normalizer::LowercaseNormalizer;
 
     #[test]
-    fn test_simple() {
+    fn test_simple_latin() {
         let analyzer = Analyzer::new(AnalyzerConfig::default());
+
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
-        let tokens = analyzer.analyze(orig);
-        assert_eq!(orig, tokens.tokens().map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
+        let analyzed = analyzer.analyze(orig);
+        let mut analyzed = analyzed.tokens();
+        assert_eq!("The", analyzed.next().unwrap().text());
+        assert_eq!(" ", analyzed.next().unwrap().text());
+        assert_eq!("quick", analyzed.next().unwrap().text());
+        assert_eq!(" ", analyzed.next().unwrap().text());
+        assert_eq!("(", analyzed.next().unwrap().text());
+        assert_eq!("\"", analyzed.next().unwrap().text());
+        assert_eq!("brown", analyzed.next().unwrap().text());
     }
 
     #[test]
-    fn test_simple2() {
-        let mut tokenizer_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        tokenizer_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
-        let analyzer = Analyzer::new(AnalyzerConfig { tokenizer_map });
+    fn test_simple_chinese() {
+        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        
+        let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
+        let analyzed = analyzer.analyze(orig);
+        let mut analyzed = analyzed.tokens();
+        assert_eq!("為", analyzed.next().unwrap().text());
+        assert_eq!("一", analyzed.next().unwrap().text());
+        assert_eq!("包含", analyzed.next().unwrap().text());
+        assert_eq!("一千多", analyzed.next().unwrap().text());
+        assert_eq!("萬", analyzed.next().unwrap().text());
+        assert_eq!("目", analyzed.next().unwrap().text());
+        assert_eq!("詞", analyzed.next().unwrap().text());
+        assert_eq!("的", analyzed.next().unwrap().text());
+    }
+
+    #[test]
+    fn test_simple_latin_with_lowercase_normalizer() {
+        let pipeline_lang_map: HashMap<Language, Pipeline> = HashMap::new();
+        let mut pipeline_script_map: HashMap<Script, Pipeline> = HashMap::new();
+        pipeline_script_map.insert(Script::Latin, (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
+        
+        let analyzer = Analyzer::new(AnalyzerConfig { pipeline_lang_map, pipeline_script_map });
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
         assert_eq!("the", analyzed.tokens().next().unwrap().text());
     }
 
     #[test]
-    fn test_reconstruct() {
+    fn test_reconstruct_latin() {
         let analyzer = Analyzer::new(AnalyzerConfig::default());
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+        let tokens = analyzer.analyze(orig);
+        assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
+
+    #[test]
+    fn test_reconstruct_chinese() {
+        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
     }
