@@ -151,7 +151,7 @@ impl Analyzer {
     /// if no Script is detected or no pipeline corresponds to the Script,
     /// the function try to get the default pipeline in the map;
     /// if no default pipeline exist in the map return the librairy DEFAULT_PIPELINE.
-    fn pipeline_from<'a>(&'a self, text: &'a str) -> &Pipeline {
+    fn pipeline_from(&self, text: &str) -> &Pipeline {
         let script = self.detect_script(text);
         let language = self.detect_lang(text);
         self.config.pipeline_map.get(&(script, language))
@@ -162,12 +162,12 @@ impl Analyzer {
 
     /// detect script with whatlang,
     /// if no script is detected, return Script::Other
-    fn detect_script<'a>(&'a self, text: &'a str) -> Script {
+    fn detect_script(&self, text: &str) -> Script {
         whatlang::detect_script(text).map(Script::from).unwrap_or(Script::Other)
     }
     
     /// detect lang (dummy)
-    fn detect_lang<'a>(&'a self, text: &'a str) -> Language {
+    fn detect_lang(&self, text: &str) -> Language {
         Language::Other
     }
 }
