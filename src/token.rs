@@ -15,10 +15,17 @@ pub enum TokenKind {
     /// the token is a separator,
     /// meaning that it shouldn't be indexed but used to determine word proximity
     Separator(SeparatorKind),
+    Any,
+}
+
+impl Default for TokenKind {
+    fn default() -> Self {
+        Self::Any
+    }
 }
 
 /// script of a token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Token<'a> {
     pub kind: TokenKind,
     pub word: Cow<'a, str>,
