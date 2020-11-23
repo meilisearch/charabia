@@ -1,9 +1,5 @@
 use whatlang;
 
-fn detect_script(text: &str) -> Option<whatlang::Script> {
-    whatlang::detect_script(text)
-}
-
 pub fn is_cjk(c: char) -> bool {
     (c >= '\u{1100}' && c <= '\u{11ff}')  // Hangul Jamo
         || (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
