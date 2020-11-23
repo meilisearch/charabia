@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use unicode_segmentation::{UWordBoundIndices, UnicodeSegmentation};
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
@@ -8,32 +8,26 @@ use super::InternalTokenizer;
 use super::TokenStream;
 
 pub struct UnicodeSegmenter;
-pub struct UnicodeSegmenterIterator<'a>(UWordBoundIndices<'a>, usize);
-
-impl<'a> Iterator for UnicodeSegmenterIterator<'a> {
-    type Item = Token<'a>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0
-            .next()
-            .map(|(index, word)| {
-                let char_index = self.1;
-                self.1 += word.chars().count();
-                Token {
-                    kind: TokenKind::Word,
-                    word: Cow::Borrowed(word),
-                    byte_start: index,
-                    char_index,
-                    byte_end: index + word.as_bytes().len(),
-                }
-            })
-    }
-}
 
 impl InternalTokenizer for UnicodeSegmenter {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
+        let stream = s.processed
+            .as_ref()
+            .split_word_bound_indices()
+            .scan(0, |char_index, (byte_index, word)| {
+                let index = *char_index;
+                *char_index += word.chars().count();
+                Some(Token {
+                    kind: TokenKind::Word,
+                    word: Cow::Borrowed(word),
+                    byte_start: byte_index,
+                    char_index: index,
+                    byte_end: byte_index + word.len(),
+                })
+            });
+
         TokenStream {
-            inner: Box::new(UnicodeSegmenterIterator(s.processed.as_ref().split_word_bound_indices(), 0))
+            inner: Box::new(stream)
         }
     }
 }
