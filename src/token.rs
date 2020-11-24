@@ -1,6 +1,12 @@
 use std::borrow::Cow;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SeparatorKind {
+    Hard,
+    Soft,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenKind {
     Word,
     /// the token is a stop word,
@@ -8,11 +14,18 @@ pub enum TokenKind {
     StopWord,
     /// the token is a separator,
     /// meaning that it shouldn't be indexed but used to determine word proximity
-    Separator
+    Separator(SeparatorKind),
+    Any,
+}
+
+impl Default for TokenKind {
+    fn default() -> Self {
+        Self::Any
+    }
 }
 
 /// script of a token (https://docs.rs/whatlang/0.10.0/whatlang/enum.Script.html)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Token<'a> {
     pub kind: TokenKind,
     pub word: Cow<'a, str>,
@@ -38,8 +51,12 @@ impl<'a> Token<'a> {
     pub fn is_word(&self) -> bool {
         self.kind == TokenKind::Word
     }
-    pub fn is_separator(&self) -> bool {
-        self.kind == TokenKind::Separator
+    pub fn is_separator(&self) -> Option<SeparatorKind> {
+        if let TokenKind::Separator(s) = self.kind {
+            Some(s)
+        } else {
+            None
+        }
     }
     pub fn is_stopword(&self) -> bool {
         self.kind == TokenKind::StopWord
