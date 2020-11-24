@@ -1,19 +1,19 @@
 use std::collections::HashSet;
 
+use deunicode::deunicode_char;
+
 use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
 use super::Normalizer;
 
 #[derive(Debug, Default, Clone)]
 pub struct TokenClassifier {
-    hard_separators: HashSet<char>,
-    soft_separators: HashSet<char>,
     stop_words: HashSet<String>,
 }
 
 impl TokenClassifier {
-    pub fn new(stop_words: HashSet<String>, soft_separators: HashSet<char>, hard_separators: HashSet<char>) -> Self {
-        Self { soft_separators, stop_words, hard_separators }
+    pub fn new(stop_words: HashSet<String>) -> Self {
+        Self { stop_words }
     }
 }
 
@@ -24,9 +24,15 @@ impl Normalizer for TokenClassifier {
         if self.stop_words.contains(word) {
             token.kind = TokenKind::StopWord;
             token
-        } else if word.chars().all(|c| {
-            is_hard_separator = self.hard_separators.contains(&c);
-            self.soft_separators.contains(&c) || is_hard_separator
+        } else if word.chars().all(|c| 
+            match classify_separator(c) {
+                Some(SeparatorKind::Hard) => {
+                    is_hard_separator = true;
+                    true
+                }
+                Some(SeparatorKind::Soft) => true,
+
+                None => false,
         }) {
             if is_hard_separator {
                 token.kind = TokenKind::Separator(SeparatorKind::Hard);
@@ -38,6 +44,16 @@ impl Normalizer for TokenClassifier {
             token.kind = TokenKind::Word;
             token
         }
+    }
+}
+fn classify_separator(c: char) -> Option<SeparatorKind> {
+    match c {
+        c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
+        c if deunicode_char(c) == Some("'") => Some(SeparatorKind::Soft), // quotes
+        c if deunicode_char(c) == Some("\"") => Some(SeparatorKind::Soft), // double quotes
+        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(SeparatorKind::Soft),
+        '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(SeparatorKind::Hard),
+        _ => None,
     }
 }
 
@@ -52,8 +68,6 @@ mod test {
     fn separators() {
         let normalizer = TokenClassifier {
             stop_words: ["the"].iter().map(|s| s.to_string()).collect(),
-            soft_separators: [' ', '\t', ','].iter().cloned().collect(),
-            hard_separators: ['.'].iter().cloned().collect(),
         };
 
         let token = normalizer.normalize(Token { word: Cow::Borrowed("   "), ..Default::default() });

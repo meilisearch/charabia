@@ -123,9 +123,9 @@ impl Default for AnalyzerConfig {
 }
 
 impl AnalyzerConfig {
-    pub fn default_with_classfier(stop_words: HashSet<String>, soft_separators: HashSet<char>, hard_separators: HashSet<char>) -> Self {
+    pub fn default_with_stopwords(stop_words: HashSet<String>) -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        let classifier = Box::new(TokenClassifier::new(stop_words, soft_separators, hard_separators));
+        let classifier = Box::new(TokenClassifier::new(stop_words));
 
         let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer), classifier.clone()];
         let chinese_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(LowercaseNormalizer), classifier];
