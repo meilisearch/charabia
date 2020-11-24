@@ -6,9 +6,15 @@ use super::Normalizer;
 
 #[derive(Debug, Default, Clone)]
 pub struct TokenClassifier {
-    pub(crate) hard_separators: HashSet<char>,
-    pub(crate) soft_separators: HashSet<char>,
-    pub(crate) stop_words: HashSet<String>,
+    hard_separators: HashSet<char>,
+    soft_separators: HashSet<char>,
+    stop_words: HashSet<String>,
+}
+
+impl TokenClassifier {
+    pub fn new(stop_words: HashSet<String>, soft_separators: HashSet<char>, hard_separators: HashSet<char>) -> Self {
+        Self { soft_separators, stop_words, hard_separators }
+    }
 }
 
 impl Normalizer for TokenClassifier {

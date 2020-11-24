@@ -13,3 +13,12 @@ pub struct ProcessedText<'a> {
 pub trait PreProcessor: Sync + Send {
     fn process<'a>(&self, s: &'a str) -> ProcessedText<'a>;
 }
+
+impl<T> PreProcessor for Box<T>
+where
+    T: PreProcessor
+{
+    fn process<'a>(&self, s: &'a str) -> ProcessedText<'a> {
+        self.as_ref().process(s)
+    }
+}

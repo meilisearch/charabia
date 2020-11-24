@@ -8,10 +8,35 @@ use crate::internal_tokenizer::{Jieba, UnicodeSegmenter, TokenStream, InternalTo
 use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
 
-pub type Pipeline = (Box<dyn PreProcessor + 'static>, Box<dyn InternalTokenizer + 'static>, Box<dyn Normalizer + 'static>);
+static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
-static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(||
-    (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
+pub struct Pipeline {
+    pre_processor: Box<dyn PreProcessor + 'static>,
+    tokenizer: Box<dyn InternalTokenizer + 'static>,
+    normalizer: Box<dyn Normalizer + 'static>,
+}
+
+impl Default for Pipeline {
+    fn default() -> Self {
+        Self {
+            pre_processor: Box::new(IdentityPreProcessor),
+            tokenizer: Box::new(UnicodeSegmenter),
+            normalizer: Box::new(IdentityNormalizer),
+        }
+    }
+}
+
+impl Pipeline {
+    fn set_tokenizer(mut self, tokenizer: impl InternalTokenizer + 'static) -> Self {
+        self.tokenizer = Box::new(tokenizer);
+        self
+    }
+
+    fn set_normalizer(mut self, normalizer: impl Normalizer + 'static) -> Self {
+        self.normalizer = Box::new(normalizer);
+        self
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Language {
@@ -74,9 +99,9 @@ pub struct AnalyzerConfig {
 impl Default for AnalyzerConfig {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(IdentityNormalizer)));
-        pipeline_map.insert((Script::Mandarin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(IdentityNormalizer)));
-        
+        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default());
+        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default().set_tokenizer(Jieba::default()));
+
         AnalyzerConfig { pipeline_map }
     }
 }
@@ -84,10 +109,11 @@ impl Default for AnalyzerConfig {
 impl AnalyzerConfig {
     pub fn default_with_classfier(stop_words: HashSet<String>, soft_separators: HashSet<char>, hard_separators: HashSet<char>) -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        let classifier = TokenClassifier { soft_separators, stop_words, hard_separators };
-        pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(classifier.clone())));
-        pipeline_map.insert((Script::Mandarin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(Jieba::default()), Box::new(classifier)));
-        
+        let classifier = Box::new(TokenClassifier::new(stop_words, soft_separators, hard_separators));
+
+        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(classifier.clone()));
+        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default().set_tokenizer(Jieba::default()).set_normalizer(classifier));
+
         AnalyzerConfig { pipeline_map }
     }
 }
@@ -108,9 +134,9 @@ pub struct AnalyzedText<'a> {
 impl<'a> AnalyzedText<'a> {
     /// Returns a `TokenStream` for the Analyzed text.
     pub fn tokens(&'a self) -> TokenStream<'a> {
-        let stream = self.pipeline.1
+        let stream = self.pipeline.tokenizer
             .tokenize(&self.processed)
-            .map(move |t| self.pipeline.2.normalize(t));
+            .map(move |t| self.pipeline.normalizer.normalize(t));
         TokenStream {
             inner: Box::new(stream)
         }
@@ -119,7 +145,7 @@ impl<'a> AnalyzedText<'a> {
     /// Attaches each token to its corresponding portion of the original text.
     pub fn reconstruct(&'a self) -> impl Iterator<Item = (&'a str, Token<'a>)> {
         self.tokens().map(move |t| (&self.text[t.byte_start..t.byte_end], t))
-    } 
+    }
 }
 
 impl Analyzer {
@@ -148,7 +174,7 @@ impl Analyzer {
     /// ```
     pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> {
         let pipeline = self.pipeline_from(text);
-        let processed = pipeline.0.process(text);
+        let processed = pipeline.pre_processor.process(text);
 
         AnalyzedText {
             text,
@@ -177,7 +203,7 @@ impl Analyzer {
     fn detect_script(&self, text: &str) -> Script {
         whatlang::detect_script(text).map(Script::from).unwrap_or(Script::Other)
     }
-    
+
     /// detect lang (dummy)
     fn detect_lang(&self, _text: &str) -> Language {
         Language::Other
@@ -209,7 +235,7 @@ mod test {
     #[test]
     fn test_simple_chinese() {
         let analyzer = Analyzer::new(AnalyzerConfig::default());
-        
+
         let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
         let analyzed = analyzer.analyze(orig);
         let mut analyzed = analyzed.tokens();
@@ -226,8 +252,8 @@ mod test {
     #[test]
     fn test_simple_latin_with_lowercase_normalizer() {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        pipeline_map.insert((Script::Latin, Language::Other), (Box::new(IdentityPreProcessor), Box::new(UnicodeSegmenter), Box::new(LowercaseNormalizer)));
-        
+        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(LowercaseNormalizer));
+
         let analyzer = Analyzer::new(AnalyzerConfig { pipeline_map });
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
