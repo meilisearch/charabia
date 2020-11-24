@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 use crate::Token;
 use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
 use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier, DeunicodeNormalizer, LowercaseNormalizer, ChineseTranslationPreProcessor};
-use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
+use crate::processors::{PreProcessor, Replacer, IdentityPreProcessor, ProcessedText};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
@@ -39,6 +39,11 @@ impl Pipeline {
 
     fn set_normalizer(mut self, normalizer: impl Normalizer + 'static) -> Self {
         self.normalizer = Box::new(normalizer);
+        self
+    }
+
+    fn set_processor(mut self, processor: impl PreProcessor + 'static) -> Self {
+        self.pre_processor = Box::new(processor);
         self
     }
 }
@@ -105,7 +110,9 @@ impl Default for AnalyzerConfig {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
+
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
+            .set_processor(Replacer::new(&|c| c == '\'', ' '))
             .set_normalizer(latin_normalizer));
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_tokenizer(Jieba::default())
@@ -125,7 +132,9 @@ impl AnalyzerConfig {
 
         pipeline_map.insert(
             (Script::Latin, Language::Other),
-            Pipeline::default().set_normalizer(latin_normalizer));
+            Pipeline::default()
+            .set_processor(Replacer::new(&|c| c == '\'', ' '))
+            .set_normalizer(latin_normalizer));
 
         pipeline_map.insert(
             (Script::Mandarin, Language::Other),
