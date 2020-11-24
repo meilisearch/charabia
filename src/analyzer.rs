@@ -5,8 +5,8 @@ use once_cell::sync::Lazy;
 
 use crate::Token;
 use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
-use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier};
-use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
+use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier, DeunicodeNormalizer, LowercaseNormalizer, ChineseTranslationPreProcessor};
+use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
@@ -104,8 +104,12 @@ pub struct AnalyzerConfig {
 impl Default for AnalyzerConfig {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default());
-        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default().set_tokenizer(Jieba::default()).set_pre_processor(ChineseTranslationPreProcessor));
+        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
+        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
+            .set_normalizer(latin_normalizer));
+        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
+            .set_tokenizer(Jieba::default())
+            .set_pre_processor(ChineseTranslationPreProcessor));
 
         AnalyzerConfig { pipeline_map }
     }
@@ -116,8 +120,16 @@ impl AnalyzerConfig {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         let classifier = Box::new(TokenClassifier::new(stop_words, soft_separators, hard_separators));
 
-        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(classifier.clone()));
-        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default().set_tokenizer(Jieba::default()).set_normalizer(classifier));
+        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer), classifier.clone()];
+        let chinese_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(LowercaseNormalizer), classifier];
+
+        pipeline_map.insert(
+            (Script::Latin, Language::Other),
+            Pipeline::default().set_normalizer(latin_normalizer));
+
+        pipeline_map.insert(
+            (Script::Mandarin, Language::Other),
+            Pipeline::default().set_tokenizer(Jieba::default()).set_normalizer(chinese_normalizer));
 
         AnalyzerConfig { pipeline_map }
     }
