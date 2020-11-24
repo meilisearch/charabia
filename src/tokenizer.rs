@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 use crate::Token;
 use crate::internal_tokenizer::{Jieba, UnicodeSegmenter, TokenStream, InternalTokenizer};
 use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier};
-use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText};
+use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
@@ -27,6 +27,11 @@ impl Default for Pipeline {
 }
 
 impl Pipeline {
+    fn set_pre_processor(mut self, pre_processor: impl PreProcessor + 'static) -> Self {
+        self.pre_processor = Box::new(pre_processor);
+        self
+    }
+
     fn set_tokenizer(mut self, tokenizer: impl InternalTokenizer + 'static) -> Self {
         self.tokenizer = Box::new(tokenizer);
         self
@@ -100,7 +105,7 @@ impl Default for AnalyzerConfig {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default());
-        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default().set_tokenizer(Jieba::default()));
+        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default().set_tokenizer(Jieba::default()).set_pre_processor(ChineseTranslationPreProcessor));
 
         AnalyzerConfig { pipeline_map }
     }
@@ -236,17 +241,29 @@ mod test {
     fn test_simple_chinese() {
         let analyzer = Analyzer::new(AnalyzerConfig::default());
 
-        let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
+        let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let analyzed = analyzer.analyze(orig);
-        let mut analyzed = analyzed.tokens();
-        assert_eq!("為", analyzed.next().unwrap().text());
-        assert_eq!("一", analyzed.next().unwrap().text());
-        assert_eq!("包含", analyzed.next().unwrap().text());
-        assert_eq!("一千多", analyzed.next().unwrap().text());
-        assert_eq!("萬", analyzed.next().unwrap().text());
-        assert_eq!("目", analyzed.next().unwrap().text());
-        assert_eq!("詞", analyzed.next().unwrap().text());
-        assert_eq!("的", analyzed.next().unwrap().text());
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(
+            analyzed,
+            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应", "以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+        );
+    }
+
+    #[test]
+    fn test_traditional_chinese() {
+        let analyzer = Analyzer::new(AnalyzerConfig::default());
+
+        let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
+        let _simplified = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
+
+        let analyzed = analyzer.analyze(traditional);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+
+        assert_eq!(
+            analyzed,
+            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应", "以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+        );
     }
 
     #[test]
@@ -271,8 +288,16 @@ mod test {
     #[test]
     fn test_reconstruct_chinese() {
         let analyzer = Analyzer::new(AnalyzerConfig::default());
-        let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
+        let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
+
+    #[test]
+    fn test_reconstruct_traditional_chinese() {
+        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
+        let tokens = analyzer.analyze(traditional);
+        assert_eq!(traditional, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
     }
 }

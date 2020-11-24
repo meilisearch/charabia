@@ -1,7 +1,9 @@
+mod chinese_translation;
 mod identity;
 
 use std::borrow::Cow;
 
+pub use chinese_translation::ChineseTranslationPreProcessor;
 pub use identity::IdentityPreProcessor;
 
 #[allow(dead_code)]
