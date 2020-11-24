@@ -1,12 +1,12 @@
 mod chinese_translation;
 mod identity;
-mod replacer;
+mod eraser;
 
 use std::borrow::Cow;
 
 pub use chinese_translation::ChineseTranslationPreProcessor;
 pub use identity::IdentityPreProcessor;
-pub use replacer::Replacer;
+pub use eraser::Eraser;
 
 #[allow(dead_code)]
 pub struct ProcessedText<'a> {

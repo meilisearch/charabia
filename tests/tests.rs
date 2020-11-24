@@ -1,3 +1,15 @@
+use std::println;
+
+use meilisearch_tokenizer::analyzer::{Analyzer, AnalyzerConfig};
+
+#[test]
+fn test_apostrophe_latin() {
+    let analyzer = Analyzer::new(AnalyzerConfig::default());
+    let analyzed = analyzer.analyze("Zut, l’aspirateur, j’ai oublié de l’éteindre !");
+    println!("{:?}", analyzed.tokens().map(|t| t.text().to_string()).collect::<Vec<_>>());
+    println!("{:?}", analyzed.reconstruct().map(|(s, _)| s.to_string()).collect::<String>());
+        
+}
 //#[cfg(test)]
 //mod tests {
     //use meilisearch_tokenizer::*;

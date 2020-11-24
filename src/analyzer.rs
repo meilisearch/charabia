@@ -4,9 +4,9 @@ use std::collections::HashSet;
 use once_cell::sync::Lazy;
 
 use crate::Token;
-use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
 use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier, DeunicodeNormalizer, LowercaseNormalizer, ChineseTranslationPreProcessor};
-use crate::processors::{PreProcessor, Replacer, IdentityPreProcessor, ProcessedText};
+use crate::processors::{PreProcessor, Eraser, IdentityPreProcessor, ProcessedText};
+use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
@@ -112,7 +112,7 @@ impl Default for AnalyzerConfig {
         let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
 
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
-            .set_processor(Replacer::new(&|c| c == '\'', ' '))
+            .set_processor(Eraser::new('’'))
             .set_normalizer(latin_normalizer));
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_tokenizer(Jieba::default())
@@ -133,7 +133,7 @@ impl AnalyzerConfig {
         pipeline_map.insert(
             (Script::Latin, Language::Other),
             Pipeline::default()
-            .set_processor(Replacer::new(&|c| c == '\'', ' '))
+            .set_processor(Eraser::new('’'))
             .set_normalizer(latin_normalizer));
 
         pipeline_map.insert(
@@ -149,8 +149,6 @@ pub struct Analyzer {
 }
 
 pub struct AnalyzedText<'a> {
-    /// Reference to the original text
-    text: &'a str,
     /// Processed text
     processed: ProcessedText<'a>,
     /// Pipeline used to proccess the text
@@ -170,7 +168,7 @@ impl<'a> AnalyzedText<'a> {
 
     /// Attaches each token to its corresponding portion of the original text.
     pub fn reconstruct(&'a self) -> impl Iterator<Item = (&'a str, Token<'a>)> {
-        self.tokens().map(move |t| (&self.text[t.byte_start..t.byte_end], t))
+        self.tokens().map(move |t| (&self.processed.original[t.byte_start..t.byte_end], t))
     }
 }
 
@@ -196,14 +194,15 @@ impl Analyzer {
     /// let analyzer = Analyzer::new(AnalyzerConfig::default());
     /// let analyzed = analyzer.analyze("The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!");
     /// let mut tokens = analyzed.tokens();
-    /// assert!("The" == tokens.next().unwrap().text());
+    /// assert!("the" == tokens.next().unwrap().text());
     /// ```
     pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> {
         let pipeline = self.pipeline_from(text);
         let processed = pipeline.pre_processor.process(text);
 
+        println!("processed: {}", processed.processed);
+
         AnalyzedText {
-            text,
             processed,
             pipeline,
         }
@@ -249,7 +248,7 @@ mod test {
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
         let mut analyzed = analyzed.tokens();
-        assert_eq!("The", analyzed.next().unwrap().text());
+        assert_eq!("the", analyzed.next().unwrap().text());
         assert_eq!(" ", analyzed.next().unwrap().text());
         assert_eq!("quick", analyzed.next().unwrap().text());
         assert_eq!(" ", analyzed.next().unwrap().text());
