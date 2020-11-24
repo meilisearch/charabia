@@ -22,7 +22,7 @@ impl<'a> Iterator for TokenStream<'a> {
 /// trait defining an internal tokenizer,
 /// an internal tokenizer should be a script specialized tokenizer,
 /// this should be implemented as an `Iterator` with `Token` as `Item`,
-pub trait InternalTokenizer: Sync + Send {
+pub trait Tokenizer: Sync + Send {
     /// create the tokenizer based on the given `text` and `char_index`
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a>;
 }

@@ -4,13 +4,13 @@ use jieba_rs::Jieba as JiebaTokenizer;
 
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
-use super::{InternalTokenizer, TokenStream};
+use super::{Tokenizer, TokenStream};
 
 pub struct Jieba {
     jieba: JiebaTokenizer,
 }
 
-impl InternalTokenizer for Jieba {
+impl Tokenizer for Jieba {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
         let tokenized = self.jieba.tokenize(&s.processed, jieba_rs::TokenizeMode::Default, false);
 

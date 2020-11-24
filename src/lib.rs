@@ -1,9 +1,9 @@
 pub mod detection;
-pub mod internal_tokenizer;
+pub mod tokenizer;
 pub mod normalizer;
 pub mod processors;
 pub mod token;
-pub mod tokenizer;
+pub mod analyzer;
 
 pub use token::{Token, TokenKind};
-pub use tokenizer::{AnalyzerConfig, Analyzer};
+pub use analyzer::{AnalyzerConfig, Analyzer};

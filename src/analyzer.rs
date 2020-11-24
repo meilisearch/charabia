@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use once_cell::sync::Lazy;
 
 use crate::Token;
-use crate::internal_tokenizer::{Jieba, UnicodeSegmenter, TokenStream, InternalTokenizer};
+use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
 use crate::normalizer::{Normalizer, IdentityNormalizer, TokenClassifier};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 
@@ -12,7 +12,7 @@ static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
 pub struct Pipeline {
     pre_processor: Box<dyn PreProcessor + 'static>,
-    tokenizer: Box<dyn InternalTokenizer + 'static>,
+    tokenizer: Box<dyn Tokenizer + 'static>,
     normalizer: Box<dyn Normalizer + 'static>,
 }
 
@@ -32,7 +32,7 @@ impl Pipeline {
         self
     }
 
-    fn set_tokenizer(mut self, tokenizer: impl InternalTokenizer + 'static) -> Self {
+    fn set_tokenizer(mut self, tokenizer: impl Tokenizer + 'static) -> Self {
         self.tokenizer = Box::new(tokenizer);
         self
     }
