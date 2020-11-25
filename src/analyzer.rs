@@ -21,7 +21,7 @@ impl Default for Pipeline {
         Self {
             pre_processor: Box::new(IdentityPreProcessor),
             tokenizer: Box::new(UnicodeSegmenter),
-            normalizer: Box::new(IdentityNormalizer),
+            normalizer: Box::new(TokenClassifier::new(HashSet::new())),
         }
     }
 }
@@ -109,14 +109,15 @@ pub struct AnalyzerConfig {
 impl Default for AnalyzerConfig {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
+        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer), Box::new(TokenClassifier::new(HashSet::new()))];
 
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
             .set_processor(Eraser::new('’'))
             .set_normalizer(latin_normalizer));
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_tokenizer(Jieba::default())
-            .set_pre_processor(ChineseTranslationPreProcessor));
+            .set_pre_processor(ChineseTranslationPreProcessor))
+            .set_normalizer(TokenClassifier::new(HashSet::new()));
 
         AnalyzerConfig { pipeline_map }
     }
@@ -200,7 +201,6 @@ impl Analyzer {
         let pipeline = self.pipeline_from(text);
         let processed = pipeline.pre_processor.process(text);
 
-        println!("processed: {}", processed.processed);
 
         AnalyzedText {
             processed,

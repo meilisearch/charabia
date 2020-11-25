@@ -1,5 +1,3 @@
-use std::println;
-
 use meilisearch_tokenizer::analyzer::{Analyzer, AnalyzerConfig};
 
 #[test]
