@@ -1,5 +1,3 @@
-use whatlang;
-
 pub fn is_cjk(c: char) -> bool {
     (c >= '\u{1100}' && c <= '\u{11ff}')  // Hangul Jamo
         || (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
@@ -17,42 +15,4 @@ pub fn is_cjk(c: char) -> bool {
         || (c >= '\u{d7b0}' && c <= '\u{d7ff}') // Hangul Jamo Extended-B
         || (c >= '\u{f900}' && c <= '\u{faff}') // CJK Compatibility Ideographs
         || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum SeparatorCategory {
-    Soft,
-    Hard,
-}
-
-impl SeparatorCategory {
-    fn merge(self, other: SeparatorCategory) -> SeparatorCategory {
-        if let (Soft, Soft) = (self, other) {
-            Soft
-        } else {
-            Hard
-        }
-    }
-
-    fn to_usize(self) -> usize {
-        match self {
-            Soft => 1,
-            Hard => 8,
-        }
-    }
-}
-
-fn is_separator(c: char) -> bool {
-    classify_separator(c).is_some()
-}
-
-fn classify_separator(c: char) -> Option<SeparatorCategory> {
-    match c {
-        c if c.is_whitespace() => Some(Soft), // whitespaces
-        c if deunicode_char(c) == Some("'") => Some(Soft), // quotes
-        c if deunicode_char(c) == Some("\"") => Some(Soft), // double quotes
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(Hard),
-        _ => None,
-    }
 }
