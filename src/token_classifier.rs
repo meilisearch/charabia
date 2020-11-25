@@ -4,27 +4,24 @@ use deunicode::deunicode_char;
 
 use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
-use super::Normalizer;
 
-#[derive(Debug, Default, Clone)]
-pub struct TokenClassifier {
-    stop_words: HashSet<String>,
+#[derive(Debug,  Clone)]
+pub struct TokenClassifier<'a> {
+    stop_words: &'a HashSet<String>,
 }
 
-impl TokenClassifier {
-    pub fn new(stop_words: HashSet<String>) -> Self {
+impl<'a> TokenClassifier<'a> {
+    pub fn new(stop_words: &'a HashSet<String>) -> Self {
         Self { stop_words }
     }
-}
 
-impl Normalizer for TokenClassifier {
-    fn normalize<'a>(&self, mut token: Token<'a>) -> Token<'a> {
+    pub fn classify<'t>(&self, mut token: Token<'t>) -> Token<'t> {
         let word = token.word.as_ref();
         let mut is_hard_separator = false;
         if self.stop_words.contains(word) {
             token.kind = TokenKind::StopWord;
             token
-        } else if word.chars().all(|c| 
+        } else if word.chars().all(|c|
             match classify_separator(c) {
                 Some(SeparatorKind::Hard) => {
                     is_hard_separator = true;
@@ -46,6 +43,7 @@ impl Normalizer for TokenClassifier {
         }
     }
 }
+
 fn classify_separator(c: char) -> Option<SeparatorKind> {
     match c {
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
@@ -66,40 +64,37 @@ mod test {
 
     #[test]
     fn separators() {
-        let normalizer = TokenClassifier {
-            stop_words: ["the"].iter().map(|s| s.to_string()).collect(),
-        };
+        let stop_words = HashSet::new();
+        let classifier = TokenClassifier::new(&stop_words);
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("   "), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("   "), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed(",   "), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("@   "), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("."), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("."), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("   ."), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("   ."), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
         assert!(token.is_word());
     }
 
     #[test]
     fn stop_words() {
-        let normalizer = TokenClassifier {
-            stop_words: ["the"].iter().map(|s| s.to_string()).collect(),
-            ..Default::default()
-        };
+        let stop_words = ["the"].iter().map(|s| s.to_string()).collect();
+        let classifier = TokenClassifier::new(&stop_words);
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("the"), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("the"), ..Default::default() });
         assert!(token.is_stopword());
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("The"), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("The"), ..Default::default() });
         assert!(token.is_word());
 
-        let token = normalizer.normalize(Token { word: Cow::Borrowed("foobar"), ..Default::default() });
+        let token = classifier.classify(Token { word: Cow::Borrowed("foobar"), ..Default::default() });
         assert!(token.is_word());
     }
 }

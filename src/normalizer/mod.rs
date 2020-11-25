@@ -1,14 +1,12 @@
 mod identity;
 mod lowercase;
 mod deunicoder;
-mod token_classifier;
 
 use crate::Token;
 
 pub use identity::IdentityNormalizer;
 pub use lowercase::LowercaseNormalizer;
 pub use deunicoder::DeunicodeNormalizer;
-pub use token_classifier::TokenClassifier;
 
 pub trait Normalizer: Sync + Send {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;
@@ -73,7 +71,7 @@ mod test {
         let token_d = deunicoder.normalize(token.clone());
         assert_eq!(token_d.word, "生而自由");
 
-        let composed_normalizer: &[&dyn Normalizer] = &[&LowercaseNormalizer, &Box::new(deunicoder), &Arc::new(LowercaseNormalizer)];
+        let composed_normalizer: &[Box<dyn Normalizer>] = &[Box::new(LowercaseNormalizer), Box::new(deunicoder), Box::new(LowercaseNormalizer)];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "生而自由");
 
