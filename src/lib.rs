@@ -1,3 +1,4 @@
+pub mod detection;
 pub mod internal_tokenizer;
 pub mod normalizer;
 pub mod processors;
