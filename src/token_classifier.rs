@@ -50,10 +50,8 @@ where
 }
 
 fn classify_separator(c: char) -> Option<SeparatorKind> {
-    match c {
+    match deunicode_char(c)?.chars().next()? {
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        c if deunicode_char(c) == Some("'") => Some(SeparatorKind::Soft), // quotes
-        c if deunicode_char(c) == Some("\"") => Some(SeparatorKind::Soft), // double quotes
         '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(SeparatorKind::Soft),
         '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(SeparatorKind::Hard),
         _ => None,
@@ -82,6 +80,9 @@ mod test {
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("   ."), ..Default::default() });
+        assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
+
+        let token = classifier.classify(Token { word: Cow::Borrowed("  。"), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
