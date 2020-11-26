@@ -1,5 +1,6 @@
 mod jieba;
 mod unicode_segmenter;
+mod legacy_meilisearch;
 
 pub use jieba::Jieba;
 pub use unicode_segmenter::UnicodeSegmenter;
