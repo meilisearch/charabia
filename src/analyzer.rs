@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 use fst::Set;
 
-use crate::Token;
+use crate::detection::is_cjk;
 use crate::normalizer::{Normalizer, IdentityNormalizer, DeunicodeNormalizer, LowercaseNormalizer};
 use crate::processors::{PreProcessor, Eraser, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 use crate::token_classifier::TokenClassifier;
+use crate::Token;
 use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
@@ -114,14 +115,20 @@ where
 {
     pub fn default_with_stopwords(stop_words: &'a Set<A>) -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
 
+        // Latin script specialized pipeline
+        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
             .set_processor(Eraser::new('’'))
             .set_normalizer(latin_normalizer));
+        
+        // Chinese script specialized pipeline
+        let chinese_deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, |c| is_cjk(c)));
+        let chinese_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(chinese_deunicoder), Box::new(LowercaseNormalizer)];
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_pre_processor(ChineseTranslationPreProcessor)
-            .set_tokenizer(Jieba::default()));
+            .set_tokenizer(Jieba::default())
+            .set_normalizer(chinese_normalizer));
 
         AnalyzerConfig { pipeline_map, stop_words }
     }
@@ -269,7 +276,7 @@ mod test {
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应", "以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            ["人人", "生而自由", ",", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", ",", "并", "应", "以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
         );
     }
 
@@ -286,7 +293,7 @@ mod test {
 
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应", "以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            ["人人", "生而自由", ",", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", ",", "并", "应", "以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
         );
     }
 
