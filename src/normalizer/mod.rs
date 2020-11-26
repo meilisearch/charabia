@@ -1,38 +1,26 @@
 mod identity;
 mod lowercase;
 mod deunicoder;
-mod token_classifier;
-
-use std::sync::Arc;
 
 use crate::Token;
 
 pub use identity::IdentityNormalizer;
 pub use lowercase::LowercaseNormalizer;
 pub use deunicoder::DeunicodeNormalizer;
-pub use token_classifier::TokenClassifier;
 
 pub trait Normalizer: Sync + Send {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;
 }
 
-impl Normalizer for &[&dyn Normalizer] {
+impl Normalizer for &[Box<dyn Normalizer>] {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
         self.iter().fold(token, |token, normalizer| normalizer.normalize(token))
     }
 }
 
-impl<T> Normalizer for Box<T>
-where T: Normalizer {
+impl Normalizer for Vec<Box<dyn Normalizer>> {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
-        self.as_ref().normalize(token)
-    }
-}
-
-impl<T> Normalizer for Arc<T>
-where T: Normalizer {
-    fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
-        self.as_ref().normalize(token)
+        (&self[..]).normalize(token)
     }
 }
 
@@ -59,7 +47,7 @@ mod test {
         let token_d = DeunicodeNormalizer::default().normalize(token.clone());
         assert_eq!(token_d.word, "AEneid");
 
-        let composed_normalizer: &[&dyn Normalizer] = &[&LowercaseNormalizer, &Box::new(DeunicodeNormalizer::default()), &Arc::new(LowercaseNormalizer)];
+        let composed_normalizer: &[Box<dyn Normalizer>] = &[Box::new(LowercaseNormalizer), Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "aeneid");
 
@@ -83,7 +71,7 @@ mod test {
         let token_d = deunicoder.normalize(token.clone());
         assert_eq!(token_d.word, "生而自由");
 
-        let composed_normalizer: &[&dyn Normalizer] = &[&LowercaseNormalizer, &Box::new(deunicoder), &Arc::new(LowercaseNormalizer)];
+        let composed_normalizer: &[Box<dyn Normalizer>] = &[Box::new(LowercaseNormalizer), Box::new(deunicoder), Box::new(LowercaseNormalizer)];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "生而自由");
 

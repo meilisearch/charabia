@@ -4,12 +4,12 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
-use super::InternalTokenizer;
+use super::Tokenizer;
 use super::TokenStream;
 
 pub struct UnicodeSegmenter;
 
-impl InternalTokenizer for UnicodeSegmenter {
+impl Tokenizer for UnicodeSegmenter {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
         let stream = s.processed
             .as_ref()
