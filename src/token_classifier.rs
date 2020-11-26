@@ -1,17 +1,22 @@
-use std::collections::HashSet;
-
 use deunicode::deunicode_char;
+use fst::Set;
 
 use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
 
 #[derive(Debug,  Clone)]
-pub struct TokenClassifier<'a> {
-    stop_words: &'a HashSet<String>,
+pub struct TokenClassifier<'a, A>
+where
+    A: AsRef<[u8]>
+{
+    stop_words: &'a Set<A>,
 }
 
-impl<'a> TokenClassifier<'a> {
-    pub fn new(stop_words: &'a HashSet<String>) -> Self {
+impl<'a, A> TokenClassifier<'a, A>
+where
+    A: AsRef<[u8]>
+{
+    pub fn new(stop_words: &'a Set<A>) -> Self {
         Self { stop_words }
     }
 
@@ -45,10 +50,8 @@ impl<'a> TokenClassifier<'a> {
 }
 
 fn classify_separator(c: char) -> Option<SeparatorKind> {
-    match c {
+    match deunicode_char(c)?.chars().next()? {
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        c if deunicode_char(c) == Some("'") => Some(SeparatorKind::Soft), // quotes
-        c if deunicode_char(c) == Some("\"") => Some(SeparatorKind::Soft), // double quotes
         '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(SeparatorKind::Soft),
         '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(SeparatorKind::Hard),
         _ => None,
@@ -64,7 +67,7 @@ mod test {
 
     #[test]
     fn separators() {
-        let stop_words = HashSet::new();
+        let stop_words = Set::default();
         let classifier = TokenClassifier::new(&stop_words);
 
         let token = classifier.classify(Token { word: Cow::Borrowed("   "), ..Default::default() });
@@ -79,13 +82,16 @@ mod test {
         let token = classifier.classify(Token { word: Cow::Borrowed("   ."), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
+        let token = classifier.classify(Token { word: Cow::Borrowed("  。"), ..Default::default() });
+        assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
+
         let token = classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
         assert!(token.is_word());
     }
 
     #[test]
     fn stop_words() {
-        let stop_words = ["the"].iter().map(|s| s.to_string()).collect();
+        let stop_words = Set::from_iter(["the"].iter()).unwrap();
         let classifier = TokenClassifier::new(&stop_words);
 
         let token = classifier.classify(Token { word: Cow::Borrowed("the"), ..Default::default() });

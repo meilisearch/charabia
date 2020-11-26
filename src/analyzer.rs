@@ -1,6 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
+use fst::Set;
 
 use crate::Token;
 use crate::normalizer::{Normalizer, IdentityNormalizer, DeunicodeNormalizer, LowercaseNormalizer};
@@ -100,15 +101,18 @@ make_script! {
     Thai
 }
 
-pub struct AnalyzerConfig {
+pub struct AnalyzerConfig<'a, A> {
     /// language specialized tokenizer, this can be switched during
     /// document tokenization if the document contains several languages
     pub pipeline_map: HashMap<(Script, Language), Pipeline>,
-    pub stop_words: HashSet<String>,
+    pub stop_words: &'a Set<A>,
 }
 
-impl Default for AnalyzerConfig {
-    fn default() -> Self {
+impl<'a, A> AnalyzerConfig<'a, A>
+where
+    A: AsRef<[u8]>,
+{
+    pub fn default_with_stopwords(stop_words: &'a Set<A>) -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
 
@@ -118,35 +122,35 @@ impl Default for AnalyzerConfig {
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_pre_processor(ChineseTranslationPreProcessor)
             .set_tokenizer(Jieba::default()));
-        
-        let stop_words = HashSet::new();
 
         AnalyzerConfig { pipeline_map, stop_words }
     }
-}
 
-impl AnalyzerConfig {
-    pub fn default_with_stopwords(stop_words: HashSet<String>) -> Self {
-        let mut this = Self::default();
-        this.stop_words = stop_words;
-        this
+    pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>, stop_words: &'a Set<A>) -> Self {
+        Self { pipeline_map, stop_words }
     }
 }
 
-pub struct Analyzer {
-    config: AnalyzerConfig,
+pub struct Analyzer<'a, A> {
+    config: AnalyzerConfig<'a, A>,
 }
 
-pub struct AnalyzedText<'a> {
+pub struct AnalyzedText<'a, A>
+where
+    A: AsRef<[u8]>
+{
     /// Processed text
     processed: ProcessedText<'a>,
     /// Pipeline used to proccess the text
     pipeline: &'a Pipeline,
     /// Classifier used to give token a kind
-    classifier: TokenClassifier<'a>,
+    classifier: TokenClassifier<'a, A>,
 }
 
-impl<'a> AnalyzedText<'a> {
+impl<'a, A> AnalyzedText<'a, A>
+where
+    A: AsRef<[u8]>
+{
     /// Returns a `TokenStream` for the Analyzed text.
     pub fn tokens(&'a self) -> TokenStream<'a> {
         let stream = self.pipeline.tokenizer
@@ -164,10 +168,13 @@ impl<'a> AnalyzedText<'a> {
     }
 }
 
-impl Analyzer {
+impl<'a, A> Analyzer<'a, A>
+where
+    A: AsRef<[u8]>
+{
     /// create a new tokenizer detecting script
     /// and chose the specialized internal tokenizer
-    pub fn new(config: AnalyzerConfig) -> Self {
+    pub fn new(config: AnalyzerConfig<'a, A>) -> Self {
         Self {
             config,
         }
@@ -182,13 +189,15 @@ impl Analyzer {
     ///
     /// ```rust
     /// use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
+    /// use fst::Set;
     /// // defaults to unicode segmenter with identity preprocessor and normalizer.
-    /// let analyzer = Analyzer::new(AnalyzerConfig::default());
+    /// let stop_words = Set::from_iter([""].iter()).unwrap();
+    /// let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
     /// let analyzed = analyzer.analyze("The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!");
     /// let mut tokens = analyzed.tokens();
     /// assert!("the" == tokens.next().unwrap().text());
     /// ```
-    pub fn analyze<'a>(&'a self, text: &'a str) -> AnalyzedText<'a> {
+    pub fn analyze<'t>(&'t self, text: &'t str) -> AnalyzedText<'t, A> {
         let pipeline = self.pipeline_from(text);
         let processed = pipeline.pre_processor.process(text);
         let classifier = TokenClassifier::new(&self.config.stop_words);
@@ -235,7 +244,8 @@ mod test {
 
     #[test]
     fn test_simple_latin() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
 
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
@@ -251,7 +261,8 @@ mod test {
 
     #[test]
     fn test_simple_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
 
         let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let analyzed = analyzer.analyze(orig);
@@ -264,7 +275,8 @@ mod test {
 
     #[test]
     fn test_traditional_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
 
         let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
         let _simplified = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
@@ -283,7 +295,8 @@ mod test {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(LowercaseNormalizer));
 
-        let analyzer = Analyzer::new(AnalyzerConfig { pipeline_map, ..Default::default() });
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map, &stop_words));
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
         assert_eq!("the", analyzed.tokens().next().unwrap().text());
@@ -291,7 +304,8 @@ mod test {
 
     #[test]
     fn test_reconstruct_latin() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
@@ -299,7 +313,8 @@ mod test {
 
     #[test]
     fn test_reconstruct_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
         let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
@@ -307,7 +322,8 @@ mod test {
 
     #[test]
     fn test_reconstruct_traditional_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let stop_words = Set::from_iter([""].iter()).unwrap();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
         let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
         let tokens = analyzer.analyze(traditional);
         assert_eq!(traditional, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
