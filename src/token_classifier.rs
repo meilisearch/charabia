@@ -4,10 +4,8 @@ use fst::Set;
 use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
 
-#[derive(Debug,  Clone)]
+#[derive(Clone)]
 pub struct TokenClassifier<'a, A>
-where
-    A: AsRef<[u8]>
 {
     stop_words: &'a Set<A>,
 }
