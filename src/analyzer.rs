@@ -166,10 +166,7 @@ where
     }
 }
 
-impl<'a, A> Analyzer<'a, A>
-where
-    A: AsRef<[u8]>
-{
+impl<'a, A> Analyzer<'a, A> {
     /// create a new tokenizer detecting script
     /// and chose the specialized internal tokenizer
     pub fn new(config: AnalyzerConfig<'a, A>) -> Self {
