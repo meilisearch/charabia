@@ -4,7 +4,7 @@ use meilisearch_tokenizer::analyzer::{Analyzer, AnalyzerConfig};
 
 #[test]
 fn test_apostrophe_latin() {
-    let stop_words = Set::from_iter([""].iter()).unwrap();
+    let stop_words = Set::default();
     let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
     let analyzed = analyzer.analyze("Zut, l’aspirateur, j’ai oublié de l’éteindre !");
     println!("{:?}", analyzed.tokens().map(|t| t.text().to_string()).collect::<Vec<_>>());

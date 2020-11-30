@@ -4,22 +4,22 @@ use fst::Set;
 use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
 
-#[derive(Debug,  Clone)]
+#[derive(Clone)]
 pub struct TokenClassifier<'a, A>
-where
-    A: AsRef<[u8]>
 {
     stop_words: &'a Set<A>,
+}
+
+impl<'a, A> TokenClassifier<'a, A> {
+    pub fn new(stop_words: &'a Set<A>) -> Self {
+        Self { stop_words }
+    }
 }
 
 impl<'a, A> TokenClassifier<'a, A>
 where
     A: AsRef<[u8]>
 {
-    pub fn new(stop_words: &'a Set<A>) -> Self {
-        Self { stop_words }
-    }
-
     pub fn classify<'t>(&self, mut token: Token<'t>) -> Token<'t> {
         let word = token.word.as_ref();
         let mut is_hard_separator = false;
