@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use once_cell::sync::Lazy;
 use fst::Set;
+use once_cell::sync::Lazy;
 
 use crate::detection::is_cjk;
 use crate::normalizer::{Normalizer, IdentityNormalizer, DeunicodeNormalizer, LowercaseNormalizer};
