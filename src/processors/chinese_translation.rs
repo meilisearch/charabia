@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 
 use super::{PreProcessor, ProcessedText};
 
-static CHARACTER_CONVERTER: Lazy<CharacterConverter> = Lazy::new(|| CharacterConverter::new());
+static CHARACTER_CONVERTER: Lazy<CharacterConverter> = Lazy::new(CharacterConverter::new);
 
 pub struct ChineseTranslationPreProcessor;
 

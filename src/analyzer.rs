@@ -10,7 +10,7 @@ use crate::token_classifier::TokenClassifier;
 use crate::Token;
 use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
 
-static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
+static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(Pipeline::default);
 
 pub struct Pipeline {
     pre_processor: Box<dyn PreProcessor + 'static>,
@@ -123,7 +123,7 @@ where
             .set_normalizer(latin_normalizer));
         
         // Chinese script specialized pipeline
-        let chinese_deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, |c| is_cjk(c)));
+        let chinese_deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, is_cjk));
         let chinese_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(chinese_deunicoder), Box::new(LowercaseNormalizer)];
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_pre_processor(ChineseTranslationPreProcessor)
