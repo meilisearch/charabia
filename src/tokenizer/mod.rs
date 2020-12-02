@@ -4,6 +4,7 @@ mod legacy_meilisearch;
 
 pub use jieba::Jieba;
 pub use unicode_segmenter::UnicodeSegmenter;
+pub use legacy_meilisearch::LegacyMeilisearch;
 
 use crate::Token;
 use crate::processors::ProcessedText;

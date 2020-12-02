@@ -5,10 +5,10 @@ use once_cell::sync::Lazy;
 
 use crate::detection::is_cjk;
 use crate::normalizer::{Normalizer, IdentityNormalizer, DeunicodeNormalizer, LowercaseNormalizer};
-use crate::processors::{PreProcessor, Eraser, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
+use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 use crate::token_classifier::TokenClassifier;
 use crate::Token;
-use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer};
+use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer, LegacyMeilisearch};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(|| Pipeline::default());
 
@@ -34,18 +34,13 @@ impl Pipeline {
         self
     }
 
-    fn set_tokenizer(mut self, tokenizer: impl Tokenizer + 'static) -> Self {
+    pub fn set_tokenizer(mut self, tokenizer: impl Tokenizer + 'static) -> Self {
         self.tokenizer = Box::new(tokenizer);
         self
     }
 
-    fn set_normalizer(mut self, normalizer: impl Normalizer + 'static) -> Self {
+    pub fn set_normalizer(mut self, normalizer: impl Normalizer + 'static) -> Self {
         self.normalizer = Box::new(normalizer);
-        self
-    }
-
-    fn set_processor(mut self, processor: impl PreProcessor + 'static) -> Self {
-        self.pre_processor = Box::new(processor);
         self
     }
 }
@@ -119,9 +114,9 @@ where
         // Latin script specialized pipeline
         let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
-            .set_processor(Eraser::new('’'))
+            .set_tokenizer(LegacyMeilisearch)
             .set_normalizer(latin_normalizer));
-        
+
         // Chinese script specialized pipeline
         let chinese_deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, |c| is_cjk(c)));
         let chinese_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(chinese_deunicoder), Box::new(LowercaseNormalizer)];
