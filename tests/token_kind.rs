@@ -11,7 +11,6 @@ fn test() {
     let mut tokens = analyzed.tokens();
     assert!(tokens.next().unwrap().is_word());
     assert_eq!(tokens.next().unwrap().is_separator(), Some(SeparatorKind::Hard));
-    assert_eq!(tokens.next().unwrap().is_separator(), Some(SeparatorKind::Soft));
     assert!(tokens.next().unwrap().is_stopword());
     assert_eq!(tokens.next().unwrap().is_separator(), Some(SeparatorKind::Soft));
     assert!(tokens.next().unwrap().is_word());
