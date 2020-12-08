@@ -250,9 +250,7 @@ mod test {
         assert_eq!("the", analyzed.next().unwrap().text());
         assert_eq!(" ", analyzed.next().unwrap().text());
         assert_eq!("quick", analyzed.next().unwrap().text());
-        assert_eq!(" ", analyzed.next().unwrap().text());
-        assert_eq!("(", analyzed.next().unwrap().text());
-        assert_eq!("\"", analyzed.next().unwrap().text());
+        assert_eq!(" (\"", analyzed.next().unwrap().text());
         assert_eq!("brown", analyzed.next().unwrap().text());
     }
 

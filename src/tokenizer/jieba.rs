@@ -1,18 +1,20 @@
 use std::borrow::Cow;
 
 use jieba_rs::Jieba as JiebaTokenizer;
+use once_cell::sync::Lazy;
 
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
 use super::{Tokenizer, TokenStream};
 
-pub struct Jieba {
-    jieba: JiebaTokenizer,
-}
+static JIEBA: Lazy<JiebaTokenizer> = Lazy::new(|| JiebaTokenizer::new());
+
+#[derive(Debug, Default)]
+pub struct Jieba;
 
 impl Tokenizer for Jieba {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
-        let tokenized = self.jieba.tokenize(&s.processed, jieba_rs::TokenizeMode::Default, false);
+        let tokenized = JIEBA.tokenize(&s.processed, jieba_rs::TokenizeMode::Default, false);
 
         let original_byte_len = s.original.len();
         let mut original = s.original.char_indices()
@@ -57,16 +59,10 @@ impl Tokenizer for Jieba {
     }
 }
 
-impl Default for Jieba {
-    fn default() -> Self { Jieba { jieba: JiebaTokenizer::new() } }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use once_cell::sync::Lazy;
 
-    static JIEBA_TOKENIZER: Lazy<Jieba> = Lazy::new(|| Jieba::default());
 
     #[test]
     fn test_simple() {
@@ -75,20 +71,20 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let tokens = JIEBA_TOKENIZER.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        let tokens = Jieba.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
         assert_eq!(
             tokens,
             ["The", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ",
             "can", "\'", "t", " ", "jump", " ", "32", ".", "3", " ", "feet", ",", " ",
             "right", "?", " ", "Brr", ",", " ", "it", "\'", "s", " ", "29", ".", "3", "°", "F", "!"]
         );
-        
+
         let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
         let processed = ProcessedText {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let tokens = JIEBA_TOKENIZER.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        let tokens = Jieba.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
         assert_eq!(
             tokens,
             ["為", "一", "包含", "一千多", "萬", "目", "詞", "的", "帶", "標", "記", "平衡", "語", "料", "庫"]
@@ -102,15 +98,15 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let tokens = JIEBA_TOKENIZER.tokenize(&processed);
+        let tokens = Jieba.tokenize(&processed);
         assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
-        
+
         let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
         let processed = ProcessedText {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let tokens = JIEBA_TOKENIZER.tokenize(&processed);
+        let tokens = Jieba.tokenize(&processed);
         assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
     }
 
@@ -121,7 +117,7 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let positions = JIEBA_TOKENIZER.tokenize(&processed).map(|Token { char_index, .. }| char_index).collect::<Vec<_>>();
+        let positions = Jieba.tokenize(&processed).map(|Token { char_index, .. }| char_index).collect::<Vec<_>>();
         assert_eq!(
             positions,
             [0, 3, 4, 9, 10, 11, 12, 17, 18, 19, 20,
@@ -135,7 +131,7 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let positions = JIEBA_TOKENIZER.tokenize(&processed).map(|Token { char_index, .. }| char_index).collect::<Vec<_>>();
+        let positions = Jieba.tokenize(&processed).map(|Token { char_index, .. }| char_index).collect::<Vec<_>>();
         assert_eq!(
             positions,
             [0, 1, 2, 4, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18]
