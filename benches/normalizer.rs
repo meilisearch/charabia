@@ -46,7 +46,6 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 }
 
 fn run(analyzer: &Analyzer<Vec<u8>>, text: &str) {
-
     let analyzed = analyzer.analyze(text);
     
     black_box::<Vec<Token>>(analyzed.tokens().collect());
