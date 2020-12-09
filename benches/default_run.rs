@@ -1,7 +1,7 @@
 use criterion::{black_box, BenchmarkId, Criterion};
 use fst::Set;
 
-use meilisearch_tokenizer::{Analyzer, AnalyzerConfig, Token};
+use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
 
 pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
     let stop_words = Set::default();
@@ -25,5 +25,5 @@ fn run(analyzer: &Analyzer<Vec<u8>>, text: &str) {
 
     let analyzed = analyzer.analyze(text);
     
-    black_box::<Vec<Token>>(analyzed.tokens().collect());
+    black_box(analyzed.tokens().count());
 }

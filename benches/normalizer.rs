@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use criterion::{BenchmarkId, Criterion, black_box};
 use fst::Set;
  
-use meilisearch_tokenizer::{Analyzer, AnalyzerConfig, Token};
+use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
 use meilisearch_tokenizer::analyzer::{Language, Pipeline, Script};
 use meilisearch_tokenizer::normalizer::{DeunicodeNormalizer, IdentityNormalizer, LowercaseNormalizer, Normalizer};
 use meilisearch_tokenizer::tokenizer::LegacyMeilisearch;
@@ -49,5 +49,5 @@ fn run(analyzer: &Analyzer<Vec<u8>>, text: &str) {
 
     let analyzed = analyzer.analyze(text);
     
-    black_box::<Vec<Token>>(analyzed.tokens().collect());
+    black_box(analyzed.tokens().count());
 }
