@@ -15,7 +15,7 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
     let mut group = c.benchmark_group("default-run");
 
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("default-run", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("default-run", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     group.finish();
@@ -25,5 +25,5 @@ fn run(analyzer: &Analyzer<Vec<u8>>, text: &str) {
 
     let analyzed = analyzer.analyze(text);
     
-    black_box(analyzed.tokens().count());
+    black_box(analyzed.tokens().for_each(|_|{}));
 }

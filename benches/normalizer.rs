@@ -29,17 +29,17 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 
     let analyzer = init_analyzer_with_normalizer(IdentityNormalizer, &stop_words);
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("IdentityNormalizer", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("IdentityNormalizer", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     let analyzer = init_analyzer_with_normalizer(DeunicodeNormalizer::default(), &stop_words);
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("DeunicodeNormalizer", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("DeunicodeNormalizer", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     let analyzer = init_analyzer_with_normalizer(LowercaseNormalizer, &stop_words);
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("LowercaseNormalizer", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("LowercaseNormalizer", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     group.finish();
@@ -48,5 +48,5 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 fn run(analyzer: &Analyzer<Vec<u8>>, text: &str) {
     let analyzed = analyzer.analyze(text);
     
-    black_box(analyzed.tokens().count());
+    black_box(analyzed.tokens().for_each(|_|{}));
 }

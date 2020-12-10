@@ -28,17 +28,17 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 
     let analyzer = init_analyzer_with_tokenizer(LegacyMeilisearch, &stop_words);
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("LegacyMeilisearch", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("LegacyMeilisearch", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     let analyzer = init_analyzer_with_tokenizer(UnicodeSegmenter, &stop_words);
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("UnicodeSegmenter", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("UnicodeSegmenter", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     let analyzer = init_analyzer_with_tokenizer(Jieba, &stop_words);
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("Jieba", name), &(&analyzer, black_box(text)), |b, &(a, s)| b.iter(|| run(a, s)));
+        group.bench_function(BenchmarkId::new("Jieba", name), |b| b.iter(|| run(&analyzer, black_box(text))));
     }
 
     group.finish();
@@ -47,5 +47,5 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 fn run(analyzer: &Analyzer<Vec<u8>>, text: &str) {
     let analyzed = analyzer.analyze(text);
     
-    black_box(analyzed.tokens().count());
+    black_box(analyzed.tokens().for_each(|_|{}));
 }
