@@ -46,7 +46,7 @@ impl<'a> Iterator for LegacyTokenizer<'a> {
         let word = iter.next()?;
 
         let token = Some(Token {
-            kind: TokenKind::Any,
+            kind: TokenKind::Unknown,
             word: Cow::Borrowed(word),
             char_index: self.char_index,
             byte_start: self.byte_index,
