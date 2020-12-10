@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use criterion::{BenchmarkId, Criterion, black_box};
+use criterion::{BenchmarkId, Criterion};
 use fst::Set;
 
 use meilisearch_tokenizer::{Analyzer, AnalyzerConfig, detection::is_cjk};
@@ -13,15 +13,15 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
     let mut group = c.benchmark_group("initialization");
 
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("default", name), black_box(text), |b, s| b.iter(|| default_init(s)));
+        group.bench_with_input(BenchmarkId::new("default", name), text, |b, s| b.iter(|| default_init(s)));
     }
 
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("pre:identity-tok:legacy-nor:deunicode+lowercase", name), black_box(text), |b, s| b.iter(|| legacy_tok_deunicode_lowercase_norm(s)));
+        group.bench_with_input(BenchmarkId::new("pre:identity-tok:legacy-nor:deunicode+lowercase", name), text, |b, s| b.iter(|| legacy_tok_deunicode_lowercase_norm(s)));
     }
 
     for &(name, text) in data_set {
-        group.bench_with_input(BenchmarkId::new("pre:translate-tok:jieba-nor:deunicode+lowercase", name), black_box(text), |b, s| b.iter(|| translation_pre_jieba_tok_deunicode_lowercase_norm(s)));
+        group.bench_with_input(BenchmarkId::new("pre:translate-tok:jieba-nor:deunicode+lowercase", name), text, |b, s| b.iter(|| translation_pre_jieba_tok_deunicode_lowercase_norm(s)));
     }
 
     group.finish();

@@ -28,17 +28,17 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 
     let analyzer = init_analyzer_with_tokenizer(LegacyMeilisearch, &stop_words);
     for &(name, text) in data_set {
-        group.bench_function(BenchmarkId::new("LegacyMeilisearch", name), |b| b.iter(|| run(&analyzer, black_box(text))));
+        group.bench_with_input(BenchmarkId::new("LegacyMeilisearch", name), &(&analyzer, text), |b, &(a, s)| b.iter(|| run(a, s)));
     }
 
     let analyzer = init_analyzer_with_tokenizer(UnicodeSegmenter, &stop_words);
     for &(name, text) in data_set {
-        group.bench_function(BenchmarkId::new("UnicodeSegmenter", name), |b| b.iter(|| run(&analyzer, black_box(text))));
+        group.bench_with_input(BenchmarkId::new("UnicodeSegmenter", name), &(&analyzer, text), |b, &(a, s)| b.iter(|| run(a, s)));
     }
 
     let analyzer = init_analyzer_with_tokenizer(Jieba, &stop_words);
     for &(name, text) in data_set {
-        group.bench_function(BenchmarkId::new("Jieba", name), |b| b.iter(|| run(&analyzer, black_box(text))));
+        group.bench_with_input(BenchmarkId::new("Jieba", name), &(&analyzer, text), |b, &(a, s)| b.iter(|| run(a, s)));
     }
 
     group.finish();
