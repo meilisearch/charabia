@@ -29,7 +29,7 @@ impl Default for Pipeline {
 }
 
 impl Pipeline {
-    fn set_pre_processor(mut self, pre_processor: impl PreProcessor + 'static) -> Self {
+    pub fn set_pre_processor(mut self, pre_processor: impl PreProcessor + 'static) -> Self {
         self.pre_processor = Box::new(pre_processor);
         self
     }
