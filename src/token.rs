@@ -15,12 +15,12 @@ pub enum TokenKind {
     /// the token is a separator,
     /// meaning that it shouldn't be indexed but used to determine word proximity
     Separator(SeparatorKind),
-    Any,
+    Unknown,
 }
 
 impl Default for TokenKind {
     fn default() -> Self {
-        Self::Any
+        Self::Unknown
     }
 }
 
