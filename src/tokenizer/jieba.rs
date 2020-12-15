@@ -14,7 +14,7 @@ pub struct Jieba;
 
 impl Tokenizer for Jieba {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
-        let tokenized = JIEBA.tokenize(&s.processed, jieba_rs::TokenizeMode::Default, false);
+        let tokenized = JIEBA.tokenize(&s.processed, jieba_rs::TokenizeMode::Default, true);
 
         let original_byte_len = s.original.len();
         let mut original = s.original.char_indices()
