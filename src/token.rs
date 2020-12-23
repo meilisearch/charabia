@@ -36,6 +36,14 @@ pub struct Token<'a> {
     pub byte_end: usize,
 }
 
+impl<'a> PartialEq for Token<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.text() == other.text()
+    }
+}
+
+impl<'a> Eq for Token<'a> {}
+
 impl<'a> Token<'a> {
     pub fn text(&self) -> &str {
         self.word.as_ref()
