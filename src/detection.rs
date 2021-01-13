@@ -16,3 +16,22 @@ pub fn is_cjk(c: char) -> bool {
         || (c >= '\u{f900}' && c <= '\u{faff}') // CJK Compatibility Ideographs
         || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
 }
+
+// https://en.wikipedia.org/wiki/Latin_script_in_Unicode
+pub fn is_latin(ch: char) -> bool {
+    matches!(ch,
+        'a'..='z'
+        | 'A'..='Z'
+        | '\u{0080}'..='\u{00FF}'
+        | '\u{0100}'..='\u{017F}'
+        | '\u{0180}'..='\u{024F}'
+        | '\u{0250}'..='\u{02AF}'
+        | '\u{1D00}'..='\u{1D7F}'
+        | '\u{1D80}'..='\u{1DBF}'
+        | '\u{1E00}'..='\u{1EFF}'
+        | '\u{2100}'..='\u{214F}'
+        | '\u{2C60}'..='\u{2C7F}'
+        | '\u{A720}'..='\u{A7FF}'
+        | '\u{AB30}'..='\u{AB6F}'
+    )
+}

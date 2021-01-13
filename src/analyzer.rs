@@ -3,12 +3,12 @@ use std::collections::HashMap;
 use fst::Set;
 use once_cell::sync::Lazy;
 
-use crate::detection::is_cjk;
-use crate::normalizer::{Normalizer, IdentityNormalizer, DeunicodeNormalizer, LowercaseNormalizer};
+use crate::detection::is_latin;
+use crate::normalizer::{Normalizer, DeunicodeNormalizer, LowercaseNormalizer};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 use crate::token_classifier::TokenClassifier;
 use crate::Token;
-use crate::tokenizer::{Jieba, UnicodeSegmenter, TokenStream, Tokenizer, LegacyMeilisearch};
+use crate::tokenizer::{Jieba, TokenStream, Tokenizer, LegacyMeilisearch};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(Pipeline::default);
 
@@ -20,10 +20,14 @@ pub struct Pipeline {
 
 impl Default for Pipeline {
     fn default() -> Self {
+        // Hotfix: make a common default normalizer for every pipeline
+        let deunicoder = DeunicodeNormalizer::new(&|text: &str| !text.chars().next().map_or(true, is_latin));
+        let normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(deunicoder), Box::new(LowercaseNormalizer)];
+
         Self {
             pre_processor: Box::new(IdentityPreProcessor),
-            tokenizer: Box::new(UnicodeSegmenter),
-            normalizer: Box::new(IdentityNormalizer),
+            tokenizer: Box::new(LegacyMeilisearch),
+            normalizer: Box::new(normalizer),
         }
     }
 }
@@ -112,18 +116,13 @@ where
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
 
         // Latin script specialized pipeline
-        let latin_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
-            .set_tokenizer(LegacyMeilisearch)
-            .set_normalizer(latin_normalizer));
+            .set_tokenizer(LegacyMeilisearch));
 
         // Chinese script specialized pipeline
-        let chinese_deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, is_cjk));
-        let chinese_normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(chinese_deunicoder), Box::new(LowercaseNormalizer)];
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_pre_processor(ChineseTranslationPreProcessor)
-            .set_tokenizer(Jieba::default())
-            .set_normalizer(chinese_normalizer));
+            .set_tokenizer(Jieba::default()));
 
         AnalyzerConfig { pipeline_map, stop_words }
     }
@@ -264,7 +263,7 @@ mod test {
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", ",", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", ",", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
         );
     }
 
@@ -281,7 +280,22 @@ mod test {
 
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", ",", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", ",", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+        );
+    }
+    #[test]
+    fn test_mixed_languages() {
+        let stop_words = Set::default();
+        let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
+
+        let traditional = "ABB SáféRing CCCV Базовый с реле SEG WIC1, ТТ-W2+доп.катушка отключ 220 VAC+контакт сраб.реле 1НО+вывод слева+испытательные втулки. 生而自由";
+
+        let analyzed = analyzer.analyze(traditional);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+
+        assert_eq!(
+            analyzed,
+            ["abb", " ", "safering", " ", "cccv", " ", "базовый", " ", "с", " ", "реле", " ", "seg", " ", "wic1", ", ", "тт", "-", "w2+dop", ".", "катушка", " ", "отключ", " ", "220", " ", "vac+kontakt", " ", "сраб", ".", "реле", " ", "1но+вывод", " ", "слева+испытател", "ь", "ные", " ", "втулки", ". ", "生", "而", "自", "由"]
         );
     }
 
