@@ -5,7 +5,7 @@ Library used by Meilisearch to tokenize queries and documents
 
 The tokenizer’s role is to take a sentence or phrase and split it into smaller units of language, called tokens. It finds and retrieves all the words in a string based on the language’s particularities.  
 
-## Particularities
+## Details
 
 MeiliSearch’s tokenizer is modular. It goes field by field, determining the most likely language for the field and running a different pipeline for each language.
 
