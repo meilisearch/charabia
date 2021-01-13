@@ -15,4 +15,11 @@ If you'd like to read more about the tokenizer design, check out the [feature sp
 
 ## Supported languages
 
-Currently, it supports any language that uses the Latin alphabet, as well as Chinese, Japanese, and Korean.
+Currently, the MeiliSearch tokenizer is optimized for four languages:
+
+- **English**  🇬🇧
+- **Chinese** 🇨🇳
+- **Japanese** 🇯🇵
+- **Korean** 🇰🇷
+
+It also supports any language that uses the Latin alphabet. **Results may vary in languages with long compound words, such as German.**
