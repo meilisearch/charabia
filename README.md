@@ -9,7 +9,9 @@ The tokenizer’s role is to take a sentence or phrase and split it into smaller
 
 MeiliSearch’s tokenizer is modular. It goes field by field, determining the most likely language for the field and running a different pipeline for each language.
 
-The tokenizer identifies words made of one or more Hanzi / Kanji characters. In addition, a single search query will give results in both traditional and simplified Chinese.
+Pipelines include language-specific processes. For example, the Chinese pipeline converts all text into simplified Chinese before tokenization, allowing a single search query to give results in both traditional and simplified Chinese.
+
+If you'd like to read more about the tokenizer design, check out the [feature specification](https://github.com/meilisearch/specifications/blob/master/text/0001-script-based-tokenizer.md).
 
 ## Supported languages
 
