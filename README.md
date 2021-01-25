@@ -15,11 +15,9 @@ If you'd like to read more about the tokenizer design, check out the [feature sp
 
 ## Supported languages
 
-Currently, the MeiliSearch tokenizer is optimized for four languages:
+**MeiliSearch is multilingual**, featuring optimized support for:
 
-- **English**  🇬🇧
-- **Chinese** 🇨🇳
-- **Japanese** 🇯🇵
-- **Korean** 🇰🇷
+- **Any language that uses whitespace to separate words**
+- **Chinese** 🇨🇳 (through [Jieba](https://github.com/messense/jieba-rs))
 
-It also supports any language that uses the Latin alphabet. **Results may vary in languages with long compound words, such as German.**
+We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/guides/advanced_guides/tokenization.html#language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/MeiliSearch/issues/new/choose).
