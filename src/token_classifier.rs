@@ -52,8 +52,8 @@ where
 fn classify_separator(c: char) -> Option<SeparatorKind> {
     match deunicode_char(c)?.chars().next()? {
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(SeparatorKind::Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(SeparatorKind::Hard),
+        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => Some(SeparatorKind::Soft),
+        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
         _ => None,
     }
 }
@@ -71,6 +71,9 @@ mod test {
         let classifier = TokenClassifier::new(&stop_words);
 
         let token = classifier.classify(Token { word: Cow::Borrowed("   "), ..Default::default() });
+        assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
+
+        let token = classifier.classify(Token { word: Cow::Borrowed("\" "), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("@   "), ..Default::default() });
