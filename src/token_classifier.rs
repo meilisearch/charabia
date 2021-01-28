@@ -52,8 +52,8 @@ where
 fn classify_separator(c: char) -> Option<SeparatorKind> {
     match deunicode_char(c)?.chars().next()? {
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(SeparatorKind::Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(SeparatorKind::Hard),
+        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => Some(SeparatorKind::Soft),
+        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
         _ => None,
     }
 }

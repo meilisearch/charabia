@@ -66,8 +66,8 @@ fn classify_separator(c: char) -> Option<SeparatorKind> {
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
         c if deunicode_char(c) == Some("'") => Some(SeparatorKind::Soft), // quotes
         c if deunicode_char(c) == Some("\"") => Some(SeparatorKind::Soft), // double quotes
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' => Some(SeparatorKind::Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' => Some(SeparatorKind::Hard),
+        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*'| '#' => Some(SeparatorKind::Soft),
+        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
         _ => None,
     }
 }
