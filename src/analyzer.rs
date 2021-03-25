@@ -116,15 +116,11 @@ where
         self.stop_words = Some(stop_words);
         self
     }
-
-    pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>, stop_words: Option<&'a Set<A>>) -> Self {
-        Self { pipeline_map, stop_words }
-    }
 }
 
 impl AnalyzerConfig<'_>
 {
-    pub fn new_with_pipeline(pipeline_map: HashMap<(Script, Language), Pipeline>) -> Self {
+    pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>) -> Self {
         Self { pipeline_map, stop_words: None }
     }
 }
@@ -317,7 +313,7 @@ mod test {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(LowercaseNormalizer));
 
-        let analyzer = Analyzer::new(AnalyzerConfig::new_with_pipeline(pipeline_map));
+        let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map));
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
         assert_eq!("the", analyzed.tokens().next().unwrap().text());
