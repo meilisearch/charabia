@@ -5,13 +5,19 @@ use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
 
 #[derive(Clone)]
-pub struct TokenClassifier<'a, A>
+pub struct TokenClassifier<'a, A = Vec<u8>>
 {
-    stop_words: &'a Set<A>,
+    stop_words: Option<&'a Set<A>>,
+}
+
+impl Default for TokenClassifier<'_> {
+    fn default() -> Self {
+        Self { stop_words: None }
+    }
 }
 
 impl<'a, A> TokenClassifier<'a, A> {
-    pub fn new(stop_words: &'a Set<A>) -> Self {
+    pub fn new(stop_words: Option<&'a Set<A>>) -> Self {
         Self { stop_words }
     }
 }
@@ -23,7 +29,7 @@ where
     pub fn classify<'t>(&self, mut token: Token<'t>) -> Token<'t> {
         let word = token.word.as_ref();
         let mut is_hard_separator = false;
-        if self.stop_words.contains(word) {
+        if self.stop_words.map(|stop_words| stop_words.contains(word)).unwrap_or(false) {
             token.kind = TokenKind::StopWord;
             token
         } else if word.chars().all(|c|
@@ -67,8 +73,7 @@ mod test {
 
     #[test]
     fn separators() {
-        let stop_words = Set::default();
-        let classifier = TokenClassifier::new(&stop_words);
+        let classifier = TokenClassifier::default();
 
         let token = classifier.classify(Token { word: Cow::Borrowed("   "), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
@@ -95,7 +100,7 @@ mod test {
     #[test]
     fn stop_words() {
         let stop_words = Set::from_iter(["the"].iter()).unwrap();
-        let classifier = TokenClassifier::new(&stop_words);
+        let classifier = TokenClassifier::new(Some(&stop_words));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("the"), ..Default::default() });
         assert!(token.is_stopword());
