@@ -101,24 +101,21 @@ make_script! {
     Thai
 }
 
-pub struct AnalyzerConfig<'a, A = Vec<u8>> {
+pub struct AnalyzerConfig<'a, A> {
     /// language specialized tokenizer, this can be switched during
     /// document tokenization if the document contains several languages
     pub pipeline_map: HashMap<(Script, Language), Pipeline>,
     pub stop_words: Option<&'a Set<A>>,
 }
 
-impl<'a, A> AnalyzerConfig<'a, A>
-where
-    A: AsRef<[u8]>,
-{
-    pub fn with_stopwords(&mut self, stop_words: &'a Set<A>) -> &mut Self {
+impl<'a, A> AnalyzerConfig<'a, A> {
+    pub fn stop_words(&mut self, stop_words: &'a Set<A>) -> &mut Self {
         self.stop_words = Some(stop_words);
         self
     }
 }
 
-impl AnalyzerConfig<'_>
+impl<A> AnalyzerConfig<'_, A>
 {
     pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>) -> Self {
         Self { pipeline_map, stop_words: None }
@@ -126,7 +123,7 @@ impl AnalyzerConfig<'_>
 }
 
 
-impl Default for AnalyzerConfig<'_> {
+impl<A> Default for AnalyzerConfig<'_, A> {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
 
