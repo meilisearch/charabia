@@ -2,7 +2,7 @@ use meilisearch_tokenizer::analyzer::{Analyzer, AnalyzerConfig};
 
 #[test]
 fn test_apostrophe_latin() {
-    let config = AnalyzerConfig::default();
+    let config = AnalyzerConfig::<Vec<u8>>::default();
     let analyzer = Analyzer::new(config);
     let analyzed = analyzer.analyze("Zut, l’aspirateur, j’ai oublié de l’éteindre !");
     println!("{:?}", analyzed.tokens().map(|t| t.text().to_string()).collect::<Vec<_>>());
