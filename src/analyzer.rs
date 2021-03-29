@@ -101,24 +101,21 @@ make_script! {
     Thai
 }
 
-pub struct AnalyzerConfig<'a, A = Vec<u8>> {
+pub struct AnalyzerConfig<'a, A> {
     /// language specialized tokenizer, this can be switched during
     /// document tokenization if the document contains several languages
     pub pipeline_map: HashMap<(Script, Language), Pipeline>,
     pub stop_words: Option<&'a Set<A>>,
 }
 
-impl<'a, A> AnalyzerConfig<'a, A>
-where
-    A: AsRef<[u8]>,
-{
-    pub fn with_stopwords(&mut self, stop_words: &'a Set<A>) -> &mut Self {
+impl<'a, A> AnalyzerConfig<'a, A> {
+    pub fn stop_words(&mut self, stop_words: &'a Set<A>) -> &mut Self {
         self.stop_words = Some(stop_words);
         self
     }
 }
 
-impl AnalyzerConfig<'_>
+impl<A> AnalyzerConfig<'_, A>
 {
     pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>) -> Self {
         Self { pipeline_map, stop_words: None }
@@ -126,7 +123,7 @@ impl AnalyzerConfig<'_>
 }
 
 
-impl Default for AnalyzerConfig<'_> {
+impl<A> Default for AnalyzerConfig<'_, A> {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
 
@@ -201,7 +198,7 @@ impl<'a, A> Analyzer<'a, A> {
     /// // defaults to unicode segmenter with identity preprocessor and normalizer.
     /// let stop_words = Set::from_iter([""].iter()).unwrap();
     /// let mut config = AnalyzerConfig::default();
-    /// config.with_stopwords(&stop_words);
+    /// config.stop_words(&stop_words);
     /// let analyzer = Analyzer::new(config);
     /// let analyzed = analyzer.analyze("The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!");
     /// let mut tokens = analyzed.tokens();
@@ -253,7 +250,7 @@ mod test {
 
     #[test]
     fn test_simple_latin() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
@@ -267,7 +264,7 @@ mod test {
 
     #[test]
     fn test_simple_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
         let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let analyzed = analyzer.analyze(orig);
@@ -280,7 +277,7 @@ mod test {
 
     #[test]
     fn test_traditional_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
         let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
         let _simplified = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
@@ -295,7 +292,7 @@ mod test {
     }
     #[test]
     fn test_mixed_languages() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
         let traditional = "ABB SáféRing CCCV Базовый с реле SEG WIC1, ТТ-W2+доп.катушка отключ 220 VAC+контакт сраб.реле 1НО+вывод слева+испытательные втулки. 生而自由";
 
@@ -313,7 +310,7 @@ mod test {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
         pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(LowercaseNormalizer));
 
-        let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map));
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::new(pipeline_map));
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let analyzed = analyzer.analyze(orig);
         assert_eq!("the", analyzed.tokens().next().unwrap().text());
@@ -321,7 +318,7 @@ mod test {
 
     #[test]
     fn test_reconstruct_latin() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
@@ -329,7 +326,7 @@ mod test {
 
     #[test]
     fn test_reconstruct_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let tokens = analyzer.analyze(orig);
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
@@ -337,7 +334,7 @@ mod test {
 
     #[test]
     fn test_reconstruct_traditional_chinese() {
-        let analyzer = Analyzer::new(AnalyzerConfig::default());
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
         let tokens = analyzer.analyze(traditional);
         assert_eq!(traditional, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
