@@ -8,6 +8,7 @@ pub use legacy_meilisearch::LegacyMeilisearch;
 
 use crate::Token;
 use crate::processors::ProcessedText;
+use std::iter::FromIterator;
 
 pub struct TokenStream<'a> {
     pub(crate) inner: Box<dyn Iterator<Item = Token<'a>> + 'a>
@@ -18,6 +19,14 @@ impl<'a> Iterator for TokenStream<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
+    }
+}
+
+impl<'a> FromIterator<Token<'a>> for TokenStream<'a> {
+    fn from_iter<T: IntoIterator<Item=Token<'a>>>(iter: T) -> Self {
+        Self {
+            inner: Box::new(iter.into_iter().collect::<Vec<_>>().into_iter()),
+        }
     }
 }
 
