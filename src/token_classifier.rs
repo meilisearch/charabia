@@ -57,6 +57,8 @@ where
 
 fn classify_separator(c: char) -> Option<SeparatorKind> {
     match deunicode_char(c)?.chars().next()? {
+        // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
+        _ if ('\u{0410}'..='\u{044f}').contains(&c) => None, // russian cyrillic letters [а-яА-Я]
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
         '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => Some(SeparatorKind::Soft),
         '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
@@ -94,6 +96,9 @@ mod test {
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
+        assert!(token.is_word());
+
+        let token = classifier.classify(Token { word: Cow::Borrowed("ь"), ..Default::default() });
         assert!(token.is_word());
     }
 

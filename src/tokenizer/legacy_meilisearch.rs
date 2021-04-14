@@ -63,6 +63,8 @@ impl<'a> Iterator for LegacyTokenizer<'a> {
 
 fn classify_separator(c: char) -> Option<SeparatorKind> {
     match c {
+        // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
+        '\u{0410}'..='\u{044f}' => None, // russian cyrillic letters [а-яА-Я]
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
         c if deunicode_char(c) == Some("'") => Some(SeparatorKind::Soft), // quotes
         c if deunicode_char(c) == Some("\"") => Some(SeparatorKind::Soft), // double quotes
