@@ -1,16 +1,21 @@
 name: Rust
 
 on:
-  push: 
-    branches: ["*"]
+  pull_request:
+  push:
+    # trying and staging branches are for Bors config
+    branches:
+      - trying
+      - staging
+      - main
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  tests:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
