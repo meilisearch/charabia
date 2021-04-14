@@ -7,7 +7,6 @@ on:
     branches:
       - trying
       - staging
-      - main
 
 env:
   CARGO_TERM_COLOR: always
