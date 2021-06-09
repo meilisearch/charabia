@@ -29,7 +29,7 @@ mod test {
     use std::borrow::Cow;
     use super::*;
     use crate::TokenKind;
-    use crate::detection::is_cjk;
+    use crate::detection::{is_chinese, is_jk};
 
     #[test]
     fn test_compose_normalizer() {
@@ -63,7 +63,7 @@ mod test {
             byte_end: 0,
         };
 
-        let deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, |c| is_cjk(c)));
+        let deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, |c| is_chinese(c)));
 
         let token_l = LowercaseNormalizer.normalize(token.clone());
         assert_eq!(token_l.word, "生而自由");
