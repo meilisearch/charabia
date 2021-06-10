@@ -1,8 +1,9 @@
-use deunicode::deunicode_char;
+
 use fst::Set;
 
 use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
+use crate::detection::classify_separator;
 
 #[derive(Clone)]
 pub struct TokenClassifier<'a, A = Vec<u8>>
@@ -52,18 +53,6 @@ where
             token.kind = TokenKind::Word;
             token
         }
-    }
-}
-
-fn classify_separator(c: char) -> Option<SeparatorKind> {
-    match deunicode_char(c)?.chars().next()? {
-        // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
-        _ if ('\u{0410}'..='\u{044f}').contains(&c) => None, // russian cyrillic letters [а-яА-Я]
-        _ if c == '\u{00a0}' => None, // non-breaking space
-        c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => Some(SeparatorKind::Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
-        _ => None,
     }
 }
 
