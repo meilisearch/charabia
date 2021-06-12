@@ -16,42 +16,16 @@ impl Tokenizer for Lindera {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
         let mut tokenizer = LinderaTokenizer::new(Mode::Normal, "");
         let tokenized = tokenizer.tokenize(&s.processed);
-        let original_byte_len = s.original.len();
-        let mut original = s.original.char_indices()
-            // map only byte indices
-            .map(|(byte_index, _)| byte_index)
-            // add ending byte index
-            .chain(std::iter::once(original_byte_len));
-
         TokenStream {
-            inner: Box::new(tokenized.into_iter().scan(0, move |byte_index, lindera_token| {
-                println!("lindera token text: {:?}", lindera_token.text);
-                
+            inner: Box::new(tokenized.into_iter().scan(0, move |_, lindera_token| {
                 let char_start = 0;
-                let char_end = lindera_token.detail.len();
-                let byte_start = *byte_index;
-                let byte_end = match *byte_index {
-                    0 => original.nth(char_end),
-                    _ => original.nth(char_end - char_start - 1),
-                };
-
-                #[cfg(test)]
-                let byte_end = byte_end.unwrap();
-
-                #[cfg(not(test))]
-                let byte_end = match byte_end {
-                    Some(byte_end) => byte_end,
-                    None => return None
-                };
-
-                *byte_index = byte_end;
-
+                let char_end = lindera_token.text.len();
                 Some(Token {
                     kind: TokenKind::Word,
                     word: Cow::Borrowed(lindera_token.text),
-                    char_index: char_start,
-                    byte_start,
-                    byte_end,
+                    char_index: 0,
+                    byte_start: char_start,
+                    byte_end: char_end,
                 })
             }))
         }
@@ -64,22 +38,42 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_ko_ja_simple() {
+    fn test_ja_simple() {
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let processed = ProcessedText {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
-        println!("{:?}", tokens);
+        let en_tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        println!("{:?}", en_tokens);
+        assert_eq!(
+            en_tokens,
+            ["The", " ", "quick", " ", "(\"", "brown", "\")", " ", "fox", " ", "can", "\'", "t", " ", "jump", " ", "32", ".", "3", " ", "feet", ",", " ", "right", "?", " ", "Brr", ",", " ", "it", "\'", "s", " ", "29", ".", "3", "°", "F", "!"]
+        );
 
         let orig = "関西国際空港限定トートバッグ";
         let processed = ProcessedText {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
-        println!("{:?}", tokens);
+        let ja_tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        println!("{:?}", ja_tokens);
+        assert_eq!(
+            ja_tokens,
+            ["関西国際空港", "限定", "トートバッグ"]
+        );
+    }
+
+    #[test]
+    fn test_ko_simple() {
+        // TODO: need to build dictionary
+        let orig = "한글 형태소분석기 테스트 중 입니다.";
+        let processed = ProcessedText {
+            original: orig,
+            processed: Cow::Borrowed(orig),
+        };
+        let ko_tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        println!("{:?}", ko_tokens);
     }
 
 }
