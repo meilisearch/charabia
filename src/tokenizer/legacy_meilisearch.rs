@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 
-use deunicode::deunicode_char;
+
 use slice_group_by::StrGroupBy;
 
-use crate::Token;
+use crate::{Token, TokenKind};
 use crate::token::SeparatorKind;
-use crate::TokenKind;
 use crate::processors::ProcessedText;
+use crate::detection::classify_separator;
 use super::TokenStream;
 use super::Tokenizer;
 
@@ -58,20 +58,6 @@ impl<'a> Iterator for LegacyTokenizer<'a> {
         self.inner = &self.inner[word.len()..];
 
         token
-    }
-}
-
-fn classify_separator(c: char) -> Option<SeparatorKind> {
-    match c {
-        // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
-        '\u{0410}'..='\u{044f}' => None, // russian cyrillic letters [а-яА-Я]
-        '\u{00a0}' => None, // non-breaking space
-        c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        c if deunicode_char(c) == Some("'") => Some(SeparatorKind::Soft), // quotes
-        c if deunicode_char(c) == Some("\"") => Some(SeparatorKind::Soft), // double quotes
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*'| '#' => Some(SeparatorKind::Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
-        _ => None,
     }
 }
 
