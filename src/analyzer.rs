@@ -8,7 +8,7 @@ use crate::normalizer::{Normalizer, DeunicodeNormalizer, LowercaseNormalizer};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 use crate::token_classifier::TokenClassifier;
 use crate::Token;
-use crate::tokenizer::{Jieba, TokenStream, Tokenizer, LegacyMeilisearch};
+use crate::tokenizer::{Jieba, Lindera, TokenStream, Tokenizer, LegacyMeilisearch};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(Pipeline::default);
 
@@ -135,6 +135,13 @@ impl<A> Default for AnalyzerConfig<'_, A> {
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_pre_processor(ChineseTranslationPreProcessor)
             .set_tokenizer(Jieba::default()));
+
+        // Japanese script specialized pipeline
+        pipeline_map.insert((Script::Katakana, Language::Other), Pipeline::default()
+            .set_tokenizer(Lindera::default()));
+
+        pipeline_map.insert((Script::Hiragana, Language::Other), Pipeline::default()
+            .set_tokenizer(Lindera::default()));
 
         AnalyzerConfig { pipeline_map, stop_words: None }
 
@@ -289,6 +296,16 @@ mod test {
             analyzed,
             ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
         );
+    }
+
+    #[test]
+    fn test_japanese_language() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+
+        let orig = "関西国際空港限定トートバッグ";
+        let analyzed = analyzer.analyze(orig);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        println!("Analyzed : {:?}", analyzed);
     }
 
     #[test]
