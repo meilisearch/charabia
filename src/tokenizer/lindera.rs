@@ -10,11 +10,19 @@ use super::{Tokenizer, TokenStream};
 
 
 #[derive(Debug, Default)]
-pub struct Lindera;
+pub struct Lindera {
+    pub normal_mode: bool,
+    pub dict: &'static str,
+}
 
 impl Tokenizer for Lindera {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
-        let mut tokenizer = LinderaTokenizer::new(Mode::Normal, "");
+        let mode = match self.normal_mode {
+            true => Mode::Normal,
+            false => Mode::Decompose
+        };
+
+        let mut tokenizer = LinderaTokenizer::new(mode, &self.dict);
         let tokenized = tokenizer.tokenize(&s.processed);
         TokenStream {
             inner: Box::new(tokenized.into_iter().scan((0, 0), move |(char_index, byte_index), lindera_token| {
@@ -51,7 +59,9 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let en_tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+
+        
+        let en_tokens = Lindera { normal_mode: true, dict: "" }.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
         
         assert_eq!(
             en_tokens,
@@ -63,7 +73,7 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let ja_tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        let ja_tokens = Lindera { normal_mode: true, dict: "" }.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
         
         assert_eq!(
             ja_tokens,
@@ -79,7 +89,7 @@ mod test {
             original: orig,
             processed: Cow::Borrowed(orig),
         };
-        let ko_tokens = Lindera.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
+        let ko_tokens = Lindera { normal_mode: true, dict: "" }.tokenize(&processed).map(|Token { word, .. }| word.to_owned()).collect::<Vec<_>>();
         println!("{:?}", ko_tokens);
     }
 
