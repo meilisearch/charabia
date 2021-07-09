@@ -1,8 +1,7 @@
 use std::borrow::Cow;
 
 use lindera::tokenizer::Tokenizer as LinderaTokenizer;
-use lindera_core::core::viterbi::Mode;
-use once_cell::sync::Lazy;
+use lindera_core::core::viterbi::{Mode, Penalty};
 
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
@@ -19,7 +18,7 @@ impl Tokenizer for Lindera {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
         let mode = match self.normal_mode {
             true => Mode::Normal,
-            false => Mode::Decompose
+            false => Mode::Decompose(Penalty::default())
         };
 
         let mut tokenizer = LinderaTokenizer::new(mode, &self.dict);

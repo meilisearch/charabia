@@ -132,16 +132,22 @@ impl<A> Default for AnalyzerConfig<'_, A> {
             .set_tokenizer(LegacyMeilisearch));
 
         // Chinese script specialized pipeline
+        
         pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
             .set_pre_processor(ChineseTranslationPreProcessor)
             .set_tokenizer(Jieba::default()));
-
+        
         // Japanese script specialized pipeline
+        // TODO: define dict path for japanese
         pipeline_map.insert((Script::Katakana, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera::default()));
+            .set_tokenizer(Lindera { normal_mode: true, dict: "" }));
 
         pipeline_map.insert((Script::Hiragana, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera::default()));
+            .set_tokenizer(Lindera { normal_mode: true, dict: "" }));
+
+        // TODO: define dict path for korean
+        pipeline_map.insert((Script::Hangul, Language::Other), Pipeline::default()
+            .set_tokenizer(Lindera { normal_mode: true, dict: "" }));
 
         AnalyzerConfig { pipeline_map, stop_words: None }
 
