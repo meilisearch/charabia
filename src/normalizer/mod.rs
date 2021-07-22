@@ -1,12 +1,14 @@
 mod identity;
 mod lowercase;
 mod deunicoder;
+mod zeroes_remover;
 
 use crate::Token;
 
 pub use identity::IdentityNormalizer;
 pub use lowercase::LowercaseNormalizer;
 pub use deunicoder::DeunicodeNormalizer;
+pub use zeroes_remover::ZeroesRemover;
 
 pub trait Normalizer: Sync + Send {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;

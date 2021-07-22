@@ -4,7 +4,7 @@ use fst::Set;
 use once_cell::sync::Lazy;
 
 use crate::detection::is_latin;
-use crate::normalizer::{Normalizer, DeunicodeNormalizer, LowercaseNormalizer};
+use crate::normalizer::{DeunicodeNormalizer, LowercaseNormalizer, Normalizer, ZeroesRemover};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 use crate::token_classifier::TokenClassifier;
 use crate::Token;
@@ -22,7 +22,11 @@ impl Default for Pipeline {
     fn default() -> Self {
         // Hotfix: make a common default normalizer for every pipeline
         let deunicoder = DeunicodeNormalizer::new(&|text: &str| !text.chars().next().map_or(true, is_latin));
-        let normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(deunicoder), Box::new(LowercaseNormalizer)];
+        let normalizer: Vec<Box<dyn Normalizer>> = vec![
+            Box::new(deunicoder),
+            Box::new(LowercaseNormalizer),
+            Box::new(ZeroesRemover),
+        ];
 
         Self {
             pre_processor: Box::new(IdentityPreProcessor),
