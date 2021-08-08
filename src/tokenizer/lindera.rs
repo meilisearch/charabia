@@ -1,28 +1,20 @@
 use std::borrow::Cow;
 
-use lindera::tokenizer::Tokenizer as LinderaTokenizer;
-use lindera_core::core::viterbi::{Mode, Penalty};
-
 use crate::{Token, TokenKind};
 use crate::processors::ProcessedText;
 use super::{Tokenizer, TokenStream};
 
+use lindera::tokenizer::Tokenizer as LinderaTokenizer;
 
-#[derive(Debug, Default)]
+
 pub struct Lindera {
-    pub normal_mode: bool,
-    pub dict: &'static str,
+    pub tokenizer: LinderaTokenizer
 }
 
 impl Tokenizer for Lindera {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
-        let mode = match self.normal_mode {
-            true => Mode::Normal,
-            false => Mode::Decompose(Penalty::default())
-        };
+        let tokenized = self.tokenizer.clone().tokenize(&s.processed);
 
-        let mut tokenizer = LinderaTokenizer::new(mode, &self.dict);
-        let tokenized = tokenizer.tokenize(&s.processed);
         TokenStream {
             inner: Box::new(tokenized.into_iter().scan((0, 0), move |(char_index, byte_index), lindera_token| {
                 let char_count = lindera_token.text.chars().count();

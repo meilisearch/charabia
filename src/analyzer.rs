@@ -3,6 +3,9 @@ use std::collections::HashMap;
 use fst::Set;
 use once_cell::sync::Lazy;
 
+use lindera::tokenizer::Tokenizer as LinderaTokenizer;
+use lindera_core::core::viterbi::{Mode, Penalty};
+
 use crate::detection::is_latin;
 use crate::normalizer::{Normalizer, DeunicodeNormalizer, LowercaseNormalizer};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
@@ -139,15 +142,18 @@ impl<A> Default for AnalyzerConfig<'_, A> {
         
         // Japanese script specialized pipeline
         // TODO: define dict path for japanese
+
+        let mut tokenizer = LinderaTokenizer::new(Mode::Normal, "");
+
         pipeline_map.insert((Script::Katakana, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera { normal_mode: true, dict: "" }));
+            .set_tokenizer(Lindera { tokenizer }));
 
         pipeline_map.insert((Script::Hiragana, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera { normal_mode: true, dict: "" }));
+            .set_tokenizer(Lindera { tokenizer }));
 
         // TODO: define dict path for korean
         pipeline_map.insert((Script::Hangul, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera { normal_mode: true, dict: "" }));
+            .set_tokenizer(Lindera { tokenizer }));
 
         AnalyzerConfig { pipeline_map, stop_words: None }
 
