@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use super::Normalizer;
 use crate::Token;
 
+/// Remove the control characters but keeps whitespaces.
 pub struct ControlCharacterRemover;
 
 impl Normalizer for ControlCharacterRemover {
