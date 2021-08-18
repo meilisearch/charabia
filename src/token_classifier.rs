@@ -1,13 +1,11 @@
-
 use fst::Set;
 
-use crate::{Token, TokenKind};
-use crate::token::SeparatorKind;
 use crate::detection::classify_separator;
+use crate::token::SeparatorKind;
+use crate::{Token, TokenKind};
 
 #[derive(Clone)]
-pub struct TokenClassifier<'a, A = Vec<u8>>
-{
+pub struct TokenClassifier<'a, A = Vec<u8>> {
     stop_words: Option<&'a Set<A>>,
 }
 
@@ -25,7 +23,7 @@ impl<'a, A> TokenClassifier<'a, A> {
 
 impl<'a, A> TokenClassifier<'a, A>
 where
-    A: AsRef<[u8]>
+    A: AsRef<[u8]>,
 {
     pub fn classify<'t>(&self, mut token: Token<'t>) -> Token<'t> {
         let word = token.word.as_ref();
@@ -33,15 +31,14 @@ where
         if self.stop_words.map(|stop_words| stop_words.contains(word)).unwrap_or(false) {
             token.kind = TokenKind::StopWord;
             token
-        } else if word.chars().all(|c|
-            match classify_separator(c) {
-                Some(SeparatorKind::Hard) => {
-                    is_hard_separator = true;
-                    true
-                }
-                Some(SeparatorKind::Soft) => true,
+        } else if word.chars().all(|c| match classify_separator(c) {
+            Some(SeparatorKind::Hard) => {
+                is_hard_separator = true;
+                true
+            }
+            Some(SeparatorKind::Soft) => true,
 
-                None => false,
+            None => false,
         }) {
             if is_hard_separator {
                 token.kind = TokenKind::Separator(SeparatorKind::Hard);
@@ -73,26 +70,31 @@ mod test {
         let token = classifier.classify(Token { word: Cow::Borrowed("\" "), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
 
-        let token = classifier.classify(Token { word: Cow::Borrowed("@   "), ..Default::default() });
+        let token =
+            classifier.classify(Token { word: Cow::Borrowed("@   "), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("."), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
-        let token = classifier.classify(Token { word: Cow::Borrowed("   ."), ..Default::default() });
+        let token =
+            classifier.classify(Token { word: Cow::Borrowed("   ."), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
-        let token = classifier.classify(Token { word: Cow::Borrowed("  。"), ..Default::default() });
+        let token =
+            classifier.classify(Token { word: Cow::Borrowed("  。"), ..Default::default() });
         assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
 
-        let token = classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
+        let token =
+            classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
         assert!(token.is_word());
 
         let token = classifier.classify(Token { word: Cow::Borrowed("ь"), ..Default::default() });
         assert!(token.is_word());
 
         // non-breaking space
-        let token = classifier.classify(Token { word: Cow::Borrowed("\u{00a0}"), ..Default::default() });
+        let token =
+            classifier.classify(Token { word: Cow::Borrowed("\u{00a0}"), ..Default::default() });
         assert!(token.is_word());
     }
 
@@ -107,7 +109,8 @@ mod test {
         let token = classifier.classify(Token { word: Cow::Borrowed("The"), ..Default::default() });
         assert!(token.is_word());
 
-        let token = classifier.classify(Token { word: Cow::Borrowed("foobar"), ..Default::default() });
+        let token =
+            classifier.classify(Token { word: Cow::Borrowed("foobar"), ..Default::default() });
         assert!(token.is_word());
     }
 }

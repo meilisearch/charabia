@@ -1,14 +1,14 @@
+mod control_character_remover;
 mod deunicoder;
 mod identity;
 mod lowercase;
-mod control_character_remover;
 
-use crate::Token;
-
+pub use control_character_remover::ControlCharacterRemover;
 pub use deunicoder::DeunicodeNormalizer;
 pub use identity::IdentityNormalizer;
 pub use lowercase::LowercaseNormalizer;
-pub use control_character_remover::ControlCharacterRemover;
+
+use crate::Token;
 
 pub trait Normalizer: Sync + Send {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;
@@ -16,8 +16,7 @@ pub trait Normalizer: Sync + Send {
 
 impl Normalizer for &[Box<dyn Normalizer>] {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
-        self.iter()
-            .fold(token, |token, normalizer| normalizer.normalize(token))
+        self.iter().fold(token, |token, normalizer| normalizer.normalize(token))
     }
 }
 
@@ -29,10 +28,11 @@ impl Normalizer for Vec<Box<dyn Normalizer>> {
 
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
     use super::*;
     use crate::detection::is_cjk;
     use crate::TokenKind;
-    use std::borrow::Cow;
 
     #[test]
     fn test_compose_normalizer() {
@@ -79,11 +79,8 @@ mod test {
         let token_d = deunicoder.normalize(token.clone());
         assert_eq!(token_d.word, "生而自由");
 
-        let composed_normalizer: &[Box<dyn Normalizer>] = &[
-            Box::new(LowercaseNormalizer),
-            Box::new(deunicoder),
-            Box::new(LowercaseNormalizer),
-        ];
+        let composed_normalizer: &[Box<dyn Normalizer>] =
+            &[Box::new(LowercaseNormalizer), Box::new(deunicoder), Box::new(LowercaseNormalizer)];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "生而自由");
     }

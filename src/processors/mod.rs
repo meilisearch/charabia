@@ -1,12 +1,12 @@
 mod chinese_translation;
-mod identity;
 mod eraser;
+mod identity;
 
 use std::borrow::Cow;
 
 pub use chinese_translation::ChineseTranslationPreProcessor;
-pub use identity::IdentityPreProcessor;
 pub use eraser::Eraser;
+pub use identity::IdentityPreProcessor;
 
 #[allow(dead_code)]
 pub struct ProcessedText<'a> {
@@ -20,7 +20,7 @@ pub trait PreProcessor: Sync + Send {
 
 impl<T> PreProcessor for Box<T>
 where
-    T: PreProcessor
+    T: PreProcessor,
 {
     fn process<'a>(&self, s: &'a str) -> ProcessedText<'a> {
         self.as_ref().process(s)
