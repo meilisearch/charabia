@@ -4,11 +4,15 @@ use fst::Set;
 use once_cell::sync::Lazy;
 
 use crate::detection::is_latin;
-use crate::normalizer::{DeunicodeNormalizer, LowercaseNormalizer, Normalizer, ControlCharacterRemover};
-use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
+use crate::normalizer::{
+    ControlCharacterRemover, DeunicodeNormalizer, LowercaseNormalizer, Normalizer,
+};
+use crate::processors::{
+    ChineseTranslationPreProcessor, IdentityPreProcessor, PreProcessor, ProcessedText,
+};
 use crate::token_classifier::TokenClassifier;
+use crate::tokenizer::{Jieba, LegacyMeilisearch, TokenStream, Tokenizer};
 use crate::Token;
-use crate::tokenizer::{Jieba, TokenStream, Tokenizer, LegacyMeilisearch};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(Pipeline::default);
 
@@ -21,7 +25,8 @@ pub struct Pipeline {
 impl Default for Pipeline {
     fn default() -> Self {
         // Hotfix: make a common default normalizer for every pipeline
-        let deunicoder = DeunicodeNormalizer::new(&|text: &str| !text.chars().next().map_or(true, is_latin));
+        let deunicoder =
+            DeunicodeNormalizer::new(&|text: &str| !text.chars().next().map_or(true, is_latin));
         let normalizer: Vec<Box<dyn Normalizer>> = vec![
             Box::new(deunicoder),
             Box::new(LowercaseNormalizer),
@@ -119,29 +124,31 @@ impl<'a, A> AnalyzerConfig<'a, A> {
     }
 }
 
-impl<A> AnalyzerConfig<'_, A>
-{
+impl<A> AnalyzerConfig<'_, A> {
     pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>) -> Self {
         Self { pipeline_map, stop_words: None }
     }
 }
-
 
 impl<A> Default for AnalyzerConfig<'_, A> {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
 
         // Latin script specialized pipeline
-        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
-            .set_tokenizer(LegacyMeilisearch));
+        pipeline_map.insert(
+            (Script::Latin, Language::Other),
+            Pipeline::default().set_tokenizer(LegacyMeilisearch),
+        );
 
         // Chinese script specialized pipeline
-        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
-            .set_pre_processor(ChineseTranslationPreProcessor)
-            .set_tokenizer(Jieba::default()));
+        pipeline_map.insert(
+            (Script::Mandarin, Language::Other),
+            Pipeline::default()
+                .set_pre_processor(ChineseTranslationPreProcessor)
+                .set_tokenizer(Jieba::default()),
+        );
 
         AnalyzerConfig { pipeline_map, stop_words: None }
-
     }
 }
 
@@ -149,8 +156,7 @@ pub struct Analyzer<'a, A> {
     config: AnalyzerConfig<'a, A>,
 }
 
-pub struct AnalyzedText<'a, A>
-{
+pub struct AnalyzedText<'a, A> {
     /// Processed text
     processed: ProcessedText<'a>,
     /// Pipeline used to proccess the text
@@ -161,17 +167,17 @@ pub struct AnalyzedText<'a, A>
 
 impl<'a, A> AnalyzedText<'a, A>
 where
-    A: AsRef<[u8]>
+    A: AsRef<[u8]>,
 {
     /// Returns a `TokenStream` for the Analyzed text.
     pub fn tokens(&'a self) -> TokenStream<'a> {
-        let stream = self.pipeline.tokenizer
+        let stream = self
+            .pipeline
+            .tokenizer
             .tokenize(&self.processed)
             .map(move |t| self.pipeline.normalizer.normalize(t))
             .map(move |t| self.classifier.classify(t));
-        TokenStream {
-            inner: Box::new(stream)
-        }
+        TokenStream { inner: Box::new(stream) }
     }
 
     /// Attaches each token to its corresponding portion of the original text.
@@ -184,9 +190,7 @@ impl<'a, A> Analyzer<'a, A> {
     /// create a new tokenizer detecting script
     /// and chose the specialized internal tokenizer
     pub fn new(config: AnalyzerConfig<'a, A>) -> Self {
-        Self {
-            config,
-        }
+        Self { config }
     }
 
     /// Builds an `AnalyzedText` instance with the correct analyzer pipeline, and pre-processes the
@@ -212,11 +216,7 @@ impl<'a, A> Analyzer<'a, A> {
         let pipeline = self.pipeline_from(text);
         let processed = pipeline.pre_processor.process(text);
         let classifier = TokenClassifier::new(self.config.stop_words);
-        AnalyzedText {
-            processed,
-            pipeline,
-            classifier,
-        }
+        AnalyzedText { processed, pipeline, classifier }
     }
 
     /// Try to Detect Language and Script and return the corresponding pipeline,
@@ -228,7 +228,9 @@ impl<'a, A> Analyzer<'a, A> {
     fn pipeline_from(&self, text: &str) -> &Pipeline {
         let script = self.detect_script(text);
         let language = self.detect_lang(text);
-        self.config.pipeline_map.get(&(script, language))
+        self.config
+            .pipeline_map
+            .get(&(script, language))
             .or_else(|| self.config.pipeline_map.get(&(script, Language::Other)))
             .or_else(|| self.config.pipeline_map.get(&(Script::Other, Language::Other)))
             .unwrap_or_else(|| &*DEFAULT_PIPELINE)
@@ -245,7 +247,6 @@ impl<'a, A> Analyzer<'a, A> {
         Language::Other
     }
 }
-
 
 #[cfg(test)]
 mod test {
@@ -275,7 +276,33 @@ mod test {
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            [
+                "人人",
+                "生而自由",
+                "﹐",
+                "在",
+                "尊严",
+                "和",
+                "权利",
+                "上",
+                "一律平等",
+                "。",
+                "他们",
+                "赋有",
+                "理性",
+                "和",
+                "良心",
+                "﹐",
+                "并",
+                "应以",
+                "兄弟",
+                "关系",
+                "的",
+                "精神",
+                "互相",
+                "对待",
+                "。"
+            ]
         );
     }
 
@@ -291,7 +318,33 @@ mod test {
 
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            [
+                "人人",
+                "生而自由",
+                "﹐",
+                "在",
+                "尊严",
+                "和",
+                "权利",
+                "上",
+                "一律平等",
+                "。",
+                "他们",
+                "赋有",
+                "理性",
+                "和",
+                "良心",
+                "﹐",
+                "并",
+                "应以",
+                "兄弟",
+                "关系",
+                "的",
+                "精神",
+                "互相",
+                "对待",
+                "。"
+            ]
         );
     }
 
@@ -306,14 +359,66 @@ mod test {
 
         assert_eq!(
             analyzed,
-            ["abb", " ", "safering", " ", "cccv", " ", "базовый", "\u{9}", "с", " ", "реле", " ", "seg wic1", ", ", "тт", "–", "w2", "+", "доп", ".", "катушка", " ", "отключ", " ", "220", " ", "vac", "+", "контакт", " ", "сраб", ".", "реле", " ", "1но", "+", "вывод", " ", "слева", "+", "испытательные", " ", "втулки", ". ", "生", "而", "自", "由"]
+            [
+                "abb",
+                " ",
+                "safering",
+                " ",
+                "cccv",
+                " ",
+                "базовый",
+                "\u{9}",
+                "с",
+                " ",
+                "реле",
+                " ",
+                "seg wic1",
+                ", ",
+                "тт",
+                "–",
+                "w2",
+                "+",
+                "доп",
+                ".",
+                "катушка",
+                " ",
+                "отключ",
+                " ",
+                "220",
+                " ",
+                "vac",
+                "+",
+                "контакт",
+                " ",
+                "сраб",
+                ".",
+                "реле",
+                " ",
+                "1но",
+                "+",
+                "вывод",
+                " ",
+                "слева",
+                "+",
+                "испытательные",
+                " ",
+                "втулки",
+                ". ",
+                "生",
+                "而",
+                "自",
+                "由"
+            ]
         );
     }
 
     #[test]
     fn test_simple_latin_with_lowercase_normalizer() {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(LowercaseNormalizer));
+        pipeline_map.insert(
+            (Script::Latin, Language::Other),
+            Pipeline::default().set_normalizer(LowercaseNormalizer),
+        );
 
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::new(pipeline_map));
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";

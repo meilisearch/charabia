@@ -1,22 +1,18 @@
 use std::borrow::Cow;
 
-
 use slice_group_by::StrGroupBy;
 
-use crate::{Token, TokenKind};
-use crate::token::SeparatorKind;
-use crate::processors::ProcessedText;
+use super::{TokenStream, Tokenizer};
 use crate::detection::classify_separator;
-use super::TokenStream;
-use super::Tokenizer;
+use crate::processors::ProcessedText;
+use crate::token::SeparatorKind;
+use crate::{Token, TokenKind};
 
 pub struct LegacyMeilisearch;
 
 impl Tokenizer for LegacyMeilisearch {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> super::TokenStream<'a> {
-        TokenStream {
-            inner: Box::new(LegacyTokenizer::new(s)),
-        }
+        TokenStream { inner: Box::new(LegacyTokenizer::new(s)) }
     }
 }
 
@@ -30,11 +26,7 @@ impl<'a> LegacyTokenizer<'a> {
     pub fn new(s: &'a ProcessedText<'a>) -> Self {
         // skip every separator and set `char_index`
         // to the number of char trimmed
-        Self {
-            inner: s.processed.as_ref(),
-            char_index: 0,
-            byte_index: 0,
-        }
+        Self { inner: s.processed.as_ref(), char_index: 0, byte_index: 0 }
     }
 }
 
@@ -112,20 +104,17 @@ mod test {
     fn test_byte_indices() {
         let tokenizer = LegacyMeilisearch;
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
-        let processed = ProcessedText {
-            original: orig,
-            processed: Cow::Borrowed(orig),
-        };
+        let processed = ProcessedText { original: orig, processed: Cow::Borrowed(orig) };
         let tokens = tokenizer.tokenize(&processed);
         assert_eq!(orig, tokens.map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
 
         let orig = "為一包含一千多萬目詞的帶標記平衡語料庫";
-        let processed = ProcessedText {
-            original: orig,
-            processed: Cow::Borrowed(orig),
-        };
+        let processed = ProcessedText { original: orig, processed: Cow::Borrowed(orig) };
         let tokens = tokenizer.tokenize(&processed).collect::<Vec<_>>();
         assert_eq!("為", tokens.first().unwrap().text());
-        assert_eq!(orig, tokens.iter().map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>());
+        assert_eq!(
+            orig,
+            tokens.iter().map(|t| &orig[t.byte_start..t.byte_end]).collect::<String>()
+        );
     }
 }

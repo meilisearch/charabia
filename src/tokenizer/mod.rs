@@ -1,16 +1,16 @@
 mod jieba;
-mod unicode_segmenter;
 mod legacy_meilisearch;
+mod unicode_segmenter;
 
 pub use jieba::Jieba;
-pub use unicode_segmenter::UnicodeSegmenter;
 pub use legacy_meilisearch::LegacyMeilisearch;
+pub use unicode_segmenter::UnicodeSegmenter;
 
-use crate::Token;
 use crate::processors::ProcessedText;
+use crate::Token;
 
 pub struct TokenStream<'a> {
-    pub(crate) inner: Box<dyn Iterator<Item = Token<'a>> + 'a>
+    pub(crate) inner: Box<dyn Iterator<Item = Token<'a>> + 'a>,
 }
 
 impl<'a> Iterator for TokenStream<'a> {

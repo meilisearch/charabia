@@ -8,20 +8,18 @@ use crate::Token;
 type SkipNormalizationFn = &'static (dyn Fn(&str) -> bool + Sync + Send + 'static);
 
 pub struct DeunicodeNormalizer {
-    skip_normalization:  SkipNormalizationFn,
+    skip_normalization: SkipNormalizationFn,
 }
 
-impl DeunicodeNormalizer
-{
+impl DeunicodeNormalizer {
     pub fn new(skip_normalization: SkipNormalizationFn) -> Self {
         Self { skip_normalization }
     }
 }
 
-impl Default for DeunicodeNormalizer
-{
+impl Default for DeunicodeNormalizer {
     fn default() -> Self {
-        Self::new(&|_| false )
+        Self::new(&|_| false)
     }
 }
 
