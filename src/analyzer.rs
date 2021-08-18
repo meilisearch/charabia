@@ -4,7 +4,7 @@ use fst::Set;
 use once_cell::sync::Lazy;
 
 use crate::detection::is_latin;
-use crate::normalizer::{DeunicodeNormalizer, LowercaseNormalizer, Normalizer, ZeroesRemover};
+use crate::normalizer::{DeunicodeNormalizer, LowercaseNormalizer, Normalizer, ControlCharacterRemover};
 use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
 use crate::token_classifier::TokenClassifier;
 use crate::Token;
@@ -25,7 +25,7 @@ impl Default for Pipeline {
         let normalizer: Vec<Box<dyn Normalizer>> = vec![
             Box::new(deunicoder),
             Box::new(LowercaseNormalizer),
-            Box::new(ZeroesRemover),
+            Box::new(ControlCharacterRemover),
         ];
 
         Self {
@@ -299,14 +299,14 @@ mod test {
     fn test_mixed_languages() {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
-        let traditional = "ABB SáféRing CCCV Базовый с реле SEG\u{00a0}WIC1, ТТ–W2+доп.катушка отключ 220 VAC+контакт сраб.реле 1НО+вывод слева+испытательные втулки. 生而自由";
+        let traditional = "ABB SáféRing CCCV Базовый\u{9}с реле SEG\u{00a0}WIC1, ТТ–W2+доп.катушка отключ 220 VAC+контакт сраб.реле 1НО+вывод слева+испытательные втулки. 生而自由";
 
         let analyzed = analyzer.analyze(traditional);
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
 
         assert_eq!(
             analyzed,
-            ["abb", " ", "safering", " ", "cccv", " ", "базовый", " ", "с", " ", "реле", " ", "seg wic1", ", ", "тт", "–", "w2", "+", "доп", ".", "катушка", " ", "отключ", " ", "220", " ", "vac", "+", "контакт", " ", "сраб", ".", "реле", " ", "1но", "+", "вывод", " ", "слева", "+", "испытательные", " ", "втулки", ". ", "生", "而", "自", "由"]
+            ["abb", " ", "safering", " ", "cccv", " ", "базовый", "\u{9}", "с", " ", "реле", " ", "seg wic1", ", ", "тт", "–", "w2", "+", "доп", ".", "катушка", " ", "отключ", " ", "220", " ", "vac", "+", "контакт", " ", "сраб", ".", "реле", " ", "1но", "+", "вывод", " ", "слева", "+", "испытательные", " ", "втулки", ". ", "生", "而", "自", "由"]
         );
     }
 
