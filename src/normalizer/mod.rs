@@ -1,14 +1,14 @@
+mod deunicoder;
 mod identity;
 mod lowercase;
-mod deunicoder;
-mod zeroes_remover;
+mod control_character_remover;
 
 use crate::Token;
 
+pub use deunicoder::DeunicodeNormalizer;
 pub use identity::IdentityNormalizer;
 pub use lowercase::LowercaseNormalizer;
-pub use deunicoder::DeunicodeNormalizer;
-pub use zeroes_remover::ZeroesRemover;
+pub use control_character_remover::ControlCharacterRemover;
 
 pub trait Normalizer: Sync + Send {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a>;
@@ -16,7 +16,8 @@ pub trait Normalizer: Sync + Send {
 
 impl Normalizer for &[Box<dyn Normalizer>] {
     fn normalize<'a>(&self, token: Token<'a>) -> Token<'a> {
-        self.iter().fold(token, |token, normalizer| normalizer.normalize(token))
+        self.iter()
+            .fold(token, |token, normalizer| normalizer.normalize(token))
     }
 }
 
@@ -28,10 +29,10 @@ impl Normalizer for Vec<Box<dyn Normalizer>> {
 
 #[cfg(test)]
 mod test {
-    use std::borrow::Cow;
     use super::*;
-    use crate::TokenKind;
     use crate::detection::is_cjk;
+    use crate::TokenKind;
+    use std::borrow::Cow;
 
     #[test]
     fn test_compose_normalizer() {
@@ -49,10 +50,13 @@ mod test {
         let token_d = DeunicodeNormalizer::default().normalize(token.clone());
         assert_eq!(token_d.word, "AEneid");
 
-        let composed_normalizer: &[Box<dyn Normalizer>] = &[Box::new(LowercaseNormalizer), Box::new(DeunicodeNormalizer::default()), Box::new(LowercaseNormalizer)];
+        let composed_normalizer: &[Box<dyn Normalizer>] = &[
+            Box::new(LowercaseNormalizer),
+            Box::new(DeunicodeNormalizer::default()),
+            Box::new(LowercaseNormalizer),
+        ];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "aeneid");
-
     }
 
     #[test]
@@ -65,7 +69,9 @@ mod test {
             byte_end: 0,
         };
 
-        let deunicoder = DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, |c| is_cjk(c)));
+        let deunicoder = DeunicodeNormalizer::new(&|text: &str| {
+            text.chars().next().map_or(false, |c| is_cjk(c))
+        });
 
         let token_l = LowercaseNormalizer.normalize(token.clone());
         assert_eq!(token_l.word, "生而自由");
@@ -73,9 +79,12 @@ mod test {
         let token_d = deunicoder.normalize(token.clone());
         assert_eq!(token_d.word, "生而自由");
 
-        let composed_normalizer: &[Box<dyn Normalizer>] = &[Box::new(LowercaseNormalizer), Box::new(deunicoder), Box::new(LowercaseNormalizer)];
+        let composed_normalizer: &[Box<dyn Normalizer>] = &[
+            Box::new(LowercaseNormalizer),
+            Box::new(deunicoder),
+            Box::new(LowercaseNormalizer),
+        ];
         let token_ld = composed_normalizer.normalize(token);
         assert_eq!(token_ld.word, "生而自由");
-
     }
 }
