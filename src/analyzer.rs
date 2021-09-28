@@ -449,4 +449,39 @@ mod test {
         let tokens = analyzer.analyze(traditional);
         assert_eq!(traditional, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
     }
+
+    #[test]
+    fn test_meilisearch_1714() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+
+        let text = "小化妆包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["小", "化妆包"]);
+
+        let text = "Ipad 包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["ipad", " ", "包"]);
+
+        let text = "化妆";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["化妆"]);
+
+        let text = "小化妆";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["小", "化妆"]);
+
+        let text = "化妆包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["化妆包"]);
+
+        let text = "小化妆包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["小", "化妆包"]);
+    }
 }
