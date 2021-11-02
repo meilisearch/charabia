@@ -431,6 +431,7 @@ mod test {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
         let tokens = analyzer.analyze(orig);
+        println!("{:?}", tokens.tokens().map(|t| t.text().to_string()).collect::<Vec<_>>());
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
     }
 
@@ -439,6 +440,16 @@ mod test {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let orig = "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。";
         let tokens = analyzer.analyze(orig);
+        println!("{:?}", tokens.tokens().map(|t| t.text().to_string()).collect::<Vec<_>>());
+        assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
+
+    #[test]
+    fn test_reconstruct_korean() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+        let orig = "안녕하세요. 한의계에 새로운 흐름을 만들어갑니다.";
+        let tokens = analyzer.analyze(orig);
+        println!("{:?}", tokens.tokens().map(|t| t.text().to_string()).collect::<Vec<_>>());
         assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
     }
 
