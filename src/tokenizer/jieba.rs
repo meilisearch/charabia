@@ -55,6 +55,7 @@ impl Tokenizer for Jieba {
                     char_index: char_start,
                     byte_start,
                     byte_end,
+                    char_map: None,
                 })
             })),
         }

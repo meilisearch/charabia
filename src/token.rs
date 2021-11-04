@@ -34,6 +34,9 @@ pub struct Token<'a> {
     /// indexes of start and end of the byte slice
     pub byte_start: usize,
     pub byte_end: usize,
+    /// number of bytes used in the normalized string
+    ///  by each grapheme cluster in the original string
+    pub char_map: Option<Vec<usize>>,
 }
 
 impl<'a> PartialEq for Token<'a> {
@@ -68,5 +71,23 @@ impl<'a> Token<'a> {
     }
     pub fn is_stopword(&self) -> bool {
         self.kind == TokenKind::StopWord
+    }
+
+    pub fn num_graphemes_from_bytes(&self, mut num_bytes: usize) -> usize {
+        match &self.char_map {
+            None => self.word.len(),
+            Some(char_map) => {
+                let mut count = 0;
+                while num_bytes > 0 {
+                    if char_map.len() > count {
+                        num_bytes -= char_map[count];
+                        count += 1;
+                    } else {
+                        break;
+                    }
+                }
+                count
+            }
+        }
     }
 }

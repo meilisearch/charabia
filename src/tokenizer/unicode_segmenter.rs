@@ -21,6 +21,7 @@ impl Tokenizer for UnicodeSegmenter {
                     byte_start: byte_index,
                     char_index: index,
                     byte_end: byte_index + word.len(),
+                    char_map: None,
                 })
             },
         );
