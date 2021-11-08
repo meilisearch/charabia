@@ -443,6 +443,14 @@ mod test {
     }
 
     #[test]
+    fn test_reconstruct_korean() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+        let orig = "안녕하세요. 한의계에 새로운 흐름을 만들어갑니다.";
+        let tokens = analyzer.analyze(orig);
+        assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
+
+    #[test]
     fn test_reconstruct_traditional_chinese() {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
