@@ -76,18 +76,15 @@ impl<'a> Token<'a> {
     pub fn num_graphemes_from_bytes(&self, mut num_bytes: usize) -> usize {
         match &self.char_map {
             None => self.word.len(),
-            Some(char_map) => {
-                let mut count = 0;
-                while num_bytes > 0 {
-                    if char_map.len() > count {
-                        num_bytes -= char_map[count];
-                        count += 1;
-                    } else {
-                        break;
-                    }
-                }
-                count
-            }
+            Some(char_map) => char_map
+                .iter()
+                .cloned()
+                .take_while(|bytes_in_char| {
+                    let prev = num_bytes;
+                    num_bytes = num_bytes.saturating_sub(*bytes_in_char);
+                    prev > 0
+                })
+                .count(),
         }
     }
 }
