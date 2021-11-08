@@ -16,6 +16,7 @@ pub fn is_cj(c: char) -> bool {
         || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
 }
 
+#[allow(dead_code)]
 pub fn is_hangul(c: char) -> bool {
     (c >= '\u{1100}' && c <= '\u{11ff}')  // Hangul Jamo
         || (c >= '\u{3130}' && c <= '\u{318F}') // Hangul Compatibility Jamo
