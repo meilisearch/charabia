@@ -4,6 +4,7 @@ use slice_group_by::StrGroupBy;
 
 use super::{TokenStream, Tokenizer};
 use crate::detection::classify_separator;
+use crate::detection::is_cj;
 use crate::processors::ProcessedText;
 use crate::token::SeparatorKind;
 use crate::{Token, TokenKind};
@@ -56,29 +57,15 @@ impl<'a> Iterator for LegacyTokenizer<'a> {
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum CharCategory {
     Separator(SeparatorKind),
-    Cjk,
+    Cj,
     Other,
-}
-
-pub fn is_cjk(c: char) -> bool {
-     (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
-        || (c >= '\u{2f00}' && c <= '\u{2fdf}') // Kangxi radical
-        || (c >= '\u{3000}' && c <= '\u{303f}') // Japanese-style punctuation
-        || (c >= '\u{3040}' && c <= '\u{309f}') // Japanese Hiragana
-        || (c >= '\u{30a0}' && c <= '\u{30ff}') // Japanese Katakana
-        || (c >= '\u{3100}' && c <= '\u{312f}')
-        || (c >= '\u{3200}' && c <= '\u{32ff}') // Enclosed CJK Letters and Months
-        || (c >= '\u{3400}' && c <= '\u{4dbf}') // CJK Unified Ideographs Extension A
-        || (c >= '\u{4e00}' && c <= '\u{9fff}') // CJK Unified Ideographs
-        || (c >= '\u{f900}' && c <= '\u{faff}') // CJK Compatibility Ideographs
-        || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
 }
 
 fn classify_char(c: char) -> CharCategory {
     if let Some(category) = classify_separator(c) {
         CharCategory::Separator(category)
-    } else if is_cjk(c) {
-        CharCategory::Cjk
+    } else if is_cj(c) {
+        CharCategory::Cj
     } else {
         CharCategory::Other
     }
@@ -86,7 +73,7 @@ fn classify_char(c: char) -> CharCategory {
 
 fn same_group_category(a: char, b: char) -> bool {
     match (classify_char(a), classify_char(b)) {
-        (CharCategory::Cjk, _) | (_, CharCategory::Cjk) => false,
+        (CharCategory::Cj, _) | (_, CharCategory::Cj) => false,
         (CharCategory::Separator(_), CharCategory::Separator(_)) => true,
         (a, b) => a == b,
     }
