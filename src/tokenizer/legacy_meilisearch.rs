@@ -44,6 +44,7 @@ impl<'a> Iterator for LegacyTokenizer<'a> {
             char_index: self.char_index,
             byte_start: self.byte_index,
             byte_end: self.byte_index + word.len(),
+            char_map: None,
         });
 
         self.char_index += word.chars().count();

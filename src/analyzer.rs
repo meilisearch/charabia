@@ -492,4 +492,29 @@ mod test {
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
         assert_eq!(analyzed, ["小", "化妆包"]);
     }
+
+    #[test]
+    fn test_grapheme_char_map() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+
+        let text = "Go💼od";
+        let analyzed = analyzer.analyze(text);
+        let mut analyzed = analyzed.tokens();
+        let token = analyzed.next().unwrap();
+
+        let num_chars = token.num_graphemes_from_bytes(11);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_graphemes_from_bytes(10);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_graphemes_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
+        let num_chars = token.num_graphemes_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_graphemes_from_bytes(13);
+        assert_eq!(num_chars, 5);
+    }
 }

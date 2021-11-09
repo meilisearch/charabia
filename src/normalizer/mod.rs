@@ -42,6 +42,7 @@ mod test {
             kind: TokenKind::Word,
             byte_start: 0,
             byte_end: 0,
+            char_map: None,
         };
 
         let token_l = LowercaseNormalizer.normalize(token.clone());
@@ -67,6 +68,7 @@ mod test {
             kind: TokenKind::Word,
             byte_start: 0,
             byte_end: 0,
+            char_map: None,
         };
 
         let deunicoder = DeunicodeNormalizer::new(&|text: &str| {

@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 use deunicode::deunicode;
+use unicode_segmentation::UnicodeSegmentation;
 
 use super::Normalizer;
 use crate::Token;
@@ -26,7 +27,13 @@ impl Default for DeunicodeNormalizer {
 impl Normalizer for DeunicodeNormalizer {
     fn normalize<'a>(&self, mut token: Token<'a>) -> Token<'a> {
         if !(self.skip_normalization)(&token.word) {
-            token.word = Cow::Owned(deunicode(token.word.as_ref()));
+            let mut char_map = Vec::new();
+            for grapheme in token.word.graphemes(true) {
+                char_map.push(deunicode(grapheme).len());
+            }
+            let deunicoded = deunicode(token.word.as_ref());
+            token.word = Cow::Owned(deunicoded);
+            token.char_map = Some(char_map);
         }
 
         token
