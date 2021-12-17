@@ -86,7 +86,7 @@ impl<'a> Token<'a> {
     /// * `num_bytes` - number of bytes in normalized token
     pub fn num_graphemes_from_bytes(&self, mut num_bytes: usize) -> usize {
         match &self.char_map {
-            None => self.word.len(),
+            None => num_bytes,
             Some(char_map) => char_map
                 .iter()
                 .cloned()
