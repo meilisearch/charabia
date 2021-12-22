@@ -35,7 +35,7 @@ pub struct Token<'a> {
     pub byte_start: usize,
     pub byte_end: usize,
     /// number of bytes used in the normalized string
-    ///  by each grapheme cluster in the original string
+    ///  by each char in the original string
     pub char_map: Option<Vec<usize>>,
 }
 
@@ -73,20 +73,28 @@ impl<'a> Token<'a> {
         self.kind == TokenKind::StopWord
     }
 
-    /// Returns the number of graphemes in original token using number of characters in normalized
+    /// Returns the number of chars in original token using number of bytes in normalized
     /// token.
     ///
-    /// Grapheme clusters are counted in the pre-processed string (just before normalizing).
+    /// chars are counted in the pre-processed string (just before normalizing).
     /// For example, consider the string "Go💼od" which gets normalized to "gobriefcase od".
-    /// `num_graphemes_from_bytes(11)` for this token will return `3` - the number of characters in
+    /// `num_chars_from_bytes(11)` for this token will return `3` - the number of characters in
     /// the original string for 11 bytes in the normalized string.
     ///
     /// # Arguments
     ///
     /// * `num_bytes` - number of bytes in normalized token
-    pub fn num_graphemes_from_bytes(&self, mut num_bytes: usize) -> usize {
+    pub fn num_chars_from_bytes(&self, mut num_bytes: usize) -> usize {
         match &self.char_map {
-            None => num_bytes,
+            None => {
+                // if we don't have a char_map, we look for the number of chars in the current
+                //   (probably normalized) string
+                self.word
+                    .char_indices()
+                    .take_while(|(byte_index, _)| *byte_index <= num_bytes)
+                    .count()
+                    - 1
+            }
             Some(char_map) => char_map
                 .iter()
                 .cloned()
