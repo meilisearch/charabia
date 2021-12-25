@@ -253,7 +253,8 @@ mod test {
     use std::borrow::Cow;
 
     use super::*;
-    use crate::{normalizer::LowercaseNormalizer, TokenKind};
+    use crate::normalizer::LowercaseNormalizer;
+    use crate::TokenKind;
 
     #[test]
     fn test_simple_latin() {
@@ -531,8 +532,21 @@ mod test {
             char_map: None,
         };
 
+
+        let num_chars = token.num_chars_from_bytes(0);
+        assert_eq!(num_chars, 0);
+
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_chars_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
         let num_chars = token.num_chars_from_bytes(3);
         assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(4);
+        assert_eq!(num_chars, 4);
 
         let token = Token {
             kind: TokenKind::Word,
@@ -543,6 +557,9 @@ mod test {
             char_map: None,
         };
 
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
         let num_chars = token.num_chars_from_bytes(2);
         assert_eq!(num_chars, 2);
 
@@ -551,5 +568,11 @@ mod test {
 
         let num_chars = token.num_chars_from_bytes(6);
         assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(7);
+        assert_eq!(num_chars, 4);
+
+        let num_chars = token.num_chars_from_bytes(8);
+        assert_eq!(num_chars, 5);
     }
 }

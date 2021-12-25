@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::iter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SeparatorKind {
@@ -91,9 +92,27 @@ impl<'a> Token<'a> {
                 //   (probably normalized) string
                 self.word
                     .char_indices()
-                    .take_while(|(byte_index, _)| *byte_index <= num_bytes)
+                    // char_indices returns a tuple of (index, char), we ignore the char
+                    .map(|(char_index, _)| char_index)
+                    // add total number of bytes at the end
+                    .chain(iter::once(self.word.len()))
+                    // need a Vec to use .windows()
+                    .collect::<Vec<usize>>()
+                    // iterate though window of adjacent indices
+                    //   difference of adj indices gives the no. of bytes in that char
+                    //   we added word.len() before to not miss out the last char
+                    .windows(2)
+                    .take_while(|window| {
+                        let char_width = window[1] - window[0];
+                        if num_bytes >= char_width {
+                            num_bytes = num_bytes - char_width;
+                            true
+                        } else {
+                            // stop once we don't have enough bytes to spare
+                            false
+                        }
+                    })
                     .count()
-                    - 1
             }
             Some(char_map) => char_map
                 .iter()
