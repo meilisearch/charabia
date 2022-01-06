@@ -511,6 +511,9 @@ mod test {
         let num_chars = token.num_chars_from_bytes(10);
         assert_eq!(num_chars, 3);
 
+        let num_chars = token.num_chars_from_bytes(9);
+        assert_eq!(num_chars, 3);
+
         let num_chars = token.num_chars_from_bytes(2);
         assert_eq!(num_chars, 2);
 
@@ -563,8 +566,9 @@ mod test {
         let num_chars = token.num_chars_from_bytes(2);
         assert_eq!(num_chars, 2);
 
+        // consider the char even if only a part of it is available.
         let num_chars = token.num_chars_from_bytes(3);
-        assert_eq!(num_chars, 2);
+        assert_eq!(num_chars, 3);
 
         let num_chars = token.num_chars_from_bytes(6);
         assert_eq!(num_chars, 3);

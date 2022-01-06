@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::iter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SeparatorKind {
@@ -82,6 +81,11 @@ impl<'a> Token<'a> {
     /// `num_chars_from_bytes(11)` for this token will return `3` - the number of characters in
     /// the original string for 11 bytes in the normalized string.
     ///
+    /// If the `char_map` hasn't been initialized (it is None), usually done
+    /// by the de-unicoder, it counts the number of characters in self.word
+    /// for the given number of bytes. A char is considered even if the number
+    /// of bytes only covers a portion of it.
+    ///
     /// # Arguments
     ///
     /// * `num_bytes` - number of bytes in normalized token
@@ -91,28 +95,11 @@ impl<'a> Token<'a> {
                 // if we don't have a char_map, we look for the number of chars in the current
                 //   (probably normalized) string
                 self.word
-                    .char_indices()
-                    // char_indices returns a tuple of (index, char), we ignore the char
-                    .map(|(char_index, _)| char_index)
-                    // add total number of bytes at the end
-                    .chain(iter::once(self.word.len()))
-                    // need a Vec to use .windows()
-                    .collect::<Vec<usize>>()
-                    // iterate though window of adjacent indices
-                    //   difference of adj indices gives the no. of bytes in that char
-                    //   we added word.len() before to not miss out the last char
-                    .windows(2)
-                    .take_while(|window| {
-                        let char_width = window[1] - window[0];
-                        if num_bytes >= char_width {
-                            num_bytes = num_bytes - char_width;
-                            true
-                        } else {
-                            // stop once we don't have enough bytes to spare
-                            false
-                        }
+                   .char_indices()
+                   .take_while(|(char_index, _)| {
+                       *char_index < num_bytes
                     })
-                    .count()
+                   .count()
             }
             Some(char_map) => char_map
                 .iter()
