@@ -250,8 +250,11 @@ impl<'a, A> Analyzer<'a, A> {
 
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
     use super::*;
     use crate::normalizer::LowercaseNormalizer;
+    use crate::TokenKind;
 
     #[test]
     fn test_simple_latin() {
@@ -494,7 +497,7 @@ mod test {
     }
 
     #[test]
-    fn test_grapheme_char_map() {
+    fn test_num_chars_from_bytes() {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
         let text = "Go💼od";
@@ -502,19 +505,78 @@ mod test {
         let mut analyzed = analyzed.tokens();
         let token = analyzed.next().unwrap();
 
-        let num_chars = token.num_graphemes_from_bytes(11);
+        let num_chars = token.num_chars_from_bytes(11);
         assert_eq!(num_chars, 3);
 
-        let num_chars = token.num_graphemes_from_bytes(10);
+        let num_chars = token.num_chars_from_bytes(10);
         assert_eq!(num_chars, 3);
 
-        let num_chars = token.num_graphemes_from_bytes(2);
+        let num_chars = token.num_chars_from_bytes(9);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(2);
         assert_eq!(num_chars, 2);
 
-        let num_chars = token.num_graphemes_from_bytes(1);
+        let num_chars = token.num_chars_from_bytes(1);
         assert_eq!(num_chars, 1);
 
-        let num_chars = token.num_graphemes_from_bytes(13);
+        let num_chars = token.num_chars_from_bytes(13);
+        assert_eq!(num_chars, 5);
+    }
+
+    #[test]
+    fn test_num_chars_from_bytes_uninitialized() {
+        let token = Token {
+            kind: TokenKind::Word,
+            word: Cow::Borrowed("word"),
+            byte_start: 0,
+            char_index: 0,
+            byte_end: "word".len(),
+            char_map: None,
+        };
+
+
+        let num_chars = token.num_chars_from_bytes(0);
+        assert_eq!(num_chars, 0);
+
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_chars_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
+        let num_chars = token.num_chars_from_bytes(3);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(4);
+        assert_eq!(num_chars, 4);
+
+        let token = Token {
+            kind: TokenKind::Word,
+            word: Cow::Borrowed("Go💼od"),
+            byte_start: 0,
+            char_index: 0,
+            byte_end: "Go💼od".len(),
+            char_map: None,
+        };
+
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_chars_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
+        // consider the char even if only a part of it is available.
+        let num_chars = token.num_chars_from_bytes(3);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(6);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(7);
+        assert_eq!(num_chars, 4);
+
+        let num_chars = token.num_chars_from_bytes(8);
         assert_eq!(num_chars, 5);
     }
 }

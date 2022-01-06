@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use deunicode::deunicode;
-use unicode_segmentation::UnicodeSegmentation;
 
 use super::Normalizer;
 use crate::Token;
@@ -27,10 +26,17 @@ impl Default for DeunicodeNormalizer {
 impl Normalizer for DeunicodeNormalizer {
     fn normalize<'a>(&self, mut token: Token<'a>) -> Token<'a> {
         if !(self.skip_normalization)(&token.word) {
-            let mut char_map = Vec::new();
-            for grapheme in token.word.graphemes(true) {
-                char_map.push(deunicode(grapheme).len());
-            }
+            // required to convert char to &str
+            // ref: https://stackoverflow.com/a/47634755/11199009
+            let mut tmp = [0; 4];
+
+            // find length (bytes) of deunicoded str for each char
+            let char_map = token
+                .word
+                .chars()
+                .map(|char| deunicode(char.encode_utf8(&mut tmp)).len())
+                .collect();
+
             let deunicoded = deunicode(token.word.as_ref());
             token.word = Cow::Owned(deunicoded);
             token.char_map = Some(char_map);
