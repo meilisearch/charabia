@@ -7,11 +7,15 @@ use lindera::tokenizer::Tokenizer as LinderaTokenizer;
 use lindera_core::core::viterbi::{Mode, Penalty};
 
 use crate::detection::is_latin;
-use crate::normalizer::{Normalizer, DeunicodeNormalizer, LowercaseNormalizer};
-use crate::processors::{PreProcessor, IdentityPreProcessor, ProcessedText, ChineseTranslationPreProcessor};
+use crate::normalizer::{
+    ControlCharacterRemover, DeunicodeNormalizer, LowercaseNormalizer, Normalizer,
+};
+use crate::processors::{
+    ChineseTranslationPreProcessor, IdentityPreProcessor, PreProcessor, ProcessedText,
+};
 use crate::token_classifier::TokenClassifier;
+use crate::tokenizer::{Jieba, LegacyMeilisearch, Lindera, TokenStream, Tokenizer};
 use crate::Token;
-use crate::tokenizer::{Jieba, Lindera, TokenStream, Tokenizer, LegacyMeilisearch};
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(Pipeline::default);
 
@@ -24,8 +28,13 @@ pub struct Pipeline {
 impl Default for Pipeline {
     fn default() -> Self {
         // Hotfix: make a common default normalizer for every pipeline
-        let deunicoder = DeunicodeNormalizer::new(&|text: &str| !text.chars().next().map_or(true, is_latin));
-        let normalizer: Vec<Box<dyn Normalizer>> = vec![Box::new(deunicoder), Box::new(LowercaseNormalizer)];
+        let deunicoder =
+            DeunicodeNormalizer::new(&|text: &str| !text.chars().next().map_or(true, is_latin));
+        let normalizer: Vec<Box<dyn Normalizer>> = vec![
+            Box::new(deunicoder),
+            Box::new(LowercaseNormalizer),
+            Box::new(ControlCharacterRemover),
+        ];
 
         Self {
             pre_processor: Box::new(IdentityPreProcessor),
@@ -118,45 +127,52 @@ impl<'a, A> AnalyzerConfig<'a, A> {
     }
 }
 
-impl<A> AnalyzerConfig<'_, A>
-{
+impl<A> AnalyzerConfig<'_, A> {
     pub fn new(pipeline_map: HashMap<(Script, Language), Pipeline>) -> Self {
         Self { pipeline_map, stop_words: None }
     }
 }
-
 
 impl<A> Default for AnalyzerConfig<'_, A> {
     fn default() -> Self {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
 
         // Latin script specialized pipeline
-        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default()
-            .set_tokenizer(LegacyMeilisearch));
+        pipeline_map.insert(
+            (Script::Latin, Language::Other),
+            Pipeline::default().set_tokenizer(LegacyMeilisearch),
+        );
 
         // Chinese script specialized pipeline
-        
-        pipeline_map.insert((Script::Mandarin, Language::Other), Pipeline::default()
-            .set_pre_processor(ChineseTranslationPreProcessor)
-            .set_tokenizer(Jieba::default()));
-        
+        pipeline_map.insert(
+            (Script::Mandarin, Language::Other),
+            Pipeline::default()
+                .set_pre_processor(ChineseTranslationPreProcessor)
+                .set_tokenizer(Jieba::default()),
+        );
+
         // Japanese script specialized pipeline
         // TODO: define dict path for japanese
 
         let mut tokenizer = LinderaTokenizer::new(Mode::Normal, "");
 
-        pipeline_map.insert((Script::Katakana, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera { tokenizer }));
+        pipeline_map.insert(
+            (Script::Katakana, Language::Other),
+            Pipeline::default().set_tokenizer(Lindera { tokenizer }),
+        );
 
-        pipeline_map.insert((Script::Hiragana, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera { tokenizer }));
+        pipeline_map.insert(
+            (Script::Hiragana, Language::Other),
+            Pipeline::default().set_tokenizer(Lindera { tokenizer }),
+        );
 
         // TODO: define dict path for korean
-        pipeline_map.insert((Script::Hangul, Language::Other), Pipeline::default()
-            .set_tokenizer(Lindera { tokenizer }));
+        pipeline_map.insert(
+            (Script::Hangul, Language::Other),
+            Pipeline::default().set_tokenizer(Lindera { tokenizer }),
+        );
 
         AnalyzerConfig { pipeline_map, stop_words: None }
-
     }
 }
 
@@ -164,8 +180,7 @@ pub struct Analyzer<'a, A> {
     config: AnalyzerConfig<'a, A>,
 }
 
-pub struct AnalyzedText<'a, A>
-{
+pub struct AnalyzedText<'a, A> {
     /// Processed text
     processed: ProcessedText<'a>,
     /// Pipeline used to proccess the text
@@ -176,17 +191,17 @@ pub struct AnalyzedText<'a, A>
 
 impl<'a, A> AnalyzedText<'a, A>
 where
-    A: AsRef<[u8]>
+    A: AsRef<[u8]>,
 {
     /// Returns a `TokenStream` for the Analyzed text.
     pub fn tokens(&'a self) -> TokenStream<'a> {
-        let stream = self.pipeline.tokenizer
+        let stream = self
+            .pipeline
+            .tokenizer
             .tokenize(&self.processed)
             .map(move |t| self.pipeline.normalizer.normalize(t))
             .map(move |t| self.classifier.classify(t));
-        TokenStream {
-            inner: Box::new(stream)
-        }
+        TokenStream { inner: Box::new(stream) }
     }
 
     /// Attaches each token to its corresponding portion of the original text.
@@ -199,9 +214,7 @@ impl<'a, A> Analyzer<'a, A> {
     /// create a new tokenizer detecting script
     /// and chose the specialized internal tokenizer
     pub fn new(config: AnalyzerConfig<'a, A>) -> Self {
-        Self {
-            config,
-        }
+        Self { config }
     }
 
     /// Builds an `AnalyzedText` instance with the correct analyzer pipeline, and pre-processes the
@@ -227,11 +240,7 @@ impl<'a, A> Analyzer<'a, A> {
         let pipeline = self.pipeline_from(text);
         let processed = pipeline.pre_processor.process(text);
         let classifier = TokenClassifier::new(self.config.stop_words);
-        AnalyzedText {
-            processed,
-            pipeline,
-            classifier,
-        }
+        AnalyzedText { processed, pipeline, classifier }
     }
 
     /// Try to Detect Language and Script and return the corresponding pipeline,
@@ -243,7 +252,9 @@ impl<'a, A> Analyzer<'a, A> {
     fn pipeline_from(&self, text: &str) -> &Pipeline {
         let script = self.detect_script(text);
         let language = self.detect_lang(text);
-        self.config.pipeline_map.get(&(script, language))
+        self.config
+            .pipeline_map
+            .get(&(script, language))
             .or_else(|| self.config.pipeline_map.get(&(script, Language::Other)))
             .or_else(|| self.config.pipeline_map.get(&(Script::Other, Language::Other)))
             .unwrap_or_else(|| &*DEFAULT_PIPELINE)
@@ -261,11 +272,13 @@ impl<'a, A> Analyzer<'a, A> {
     }
 }
 
-
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
     use super::*;
     use crate::normalizer::LowercaseNormalizer;
+    use crate::TokenKind;
 
     #[test]
     fn test_simple_latin() {
@@ -290,7 +303,33 @@ mod test {
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            [
+                "人人",
+                "生而自由",
+                "﹐",
+                "在",
+                "尊严",
+                "和",
+                "权利",
+                "上",
+                "一律平等",
+                "。",
+                "他们",
+                "赋有",
+                "理性",
+                "和",
+                "良心",
+                "﹐",
+                "并",
+                "应以",
+                "兄弟",
+                "关系",
+                "的",
+                "精神",
+                "互相",
+                "对待",
+                "。"
+            ]
         );
     }
 
@@ -306,7 +345,33 @@ mod test {
 
         assert_eq!(
             analyzed,
-            ["人人", "生而自由", "﹐", "在", "尊严", "和", "权利", "上", "一律平等", "。", "他们", "赋有", "理性", "和", "良心", "﹐", "并", "应以", "兄弟", "关系", "的", "精神", "互相", "对待", "。"]
+            [
+                "人人",
+                "生而自由",
+                "﹐",
+                "在",
+                "尊严",
+                "和",
+                "权利",
+                "上",
+                "一律平等",
+                "。",
+                "他们",
+                "赋有",
+                "理性",
+                "和",
+                "良心",
+                "﹐",
+                "并",
+                "应以",
+                "兄弟",
+                "关系",
+                "的",
+                "精神",
+                "互相",
+                "对待",
+                "。"
+            ]
         );
     }
 
@@ -324,21 +389,73 @@ mod test {
     fn test_mixed_languages() {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
 
-        let traditional = "ABB SáféRing CCCV Базовый с реле SEG\u{00a0}WIC1, ТТ–W2+доп.катушка отключ 220 VAC+контакт сраб.реле 1НО+вывод слева+испытательные втулки. 生而自由";
+        let traditional = "ABB SáféRing CCCV Базовый\u{9}с реле SEG\u{00a0}WIC1, ТТ–W2+доп.катушка отключ 220 VAC+контакт сраб.реле 1НО+вывод слева+испытательные втулки. 生而自由";
 
         let analyzed = analyzer.analyze(traditional);
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
 
         assert_eq!(
             analyzed,
-            ["abb", " ", "safering", " ", "cccv", " ", "базовый", " ", "с", " ", "реле", " ", "seg wic1", ", ", "тт", "–", "w2", "+", "доп", ".", "катушка", " ", "отключ", " ", "220", " ", "vac", "+", "контакт", " ", "сраб", ".", "реле", " ", "1но", "+", "вывод", " ", "слева", "+", "испытательные", " ", "втулки", ". ", "生", "而", "自", "由"]
+            [
+                "abb",
+                " ",
+                "safering",
+                " ",
+                "cccv",
+                " ",
+                "базовый",
+                "\u{9}",
+                "с",
+                " ",
+                "реле",
+                " ",
+                "seg wic1",
+                ", ",
+                "тт",
+                "–",
+                "w2",
+                "+",
+                "доп",
+                ".",
+                "катушка",
+                " ",
+                "отключ",
+                " ",
+                "220",
+                " ",
+                "vac",
+                "+",
+                "контакт",
+                " ",
+                "сраб",
+                ".",
+                "реле",
+                " ",
+                "1но",
+                "+",
+                "вывод",
+                " ",
+                "слева",
+                "+",
+                "испытательные",
+                " ",
+                "втулки",
+                ". ",
+                "生",
+                "而",
+                "自",
+                "由"
+            ]
         );
     }
 
     #[test]
     fn test_simple_latin_with_lowercase_normalizer() {
         let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
-        pipeline_map.insert((Script::Latin, Language::Other), Pipeline::default().set_normalizer(LowercaseNormalizer));
+        pipeline_map.insert(
+            (Script::Latin, Language::Other),
+            Pipeline::default().set_normalizer(LowercaseNormalizer),
+        );
 
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::new(pipeline_map));
         let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
@@ -363,10 +480,136 @@ mod test {
     }
 
     #[test]
+    fn test_reconstruct_korean() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+        let orig = "안녕하세요. 한의계에 새로운 흐름을 만들어갑니다.";
+        let tokens = analyzer.analyze(orig);
+        assert_eq!(orig, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
+
+    #[test]
     fn test_reconstruct_traditional_chinese() {
         let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
         let traditional = "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。";
         let tokens = analyzer.analyze(traditional);
         assert_eq!(traditional, tokens.reconstruct().map(|(t, _)| t).collect::<String>());
+    }
+
+    #[test]
+    fn test_meilisearch_1714() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+
+        let text = "小化妆包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["小", "化妆包"]);
+
+        let text = "Ipad 包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["ipad", " ", "包"]);
+
+        let text = "化妆";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["化妆"]);
+
+        let text = "小化妆";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["小", "化妆"]);
+
+        let text = "化妆包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["化妆包"]);
+
+        let text = "小化妆包";
+        let analyzed = analyzer.analyze(text);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["小", "化妆包"]);
+    }
+
+    #[test]
+    fn test_num_chars_from_bytes() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+
+        let text = "Go💼od";
+        let analyzed = analyzer.analyze(text);
+        let mut analyzed = analyzed.tokens();
+        let token = analyzed.next().unwrap();
+
+        let num_chars = token.num_chars_from_bytes(11);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(10);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(9);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_chars_from_bytes(13);
+        assert_eq!(num_chars, 5);
+    }
+
+    #[test]
+    fn test_num_chars_from_bytes_uninitialized() {
+        let token = Token {
+            kind: TokenKind::Word,
+            word: Cow::Borrowed("word"),
+            byte_start: 0,
+            char_index: 0,
+            byte_end: "word".len(),
+            char_map: None,
+        };
+
+        let num_chars = token.num_chars_from_bytes(0);
+        assert_eq!(num_chars, 0);
+
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_chars_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
+        let num_chars = token.num_chars_from_bytes(3);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(4);
+        assert_eq!(num_chars, 4);
+
+        let token = Token {
+            kind: TokenKind::Word,
+            word: Cow::Borrowed("Go💼od"),
+            byte_start: 0,
+            char_index: 0,
+            byte_end: "Go💼od".len(),
+            char_map: None,
+        };
+
+        let num_chars = token.num_chars_from_bytes(1);
+        assert_eq!(num_chars, 1);
+
+        let num_chars = token.num_chars_from_bytes(2);
+        assert_eq!(num_chars, 2);
+
+        // consider the char even if only a part of it is available.
+        let num_chars = token.num_chars_from_bytes(3);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(6);
+        assert_eq!(num_chars, 3);
+
+        let num_chars = token.num_chars_from_bytes(7);
+        assert_eq!(num_chars, 4);
+
+        let num_chars = token.num_chars_from_bytes(8);
+        assert_eq!(num_chars, 5);
     }
 }

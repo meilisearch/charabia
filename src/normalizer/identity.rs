@@ -1,5 +1,5 @@
-use crate::Token;
 use super::Normalizer;
+use crate::Token;
 
 pub struct IdentityNormalizer;
 

@@ -7,3 +7,4 @@ meilisearch-core/target
 /query-history.txt
 /data.ms
 Cargo.lock
+.idea

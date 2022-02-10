@@ -1,7 +1,7 @@
 mod default_run;
 mod initialization;
-mod tokenizer;
 mod normalizer;
+mod tokenizer;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 

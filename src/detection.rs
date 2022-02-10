@@ -1,26 +1,25 @@
-use crate::token::SeparatorKind;
 use deunicode::deunicode_char;
 
+use crate::token::SeparatorKind;
+
 pub fn is_chinese(c: char) -> bool {
-        (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
+    (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
         || (c >= '\u{2f00}' && c <= '\u{2fdf}') // Kangxi radical
         || (c >= '\u{3100}' && c <= '\u{312f}')
         || (c >= '\u{3200}' && c <= '\u{32ff}') // Enclosed CJK Letters and Months
         || (c >= '\u{3400}' && c <= '\u{4dbf}') // CJK Unified Ideographs Extension A
         || (c >= '\u{4e00}' && c <= '\u{9fff}') // CJK Unified Ideographs
         || (c >= '\u{f900}' && c <= '\u{faff}') // CJK Compatibility Ideographs
+        || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
 }
 
-pub fn is_jk(c: char) -> bool {
+#[allow(dead_code)]
+pub fn is_hangul(c: char) -> bool {
     (c >= '\u{1100}' && c <= '\u{11ff}')  // Hangul Jamo
-    || (c >= '\u{3000}' && c <= '\u{303f}') // Japanese-style punctuation
-    || (c >= '\u{3040}' && c <= '\u{309f}') // Japanese Hiragana
-    || (c >= '\u{30a0}' && c <= '\u{30ff}') // Japanese Katakana
-    || (c >= '\u{3130}' && c <= '\u{318F}') // Hangul Compatibility Jamo
-    || (c >= '\u{a960}' && c <= '\u{a97f}') // Hangul Jamo Extended-A
-    || (c >= '\u{ac00}' && c <= '\u{d7a3}') // Hangul Syllables
-    || (c >= '\u{d7b0}' && c <= '\u{d7ff}') // Hangul Jamo Extended-B
-    || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
+        || (c >= '\u{3130}' && c <= '\u{318F}') // Hangul Compatibility Jamo
+        || (c >= '\u{a960}' && c <= '\u{a97f}') // Hangul Jamo Extended-A
+        || (c >= '\u{ac00}' && c <= '\u{d7a3}') // Hangul Syllables
+        || (c >= '\u{d7b0}' && c <= '\u{d7ff}') // Hangul Jamo Extended-B
 }
 
 // https://en.wikipedia.org/wiki/Latin_script_in_Unicode
@@ -46,10 +45,14 @@ pub fn classify_separator(c: char) -> Option<SeparatorKind> {
     match deunicode_char(c)?.chars().next()? {
         // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
         _ if ('\u{0410}'..='\u{044f}').contains(&c) => None, // russian cyrillic letters [а-яА-Я]
-        _ if c == '\u{00a0}' => None, // non-breaking space
+        _ if c == '\u{00a0}' => None,                        // non-breaking space
         c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => Some(SeparatorKind::Soft),
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}'| '|' => Some(SeparatorKind::Hard),
+        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => {
+            Some(SeparatorKind::Soft)
+        }
+        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' => {
+            Some(SeparatorKind::Hard)
+        }
         _ => None,
     }
 }

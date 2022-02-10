@@ -1,6 +1,6 @@
 use cow_utils::CowUtils;
 
-use super::{ProcessedText, PreProcessor};
+use super::{PreProcessor, ProcessedText};
 
 pub struct Eraser(char, String);
 
@@ -15,9 +15,6 @@ impl Eraser {
 
 impl PreProcessor for Eraser {
     fn process<'a>(&self, s: &'a str) -> ProcessedText<'a> {
-        ProcessedText {
-            original: s,
-            processed: s.cow_replace(|c| c == self.0, &self.1)
-        }
+        ProcessedText { original: s, processed: s.cow_replace(|c| c == self.0, &self.1) }
     }
 }

@@ -1,7 +1,6 @@
 use fst::Set;
-
-use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
 use meilisearch_tokenizer::token::SeparatorKind;
+use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
 
 #[test]
 fn test() {
