@@ -19,7 +19,9 @@ fn init_analyzer_with_normalizer<'a>(
         Pipeline::default().set_tokenizer(LegacyMeilisearch).set_normalizer(normalizer),
     );
 
-    let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map).stop_words(stop_words));
+    let mut config = AnalyzerConfig::new(pipeline_map);
+    config.stop_words(stop_words);
+    let analyzer = Analyzer::new(config);
 
     // analyze a first time to trigger lazy initializations
     analyzer.analyze("Hello");
