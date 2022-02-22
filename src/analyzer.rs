@@ -325,15 +325,47 @@ impl<'a, A> Analyzer<'a, A> {
     /// if no Script is detected or no pipeline corresponds to the Script,
     /// the function try to get the default pipeline in the map;
     /// if no default pipeline exist in the map return the librairy DEFAULT_PIPELINE.
+    // fn pipeline_from(&self, text: &str) -> &Pipeline {
+    //     let script = self.detect_script(text);
+    //     let language = self.detect_lang(text);
+    //     self.config
+    //         .pipeline_map
+    //         .get(&(script, language))
+    //         .or_else(|| self.config.pipeline_map.get(&(script, Language::Other)))
+    //         .or_else(|| self.config.pipeline_map.get(&(Script::Other, Language::Other)))
+    //         .unwrap_or_else(|| &*DEFAULT_PIPELINE)
+    // }
     fn pipeline_from(&self, text: &str) -> &Pipeline {
-        let script = self.detect_script(text);
-        let language = self.detect_lang(text);
-        self.config
+        let detected_script = self.detect_script(text);
+        match self
+            .config
             .pipeline_map
-            .get(&(script, language))
-            .or_else(|| self.config.pipeline_map.get(&(script, Language::Other)))
-            .or_else(|| self.config.pipeline_map.get(&(Script::Other, Language::Other)))
-            .unwrap_or_else(|| &*DEFAULT_PIPELINE)
+            .iter()
+            .filter(|((script, _), _)| *script == detected_script)
+            .collect::<Vec<_>>()[..]
+        {
+            // no specialized pipeline found for this script,
+            // choose the default one.
+            [] => self
+                .config
+                .pipeline_map
+                .get(&(Script::Other, Language::Other))
+                .unwrap_or_else(|| &*DEFAULT_PIPELINE),
+            // Only one specialized pipeline found,
+            // we don't need to detect the Language.
+            [((_, _), pipeline)] => pipeline,
+            // several pipelines found,
+            // we have to detect the language to get the good one.
+            _ => {
+                let detected_language = self.detect_lang(text);
+                self.config
+                    .pipeline_map
+                    .get(&(detected_script, detected_language))
+                    .or_else(|| self.config.pipeline_map.get(&(detected_script, Language::Other)))
+                    .or_else(|| self.config.pipeline_map.get(&(Script::Other, Language::Other)))
+                    .unwrap_or_else(|| &*DEFAULT_PIPELINE)
+            }
+        }
     }
 
     /// detect script with whatlang,
