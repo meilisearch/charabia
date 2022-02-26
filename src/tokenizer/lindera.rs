@@ -14,7 +14,7 @@ pub struct Lindera;
 
 impl Tokenizer for Lindera {
     fn tokenize<'a>(&self, s: &'a ProcessedText<'a>) -> TokenStream<'a> {
-        let tokens = LINDERA.clone().tokenize(&s.processed).unwrap();
+        let tokens = LINDERA.tokenize(&s.processed).unwrap();
 
         TokenStream {
             inner: Box::new(tokens.into_iter().scan(
