@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use criterion::{BenchmarkId, Criterion};
-use fst::Set;
 use meilisearch_tokenizer::analyzer::{Language, Pipeline, Script};
 use meilisearch_tokenizer::detection::is_chinese;
 use meilisearch_tokenizer::normalizer::{DeunicodeNormalizer, LowercaseNormalizer, Normalizer};
@@ -38,8 +37,8 @@ pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
 }
 
 fn default_init(text: &str) {
-    let stop_words = Set::default();
-    let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
+    let config = AnalyzerConfig::<'_, &str>::default();
+    let analyzer = Analyzer::new(config);
 
     analyzer.analyze(text);
 }
@@ -53,8 +52,8 @@ fn legacy_tok_deunicode_lowercase_norm(text: &str) {
         Pipeline::default().set_tokenizer(LegacyMeilisearch).set_normalizer(latin_normalizer),
     );
 
-    let stop_words = Set::default();
-    let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map, &stop_words));
+    let config = AnalyzerConfig::<'_, &str>::new(pipeline_map);
+    let analyzer = Analyzer::new(config);
 
     analyzer.analyze(text);
 }
@@ -73,8 +72,8 @@ fn translation_pre_jieba_tok_deunicode_lowercase_norm(text: &str) {
             .set_normalizer(chinese_normalizer),
     );
 
-    let stop_words = Set::default();
-    let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map, &stop_words));
+    let config = AnalyzerConfig::<'_, &str>::default();
+    let analyzer = Analyzer::new(config);
 
     analyzer.analyze(text);
 }

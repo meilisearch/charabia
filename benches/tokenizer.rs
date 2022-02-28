@@ -14,7 +14,9 @@ fn init_analyzer_with_tokenizer<'a>(
     pipeline_map
         .insert((Script::Other, Language::Other), Pipeline::default().set_tokenizer(tokenizer));
 
-    let analyzer = Analyzer::new(AnalyzerConfig::new(pipeline_map).stop_words(stop_words));
+    let mut config = AnalyzerConfig::new(pipeline_map);
+    config.stop_words(stop_words);
+    let analyzer = Analyzer::new(config);
 
     // analyze a first time to trigger lazy initializations
     analyzer.analyze("Hello");

@@ -1,10 +1,9 @@
 use criterion::{black_box, BenchmarkId, Criterion};
-use fst::Set;
 use meilisearch_tokenizer::{Analyzer, AnalyzerConfig};
 
 pub fn criterion_benchmark(c: &mut Criterion, data_set: &[(&str, &str)]) {
-    let stop_words = Set::default();
-    let analyzer = Analyzer::new(AnalyzerConfig::default_with_stopwords(&stop_words));
+    let config = AnalyzerConfig::default();
+    let analyzer = Analyzer::new(config);
 
     // analyze a first time each text to trigger lazy initializations
     for &(_name, text) in data_set {
