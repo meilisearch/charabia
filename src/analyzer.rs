@@ -327,13 +327,13 @@ impl<'a, A> Analyzer<'a, A> {
     /// if no default pipeline exist in the map return the librairy DEFAULT_PIPELINE.
     fn pipeline_from(&self, text: &str) -> &Pipeline {
         let detected_script = self.detect_script(text);
-        match self
+        let filtered_pipelines: Vec<_> = self
             .config
             .pipeline_map
             .iter()
             .filter(|((script, _), _)| *script == detected_script)
-            .collect::<Vec<_>>()[..]
-        {
+            .collect();
+        match filtered_pipelines[..] {
             // no specialized pipeline found for this script,
             // choose the default one.
             [] => self
