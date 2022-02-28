@@ -2,12 +2,9 @@ use deunicode::deunicode_char;
 
 use crate::token::SeparatorKind;
 
-pub fn is_cj(c: char) -> bool {
+pub fn is_chinese(c: char) -> bool {
     (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
         || (c >= '\u{2f00}' && c <= '\u{2fdf}') // Kangxi radical
-        || (c >= '\u{3000}' && c <= '\u{303f}') // Japanese-style punctuation
-        || (c >= '\u{3040}' && c <= '\u{309f}') // Japanese Hiragana
-        || (c >= '\u{30a0}' && c <= '\u{30ff}') // Japanese Katakana
         || (c >= '\u{3100}' && c <= '\u{312f}')
         || (c >= '\u{3200}' && c <= '\u{32ff}') // Enclosed CJK Letters and Months
         || (c >= '\u{3400}' && c <= '\u{4dbf}') // CJK Unified Ideographs Extension A

@@ -31,7 +31,7 @@ mod test {
     use std::borrow::Cow;
 
     use super::*;
-    use crate::detection::is_cj;
+    use crate::detection::is_chinese;
     use crate::TokenKind;
 
     #[test]
@@ -72,7 +72,7 @@ mod test {
         };
 
         let deunicoder = DeunicodeNormalizer::new(&|text: &str| {
-            text.chars().next().map_or(false, |c| is_cj(c))
+            text.chars().next().map_or(false, |c| is_chinese(c))
         });
 
         let token_l = LowercaseNormalizer.normalize(token.clone());

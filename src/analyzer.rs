@@ -11,7 +11,7 @@ use crate::processors::{
     ChineseTranslationPreProcessor, IdentityPreProcessor, PreProcessor, ProcessedText,
 };
 use crate::token_classifier::TokenClassifier;
-use crate::tokenizer::{Jieba, LegacyMeilisearch, TokenStream, Tokenizer};
+use crate::tokenizer::{Jieba, LegacyMeilisearch, Lindera, TokenStream, Tokenizer};
 use crate::Token;
 
 static DEFAULT_PIPELINE: Lazy<Pipeline> = Lazy::new(Pipeline::default);
@@ -58,10 +58,92 @@ impl Pipeline {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub enum Language {
-    English,
-    Other,
+macro_rules! make_language {
+    ($($language:tt), +) => {
+        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+        pub enum Language {
+            $($language),+,
+            Other,
+        }
+        impl From<whatlang::Lang> for Language {
+            fn from(other: whatlang::Lang) -> Language {
+                match other {
+                    $(whatlang::Lang::$language => Language::$language), +
+                }
+            }
+        }
+    };
+}
+
+make_language! {
+    Epo,
+    Eng,
+    Rus,
+    Cmn,
+    Spa,
+    Por,
+    Ita,
+    Ben,
+    Fra,
+    Deu,
+    Ukr,
+    Kat,
+    Ara,
+    Hin,
+    Jpn,
+    Heb,
+    Yid,
+    Pol,
+    Amh,
+    Jav,
+    Kor,
+    Nob,
+    Dan,
+    Swe,
+    Fin,
+    Tur,
+    Nld,
+    Hun,
+    Ces,
+    Ell,
+    Bul,
+    Bel,
+    Mar,
+    Kan,
+    Ron,
+    Slv,
+    Hrv,
+    Srp,
+    Mkd,
+    Lit,
+    Lav,
+    Est,
+    Tam,
+    Vie,
+    Urd,
+    Tha,
+    Guj,
+    Uzb,
+    Pan,
+    Aze,
+    Ind,
+    Tel,
+    Pes,
+    Mal,
+    Ori,
+    Mya,
+    Nep,
+    Sin,
+    Khm,
+    Tuk,
+    Aka,
+    Zul,
+    Sna,
+    Afr,
+    Lat,
+    Slk,
+    Cat
+    // Tgl  added in whatlang 0.13.0
 }
 
 macro_rules! make_script {
@@ -142,10 +224,28 @@ impl<A> Default for AnalyzerConfig<'_, A> {
 
         // Chinese script specialized pipeline
         pipeline_map.insert(
-            (Script::Mandarin, Language::Other),
+            (Script::Mandarin, Language::Cmn),
             Pipeline::default()
                 .set_pre_processor(ChineseTranslationPreProcessor)
                 .set_tokenizer(Jieba::default()),
+        );
+
+        // Japanese Kanji pipeline
+        pipeline_map.insert(
+            (Script::Mandarin, Language::Jpn),
+            Pipeline::default().set_tokenizer(Lindera::default()),
+        );
+
+        // Japanese Hiragana pipeline
+        pipeline_map.insert(
+            (Script::Hiragana, Language::Jpn),
+            Pipeline::default().set_tokenizer(Lindera::default()),
+        );
+
+        // Japanese Katakana pipeline
+        pipeline_map.insert(
+            (Script::Katakana, Language::Jpn),
+            Pipeline::default().set_tokenizer(Lindera::default()),
         );
 
         AnalyzerConfig { pipeline_map, stop_words: None }
@@ -242,9 +342,10 @@ impl<'a, A> Analyzer<'a, A> {
         whatlang::detect_script(text).map(Script::from).unwrap_or(Script::Other)
     }
 
-    /// detect lang (dummy)
-    fn detect_lang(&self, _text: &str) -> Language {
-        Language::Other
+    /// detect lang with whatlang
+    /// if no language is detected, return Language::Other
+    fn detect_lang(&self, text: &str) -> Language {
+        whatlang::detect_lang(text).map(Language::from).unwrap_or(Language::Other)
     }
 }
 
@@ -535,7 +636,6 @@ mod test {
             char_map: None,
         };
 
-
         let num_chars = token.num_chars_from_bytes(0);
         assert_eq!(num_chars, 0);
 
@@ -578,5 +678,14 @@ mod test {
 
         let num_chars = token.num_chars_from_bytes(8);
         assert_eq!(num_chars, 5);
+    }
+    #[test]
+    fn test_simple_japanese() {
+        let analyzer = Analyzer::new(AnalyzerConfig::<Vec<u8>>::default());
+
+        let orig = "関西国際空港限定トートバッグ";
+        let analyzed = analyzer.analyze(orig);
+        let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
+        assert_eq!(analyzed, ["関西国際空港", "限定", "トートバッグ"]);
     }
 }

@@ -1,7 +1,9 @@
 mod jieba;
 mod legacy_meilisearch;
+mod lindera;
 mod unicode_segmenter;
 
+pub use self::lindera::Lindera;
 pub use jieba::Jieba;
 pub use legacy_meilisearch::LegacyMeilisearch;
 pub use unicode_segmenter::UnicodeSegmenter;

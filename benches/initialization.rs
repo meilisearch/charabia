@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use criterion::{BenchmarkId, Criterion};
 use fst::Set;
 use meilisearch_tokenizer::analyzer::{Language, Pipeline, Script};
-use meilisearch_tokenizer::detection::is_cj;
+use meilisearch_tokenizer::detection::is_chinese;
 use meilisearch_tokenizer::normalizer::{DeunicodeNormalizer, LowercaseNormalizer, Normalizer};
 use meilisearch_tokenizer::processors::ChineseTranslationPreProcessor;
 use meilisearch_tokenizer::tokenizer::{Jieba, LegacyMeilisearch};
@@ -62,7 +62,7 @@ fn legacy_tok_deunicode_lowercase_norm(text: &str) {
 fn translation_pre_jieba_tok_deunicode_lowercase_norm(text: &str) {
     let mut pipeline_map: HashMap<(Script, Language), Pipeline> = HashMap::new();
     let chinese_deunicoder =
-        DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, is_cj));
+        DeunicodeNormalizer::new(&|text: &str| text.chars().next().map_or(false, is_chinese));
     let chinese_normalizer: Vec<Box<dyn Normalizer>> =
         vec![Box::new(chinese_deunicoder), Box::new(LowercaseNormalizer)];
     pipeline_map.insert(

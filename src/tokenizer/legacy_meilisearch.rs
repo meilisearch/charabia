@@ -4,7 +4,7 @@ use slice_group_by::StrGroupBy;
 
 use super::{TokenStream, Tokenizer};
 use crate::detection::classify_separator;
-use crate::detection::is_cj;
+use crate::detection::is_chinese;
 use crate::processors::ProcessedText;
 use crate::token::SeparatorKind;
 use crate::{Token, TokenKind};
@@ -65,7 +65,7 @@ enum CharCategory {
 fn classify_char(c: char) -> CharCategory {
     if let Some(category) = classify_separator(c) {
         CharCategory::Separator(category)
-    } else if is_cj(c) {
+    } else if is_chinese(c) {
         CharCategory::Cj
     } else {
         CharCategory::Other
