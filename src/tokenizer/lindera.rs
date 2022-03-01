@@ -1,13 +1,18 @@
 use std::borrow::Cow;
 
-use lindera::tokenizer::Tokenizer as LinderaTokenizer;
+use lindera::tokenizer::{Tokenizer as LinderaTokenizer, TokenizerConfig};
+use lindera_core::viterbi::{Mode, Penalty};
 use once_cell::sync::Lazy;
 
 use super::{TokenStream, Tokenizer};
 use crate::processors::ProcessedText;
 use crate::{Token, TokenKind};
 
-static LINDERA: Lazy<LinderaTokenizer> = Lazy::new(|| LinderaTokenizer::new().unwrap());
+static LINDERA: Lazy<LinderaTokenizer> = Lazy::new(|| {
+    let config =
+        TokenizerConfig { mode: Mode::Decompose(Penalty::default()), ..TokenizerConfig::default() };
+    LinderaTokenizer::with_config(config).unwrap()
+});
 
 #[derive(Debug, Default)]
 pub struct Lindera;
@@ -69,7 +74,7 @@ mod test {
             .tokenize(&processed)
             .map(|Token { word, .. }| word.to_owned())
             .collect::<Vec<_>>();
-        assert_eq!(tokens, ["関西国際空港", "限定", "トートバッグ"]);
+        assert_eq!(tokens, ["関西", "国際", "空港", "限定", "トートバッグ"]);
 
         let orig = "すもももももももものうち";
         let processed = ProcessedText { original: orig, processed: Cow::Borrowed(orig) };
@@ -119,7 +124,7 @@ mod test {
             .tokenize(&processed)
             .map(|Token { char_index, .. }| char_index)
             .collect::<Vec<_>>();
-        assert_eq!(positions, [0, 6, 8]);
+        assert_eq!(positions, [0, 2, 4, 6, 8]);
 
         let orig = "すもももももももものうち";
         let processed = ProcessedText { original: orig, processed: Cow::Borrowed(orig) };

@@ -708,6 +708,6 @@ mod test {
         let orig = "関西国際空港限定トートバッグ";
         let analyzed = analyzer.analyze(orig);
         let analyzed: Vec<_> = analyzed.tokens().map(|token| token.word).collect();
-        assert_eq!(analyzed, ["関西国際空港", "限定", "トートバッグ"]);
+        assert_eq!(analyzed, ["関西", "国際", "空港", "限定", "トートバッグ"]);
     }
 }
