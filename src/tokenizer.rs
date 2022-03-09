@@ -90,10 +90,10 @@ impl Tokenize<'_, Vec<u8>> for &str {
     }
 }
 
-/// Structure used to tokenize a text with customs configurations.
+/// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
-pub struct Tokenizer<'o, 'sw, A: AsRef<[u8]>> {
+pub struct Tokenizer<'o, 'sw, A> {
     original: &'o str,
     stop_words: Option<&'sw Set<A>>,
 }
@@ -135,7 +135,7 @@ impl<'o, 'sw, A: AsRef<[u8]>> Tokenize<'_, A> for Tokenizer<'o, 'sw, A> {
 /// let tokenizer = builder.build();
 /// ```
 ///
-pub struct TokenizerBuilder<'o, 'sw, A: AsRef<[u8]>> {
+pub struct TokenizerBuilder<'o, 'sw, A> {
     original: &'o str,
     stop_words: Option<&'sw Set<A>>,
 }
@@ -151,7 +151,7 @@ impl<'o, 'sw> TokenizerBuilder<'o, 'sw, Vec<u8>> {
     }
 }
 
-impl<'o, 'sw, A: AsRef<[u8]>> TokenizerBuilder<'o, 'sw, A> {
+impl<'o, 'sw, A> TokenizerBuilder<'o, 'sw, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments

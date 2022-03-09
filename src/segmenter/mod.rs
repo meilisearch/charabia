@@ -67,7 +67,7 @@ impl<'a> Iterator for SegmentedTokenIter<'a> {
 /// the function try to get a segmenter corresponding to the script;
 /// if no Script is detected or no segmenter corresponds to the Script,
 /// the function try to get the default segmenter in the map;
-/// if no default segmenter exist in the map return the librairy DEFAULT_SEGMENTER.
+/// if no default segmenter exists in the map return the library DEFAULT_SEGMENTER.
 fn segmenter<'a, 'b>(detector: &'a mut StrDetection) -> &'b impl Segmenter {
     let detected_script = detector.script();
     let mut filtered_segmenters =

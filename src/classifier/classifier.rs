@@ -5,7 +5,7 @@ use crate::token::SeparatorKind;
 use crate::{Token, TokenKind};
 
 #[derive(Clone)]
-pub(crate) struct TokenClassifier<'sw, A: AsRef<[u8]>> {
+pub(crate) struct TokenClassifier<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
 }
 
@@ -15,7 +15,7 @@ impl Default for TokenClassifier<'_, Vec<u8>> {
     }
 }
 
-impl<'sw, A: AsRef<[u8]>> TokenClassifier<'sw, A> {
+impl<'sw, A> TokenClassifier<'sw, A> {
     pub fn new(stop_words: Option<&'sw Set<A>>) -> Self {
         Self { stop_words }
     }

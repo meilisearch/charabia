@@ -238,11 +238,11 @@ impl<'a> StrDetection<'a> {
 }
 
 pub trait Detect {
-    fn detect<'a>(&'a self) -> StrDetection<'a>;
+    fn detect(&self) -> StrDetection;
 }
 
 impl Detect for &str {
-    fn detect<'a>(&'a self) -> StrDetection<'a> {
+    fn detect(&self) -> StrDetection {
         StrDetection::new(self)
     }
 }

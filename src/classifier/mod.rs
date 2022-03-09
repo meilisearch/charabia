@@ -6,7 +6,7 @@ use fst::Set;
 use crate::Token;
 
 /// Iterator over classified [`Token`]s.
-pub struct ClassifiedTokenIter<'o, 'sw, A: AsRef<[u8]>> {
+pub struct ClassifiedTokenIter<'o, 'sw, A> {
     pub(crate) inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     pub(crate) classifier: TokenClassifier<'sw, A>,
 }
