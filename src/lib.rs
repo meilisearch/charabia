@@ -1,11 +1,14 @@
-pub mod analyzer;
-pub mod detection;
+pub mod classifier;
 pub mod normalizer;
-pub mod processors;
-pub mod token;
+pub mod segmenter;
 pub mod tokenizer;
 
-mod token_classifier;
+mod detection;
+mod token;
 
-pub use analyzer::{Analyzer, AnalyzerConfig};
-pub use token::{Token, TokenKind};
+pub use classifier::Classify;
+pub use detection::{Language, Script};
+pub use normalizer::Normalize;
+pub use segmenter::Segment;
+pub use token::{SeparatorKind, Token, TokenKind};
+pub use tokenizer::Tokenize;
