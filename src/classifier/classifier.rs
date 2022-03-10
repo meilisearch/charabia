@@ -5,23 +5,23 @@ use crate::token::SeparatorKind;
 use crate::{Token, TokenKind};
 
 #[derive(Clone)]
-pub struct TokenClassifier<'a, A = Vec<u8>> {
-    stop_words: Option<&'a Set<A>>,
+pub struct TokenClassifier<'sw, A> {
+    stop_words: Option<&'sw Set<A>>,
 }
 
-impl Default for TokenClassifier<'_> {
+impl Default for TokenClassifier<'_, Vec<u8>> {
     fn default() -> Self {
         Self { stop_words: None }
     }
 }
 
-impl<'a, A> TokenClassifier<'a, A> {
-    pub fn new(stop_words: Option<&'a Set<A>>) -> Self {
+impl<'sw, A> TokenClassifier<'sw, A> {
+    pub fn new(stop_words: Option<&'sw Set<A>>) -> Self {
         Self { stop_words }
     }
 }
 
-impl<'a, A> TokenClassifier<'a, A>
+impl<'sw, A> TokenClassifier<'sw, A>
 where
     A: AsRef<[u8]>,
 {
