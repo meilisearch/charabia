@@ -147,8 +147,8 @@ make_language! {
     Afr,
     Lat,
     Slk,
-    Cat
-    // Tgl  added in whatlang 0.13.0
+    Cat,
+    Tgl
 }
 
 macro_rules! make_script {
