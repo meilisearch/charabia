@@ -5,7 +5,7 @@ use crate::token::SeparatorKind;
 use crate::{Token, TokenKind};
 
 #[derive(Clone)]
-pub(crate) struct TokenClassifier<'sw, A> {
+pub struct TokenClassifier<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
 }
 

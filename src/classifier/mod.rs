@@ -7,8 +7,8 @@ use crate::Token;
 
 /// Iterator over classified [`Token`]s.
 pub struct ClassifiedTokenIter<'o, 'sw, A> {
-    pub(crate) inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
-    pub(crate) classifier: TokenClassifier<'sw, A>,
+    inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
+    classifier: TokenClassifier<'sw, A>,
 }
 
 impl<'o, 'sw, A: AsRef<[u8]>> Iterator for ClassifiedTokenIter<'o, 'sw, A> {

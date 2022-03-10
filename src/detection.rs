@@ -204,9 +204,9 @@ make_script! {
 }
 
 pub struct StrDetection<'a> {
-    pub(crate) inner: &'a str,
-    pub(crate) script: Option<Script>,
-    pub(crate) language: Option<Language>,
+    inner: &'a str,
+    pub script: Option<Script>,
+    pub language: Option<Language>,
 }
 
 impl<'a> StrDetection<'a> {
