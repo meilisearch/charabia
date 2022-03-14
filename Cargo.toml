@@ -7,19 +7,19 @@ edition = "2018"
 
 [dependencies]
 character_converter = "1.0.0"
-cow-utils = "0.1"
-deunicode = "1.1.1"
-fst = "0.4"
-jieba-rs = "0.6"
-once_cell = "1.5.2"
-slice-group-by = "0.2.6"
-unicode-segmentation = "1.6.0"
-whatlang = "0.12.0"
+cow-utils = "0.1.2"
+deunicode = "1.3.1"
+fst = "0.4.7"
+jieba-rs = "0.6.6"
+once_cell = "1.10.0"
+slice-group-by = "0.3.0"
+unicode-segmentation = "1.9.0"
+whatlang = "0.13.0"
 lindera = "0.10.0"
 lindera-core = "0.10.0"
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.3.5"
 
 [[bench]]
 name = "bench"
