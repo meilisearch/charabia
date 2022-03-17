@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
+use lindera::mode::{Mode, Penalty};
 use lindera::tokenizer::{Tokenizer as LinderaTokenizer, TokenizerConfig};
-use lindera_core::viterbi::{Mode, Penalty};
 use once_cell::sync::Lazy;
 
 use super::{TokenStream, Tokenizer};
