@@ -53,8 +53,10 @@ impl<'a> Iterator for SegmentedTokenIter<'a> {
         Some(Token {
             kind: TokenKind::Unknown,
             word: Cow::Borrowed(word),
-            char_index,
-            byte_index,
+            char_start: char_index,
+            char_end: self.char_index,
+            byte_start: byte_index,
+            byte_end: self.byte_index,
             char_map: None,
             script: self.script,
             language: self.language,

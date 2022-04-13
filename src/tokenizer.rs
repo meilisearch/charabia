@@ -17,7 +17,7 @@ impl<'o, 'sw, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o, 'sw, A> {
     fn next(&mut self) -> Option<Self::Item> {
         self.token_iter
             .next()
-            .map(|token| (&self.original[token.byte_index..token.byte_end()], token))
+            .map(|token| (&self.original[token.byte_start..token.byte_end], token))
     }
 }
 
