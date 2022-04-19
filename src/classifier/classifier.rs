@@ -65,25 +65,25 @@ mod test {
         let classifier = TokenClassifier::default();
 
         let token = classifier.classify(Token { word: Cow::Borrowed("   "), ..Default::default() });
-        assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
+        assert_eq!(token.separator_kind(), Some(SeparatorKind::Soft));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("\" "), ..Default::default() });
-        assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
+        assert_eq!(token.separator_kind(), Some(SeparatorKind::Soft));
 
         let token =
             classifier.classify(Token { word: Cow::Borrowed("@   "), ..Default::default() });
-        assert_eq!(token.is_separator(), Some(SeparatorKind::Soft));
+        assert_eq!(token.separator_kind(), Some(SeparatorKind::Soft));
 
         let token = classifier.classify(Token { word: Cow::Borrowed("."), ..Default::default() });
-        assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
+        assert_eq!(token.separator_kind(), Some(SeparatorKind::Hard));
 
         let token =
             classifier.classify(Token { word: Cow::Borrowed("   ."), ..Default::default() });
-        assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
+        assert_eq!(token.separator_kind(), Some(SeparatorKind::Hard));
 
         let token =
             classifier.classify(Token { word: Cow::Borrowed("  。"), ..Default::default() });
-        assert_eq!(token.is_separator(), Some(SeparatorKind::Hard));
+        assert_eq!(token.separator_kind(), Some(SeparatorKind::Hard));
 
         let token =
             classifier.classify(Token { word: Cow::Borrowed("S.O.S"), ..Default::default() });
