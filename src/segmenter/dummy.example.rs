@@ -38,7 +38,23 @@ impl Segmenter for DummySegmenter {
 //	   - publish Segmenter by adding `pub use dummy::DummySegmenter;` in `segmenter/mod.rs`
 //     - running `cargo doc --open` you should see your Segmenter in the segmenter module
 
-//TODO @many: documents how to test the segmenter in the next PR
+// Test the segmenter:
+#[cfg(test)]
+mod test {
+    use crate::segmenter::test::test_segmenter;
+
+    // Original version of the text.
+    const TEXT: &str = "Hello World!";
+
+    // Segmented version of the text.
+    const SEGMENTED: &[&str] = &["Hello", " World!"];
+
+    // Segmented and normalized version of the text.
+    const TOKENIZED: &[&str] = &["hello", " world!"];
+
+    // Macro that run several tests on the Segmenter.
+    test_segmenter!(DummySegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);
+}
 
 // Include the newly implemented Segmenter in the tokenization pipeline:
 //	   - assign Segmenter to a Script and a Language by adding it in `SEGMENTERS` in `segmenter/mod.rs`
