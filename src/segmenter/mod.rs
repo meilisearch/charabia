@@ -108,7 +108,7 @@ impl Segmenter for Box<dyn Segmenter> {
 }
 
 /// Trait defining methods to segment a text.
-pub trait Segment {
+pub trait Segment<'o> {
     /// Segments the provided text creating an Iterator over Tokens.
     /// Created Tokens are not normalized nether classified,
     /// otherwise, better use the [`tokenize`] method.
@@ -138,7 +138,7 @@ pub trait Segment {
     /// assert_eq!(word, "quick");
     /// assert_eq!(kind, TokenKind::Unknown);
     /// ```
-    fn segment(&self) -> SegmentedTokenIter<'_>;
+    fn segment(&self) -> SegmentedTokenIter<'o>;
 
     /// Segments the provided text creating an Iterator over `&str`.
     ///
@@ -155,11 +155,11 @@ pub trait Segment {
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
-    fn segment_str<'a>(&'a self) -> Box<dyn Iterator<Item = &'a str> + 'a>;
+    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 }
 
-impl Segment for &str {
-    fn segment(&self) -> SegmentedTokenIter<'_> {
+impl<'o> Segment<'o> for &'o str {
+    fn segment(&self) -> SegmentedTokenIter<'o> {
         let mut detector = self.detect();
         let segmenter = segmenter(&mut detector);
         let script = detector.script();
@@ -174,7 +174,7 @@ impl Segment for &str {
         }
     }
 
-    fn segment_str<'a>(&'a self) -> Box<dyn Iterator<Item = &'a str> + 'a> {
+    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let mut detector = self.detect();
         let segmenter = segmenter(&mut detector);
 

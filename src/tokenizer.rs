@@ -49,7 +49,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// assert_eq!(word, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn tokenize(&self) -> ClassifiedTokenIter<'_, '_, A>;
+    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, A>;
 
     /// Attaches each [`Token`] to its corresponding portion of the original text.
     ///
@@ -77,15 +77,15 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// assert_eq!(word, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, A>;
+    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A>;
 }
 
-impl Tokenize<'_, Vec<u8>> for &str {
-    fn tokenize(&self) -> ClassifiedTokenIter<'_, '_, Vec<u8>> {
+impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
+    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, Vec<u8>> {
         self.segment().normalize().classify()
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, Vec<u8>> {
+    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, Vec<u8>> {
         ReconstructedTokenIter { token_iter: self.tokenize(), original: self }
     }
 }
@@ -98,13 +98,13 @@ pub struct Tokenizer<'o, 'sw, A> {
     stop_words: Option<&'sw Set<A>>,
 }
 
-impl<'o, 'sw, A: AsRef<[u8]>> Tokenize<'_, A> for Tokenizer<'o, 'sw, A> {
-    fn tokenize(&self) -> ClassifiedTokenIter<'_, '_, A> {
+impl<'o, A: AsRef<[u8]>> Tokenize<'o, A> for Tokenizer<'o, '_, A> {
+    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, A> {
         self.original.segment().normalize().classify_with_stop_words(self.stop_words)
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, A> {
-        ReconstructedTokenIter { token_iter: self.tokenize(), original: self.original }
+    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A> {
+        ReconstructedTokenIter { original: self.original, token_iter: self.tokenize() }
     }
 }
 
@@ -122,8 +122,8 @@ impl<'o, 'sw, A: AsRef<[u8]>> Tokenize<'_, A> for Tokenizer<'o, 'sw, A> {
 /// // text to tokenize.
 /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
 ///
-/// // create the builder passing the text to tokenize.
-/// let builder = TokenizerBuilder::new(orig);
+/// // create the builder.
+/// let builder = TokenizerBuilder::new();
 ///
 /// // create a set of stop words.
 /// let stop_words = Set::from_iter(["the"].iter()).unwrap();
@@ -131,41 +131,70 @@ impl<'o, 'sw, A: AsRef<[u8]>> Tokenize<'_, A> for Tokenizer<'o, 'sw, A> {
 /// // configurate stop words.
 /// let builder = builder.stop_words(&stop_words);
 ///
-/// // build the tokenizer.
-/// let tokenizer = builder.build();
+/// // build the tokenizer passing the text to tokenize.
+/// let tokenizer = builder.build(orig);
 /// ```
 ///
-pub struct TokenizerBuilder<'o, 'sw, A> {
-    original: &'o str,
+pub struct TokenizerBuilder<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
 }
 
-impl<'o, 'sw> TokenizerBuilder<'o, 'sw, Vec<u8>> {
+impl<'sw> TokenizerBuilder<'sw, Vec<u8>> {
     /// Create a `TokenizerBuilder` with default settings
-    ///
-    /// # Arguments
-    ///
-    /// * `original` - the text to tokenize.
-    pub fn new(original: &'o str) -> TokenizerBuilder<'o, 'sw, Vec<u8>> {
-        Self { original, stop_words: None }
+    pub fn new() -> TokenizerBuilder<'sw, Vec<u8>> {
+        Self { stop_words: None }
     }
 }
 
-impl<'o, 'sw, A> TokenizerBuilder<'o, 'sw, A> {
+impl<'sw, A> TokenizerBuilder<'sw, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments
     ///
     /// * `stop_words` - a `Set` of the words to classify as stop words.
-    pub fn stop_words<B: AsRef<[u8]>>(
-        self,
-        stop_words: &'sw Set<B>,
-    ) -> TokenizerBuilder<'o, 'sw, B> {
-        TokenizerBuilder { original: self.original, stop_words: Some(stop_words) }
+    pub fn stop_words<B: AsRef<[u8]>>(self, stop_words: &'sw Set<B>) -> TokenizerBuilder<'sw, B> {
+        TokenizerBuilder { stop_words: Some(stop_words) }
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build(self) -> Tokenizer<'o, 'sw, A> {
-        Tokenizer { original: self.original, stop_words: self.stop_words }
+    pub fn build<'o>(&self, original: &'o str) -> Tokenizer<'o, 'sw, A> {
+        Tokenizer { original: original, stop_words: self.stop_words }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use fst::Set;
+
+    use crate::tokenizer::{Tokenize, TokenizerBuilder};
+
+    #[test]
+    fn check_lifetimes() {
+        let text = "Hello world! Pleased to see you.";
+
+        let tokens: Vec<_> = { text.tokenize().collect() };
+        assert_eq!(tokens.iter().last().map(|t| t.text()), Some("."));
+
+        let tokens: Vec<_> = {
+            let builder = TokenizerBuilder::new();
+            let tokens = {
+                let tokenizer = builder.build(text);
+                tokenizer.tokenize().collect()
+            };
+            tokens
+        };
+        assert_eq!(tokens.iter().last().map(|t| t.text()), Some("."));
+
+        let tokens: Vec<_> = {
+            let stop_words = Set::from_iter(["to"].iter()).unwrap();
+            let builder = TokenizerBuilder::new();
+            let builder = builder.stop_words(&stop_words);
+            let tokens = {
+                let tokenizer = builder.build(text);
+                tokenizer.tokenize().collect()
+            };
+            tokens
+        };
+        assert_eq!(tokens.iter().last().map(|t| t.text()), Some("."));
     }
 }
