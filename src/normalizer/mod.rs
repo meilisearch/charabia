@@ -74,3 +74,40 @@ where
 }
 
 impl<'a, T> Normalize<'a> for T where T: Iterator<Item = Token<'a>> + 'a {}
+
+#[cfg(test)]
+mod test {
+    macro_rules! test_normalizer {
+        ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
+            use super::*;
+            use crate::normalizer::Normalize;
+            use crate::{Script, Token};
+
+            #[test]
+            fn normalizer_normalize() {
+                let normalized_tokens: Vec<_> = $tokens
+                    .into_iter()
+                    .map(|token| $normalizer.normalize(token))
+                    .flatten()
+                    .collect();
+                assert_eq!(
+                    &normalized_tokens[..],
+                    $normalizer_result,
+                    "Normalizer {} didn't normalize tokens as expected",
+                    stringify!($normalizer)
+                );
+            }
+
+            #[test]
+            fn global_normalize() {
+                let normalized_tokens: Vec<_> = $tokens.into_iter().normalize().collect();
+                assert_eq!(
+                    &normalized_tokens[..],
+                    $global_result,
+                    "Global normalization pipeline didn't normalize tokens as expected"
+                );
+            }
+        };
+    }
+    pub(crate) use test_normalizer;
+}
