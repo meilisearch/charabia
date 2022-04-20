@@ -14,8 +14,7 @@ Remember that there are many ways to contribute other than writing code: writing
 ## Assumptions
 
 1. **You're familiar with [GitHub](https://github.com) and the [Pull Requests](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests)(PR) workflow.**
-2. **You've read the Meilisearch [documentation](https://docs.meilisearch.com).**
-3. **You know about the [Meilisearch community](https://docs.meilisearch.com/learn/what_is_meilisearch/contact.html).
+2. **You know about the [Meilisearch community](https://docs.meilisearch.com/learn/what_is_meilisearch/contact.html).
    Please use this for help.**
 
 ## How to Contribute
@@ -27,23 +26,56 @@ Remember that there are many ways to contribute other than writing code: writing
 3. [Create a new Git branch](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository)
 4. Review the [Development Workflow](#development-workflow) section that describes the steps to maintain the repository.
 5. Make your changes on your branch.
-6. [Submit the branch as a Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork) pointing to the `main` branch of the Meilisearch repository. A maintainer should comment and/or review your Pull Request within a few days. Although depending on the circumstances, it may take longer.
+6. [Submit the branch as a Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork) pointing to the `main` branch of the origin repository. A maintainer should comment and/or review your Pull Request within a few days. Although depending on the circumstances, it may take longer.
 
 ## Development Workflow
-
-### Setup and run
-
-```bash
-cargo run --release
-```
-
-We recommend using the `--release` flag to test the full performance of Meilisearch.
 
 ### Test
 
 ```bash
 cargo test
 ```
+
+### Benchmark
+
+```bash
+cargo bench
+```
+
+### Implement a `Segmenter`
+A `Segmenter` is a Script or Language specialized struct that segment a text in several lemmes that will be classified as a separator or a word later in the tokenization pipeline.
+A Segmenter will never change, add, or skip a lemme, that means that concatenating all lemmes must be equal to the original text.
+All Segmenters implementation are stored in `src/segmenter`.
+
+#### Start the implementation
+We highly recommend to start the implementation by copy-pasting the dummy example (`src/segmenter/dummy_example.rs`) and follow the instructions in comments.
+
+#### Add a Benchmark
+The only thing needed is 2 texts detected as the `Segmenter`'s Script or Language by the tokenizer.
+One that has a size of around 130 bytes and an other that has a size of around 365 bytes.
+These 2 texts must be added in the `static DATA_SET` global located `benches/bench.rs`:
+
+```rust
+static DATA_SET: &[((&str, &str), &str)] = &[
+    // short texts (~130 bytes)
+    [...]
+    (("<size in bytes>B", "<Script bigram><Lang bigram>"), "<Text of around 130 bytes>"),
+
+    // long texts (~365 bytes)
+    [...]
+    (("<size in bytes>B", "<Script bigram><Lang bigram>"), "<Text of around 365 bytes>"),
+```
+
+### Implement a `Normalizer`
+A `Normalizer` is a struct used to alterate the lemme contained in a Token in order to remove features that doesn't sygnificantly impact the sens like lowecasing, removing accents, or converting Traditionnal Chinese characteres into Simplified Chinese characteres.
+
+#### Start the implementation
+We highly recommend to start the implementation by copy-pasting the dummy example (`src/normalizer/dummy_example.rs`) and follow the instructions in comments.
+
+### Q&A
+
+TODO @ManyTheFish: explain why a test or benchmark fails.
+
 
 ## Git Guidelines
 
