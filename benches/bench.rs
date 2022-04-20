@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use meilisearch_tokenizer::{Segment, Tokenize};
+use meilisearch_tokenizer::{Normalize, Segment, Tokenize};
 
 static DATA_SET: [((&str, &str), &str); 11] = [
     // short texts (~130 bytes)
@@ -27,8 +27,8 @@ fn criterion_benchmark(c: &mut Criterion) {
         text.tokenize().for_each(|_| {});
     }
 
-    benchmark_texts!(c, segment_str);
     benchmark_texts!(c, segment);
+    benchmark_texts!(c, segment_normalize);
     benchmark_texts!(c, tokenize);
 }
 
@@ -36,12 +36,12 @@ fn tokenize(text: &str) {
     black_box(text).tokenize().for_each(|_| {});
 }
 
-fn segment(text: &str) {
-    black_box(text).segment().for_each(|_| {});
+fn segment_normalize(text: &str) {
+    black_box(text).segment().normalize().for_each(|_| {});
 }
 
-fn segment_str(text: &str) {
-    black_box(text).segment_str().for_each(|_| {});
+fn segment(text: &str) {
+    black_box(text).segment().for_each(|_| {});
 }
 
 macro_rules! benchmark_texts {
