@@ -33,10 +33,10 @@ impl Default for TokenKind {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Token<'a> {
+pub struct Token<'o> {
     /// kind of the Token assigned by the classifier
     pub kind: TokenKind,
-    pub word: Cow<'a, str>,
+    pub word: Cow<'o, str>,
     /// index of the first and the last character of the original word
     pub char_start: usize,
     pub char_end: usize,
@@ -52,15 +52,15 @@ pub struct Token<'a> {
     pub language: Option<Language>,
 }
 
-impl<'a> PartialEq for Token<'a> {
+impl PartialEq for Token<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.text() == other.text()
     }
 }
 
-impl<'a> Eq for Token<'a> {}
+impl Eq for Token<'_> {}
 
-impl<'a> Token<'a> {
+impl Token<'_> {
     /// Returns a reference over the normalized text.
     pub fn text(&self) -> &str {
         self.word.as_ref()

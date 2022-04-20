@@ -11,7 +11,7 @@ pub struct ClassifiedTokenIter<'o, 'sw, A> {
     classifier: TokenClassifier<'sw, A>,
 }
 
-impl<'o, 'sw, A: AsRef<[u8]>> Iterator for ClassifiedTokenIter<'o, 'sw, A> {
+impl<'o, A: AsRef<[u8]>> Iterator for ClassifiedTokenIter<'o, '_, A> {
     type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {

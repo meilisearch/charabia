@@ -98,17 +98,17 @@ fn segmenter<'a, 'b>(detector: &'a mut StrDetection) -> &'b impl Segmenter {
 /// A segmenter should be at least a script specialized segmenter.
 pub trait Segmenter: Sync + Send {
     /// Segments the provided text creating an Iterator over `&str`.
-    fn segment_str<'a>(&self, s: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a>;
+    fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 }
 
 impl Segmenter for Box<dyn Segmenter> {
-    fn segment_str<'a>(&self, s: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a> {
+    fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         (**self).segment_str(s)
     }
 }
 
 /// Trait defining methods to segment a text.
-pub trait Segment {
+pub trait Segment<'o> {
     /// Segments the provided text creating an Iterator over Tokens.
     /// Created Tokens are not normalized nether classified,
     /// otherwise, better use the [`tokenize`] method.
@@ -138,7 +138,7 @@ pub trait Segment {
     /// assert_eq!(word, "quick");
     /// assert_eq!(kind, TokenKind::Unknown);
     /// ```
-    fn segment(&self) -> SegmentedTokenIter<'_>;
+    fn segment(&self) -> SegmentedTokenIter<'o>;
 
     /// Segments the provided text creating an Iterator over `&str`.
     ///
@@ -155,11 +155,11 @@ pub trait Segment {
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
-    fn segment_str<'a>(&'a self) -> Box<dyn Iterator<Item = &'a str> + 'a>;
+    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 }
 
-impl Segment for &str {
-    fn segment(&self) -> SegmentedTokenIter<'_> {
+impl<'o> Segment<'o> for &'o str {
+    fn segment(&self) -> SegmentedTokenIter<'o> {
         let mut detector = self.detect();
         let segmenter = segmenter(&mut detector);
         let script = detector.script();
@@ -174,10 +174,48 @@ impl Segment for &str {
         }
     }
 
-    fn segment_str<'a>(&'a self) -> Box<dyn Iterator<Item = &'a str> + 'a> {
+    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let mut detector = self.detect();
         let segmenter = segmenter(&mut detector);
 
         segmenter.segment_str(self)
     }
+}
+
+#[cfg(test)]
+mod test {
+    macro_rules! test_segmenter {
+    ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
+            use crate::{Token, Language, Script};
+            use crate::segmenter::Segment;
+            use crate::tokenizer::Tokenize;
+            use super::*;
+
+            #[test]
+            fn segmenter_segment_str() {
+                let segmented_text: Vec<_> = $segmenter.segment_str($text).collect();
+                assert_eq!(&segmented_text[..], $segmented, "Segmenter {} didn't segment the text as expected", stringify!($segmenter));
+            }
+
+            #[test]
+            fn text_lang_script_assignment() {
+                let Token {script, language, ..} = $text.segment().next().unwrap();
+                assert_eq!((script, language.unwrap_or(Language::Other)), ($script, $language), "Provided text is not detected as the expected Script or Language to be segmented by {}", stringify!($segmenter));
+            }
+
+            #[test]
+            fn segment() {
+                let segmented_text: Vec<_> = $text.segment_str().collect();
+                assert_eq!(&segmented_text[..], $segmented, "Segmenter, chosen by global segment() function, didn't segment the text as expected");
+            }
+
+            #[test]
+            fn tokenize() {
+                let tokens: Vec<_> = $text.tokenize().collect();
+                let tokenized_text: Vec<_> = tokens.iter().map(|t| t.text()).collect();
+                assert_eq!(&tokenized_text[..], $tokenized, "Global tokenize() function didn't tokenize the text as expected");
+            }
+        }
+    }
+    pub(crate) use test_segmenter;
 }

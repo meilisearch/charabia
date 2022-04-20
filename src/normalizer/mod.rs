@@ -11,14 +11,14 @@ pub static NORMALIZERS: Lazy<[Box<dyn Normalizer>; 1]> =
     Lazy::new(|| [Box::new(LowercaseNormalizer)]);
 
 /// Iterator over Normalized [`Token`]s.
-pub struct NormalizedTokenIter<'a> {
-    token_iter: Box<dyn Iterator<Item = Token<'a>> + 'a>,
-    inner: Box<dyn Iterator<Item = Token<'a>> + 'a>,
+pub struct NormalizedTokenIter<'o> {
+    token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
+    inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     normalizer: &'static Box<dyn Normalizer>,
 }
 
-impl<'a> Iterator for NormalizedTokenIter<'a> {
-    type Item = Token<'a>;
+impl<'o> Iterator for NormalizedTokenIter<'o> {
+    type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
@@ -41,7 +41,7 @@ pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
     ///
     /// A Normalizer can return several `Token`s.
-    fn normalize<'a>(&self, token: Token<'a>) -> Box<dyn Iterator<Item = Token<'a>> + 'a>;
+    fn normalize<'o>(&self, token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
 
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
@@ -50,15 +50,15 @@ pub trait Normalizer: Sync + Send {
 }
 
 /// Trait defining methods to normalize [`Token`]s.
-pub trait Normalize<'a>: Iterator
+pub trait Normalize<'o>: Iterator
 where
     Self: Sized,
-    Self: Iterator<Item = Token<'a>> + 'a,
+    Self: Iterator<Item = Token<'o>> + 'o,
 {
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    fn normalize(self) -> NormalizedTokenIter<'a> {
+    fn normalize(self) -> NormalizedTokenIter<'o> {
         let first = NormalizedTokenIter {
             token_iter: Box::new(self),
             inner: Box::new(None.into_iter()),
@@ -73,4 +73,41 @@ where
     }
 }
 
-impl<'a, T> Normalize<'a> for T where T: Iterator<Item = Token<'a>> + 'a {}
+impl<'o, T> Normalize<'o> for T where T: Iterator<Item = Token<'o>> + 'o {}
+
+#[cfg(test)]
+mod test {
+    macro_rules! test_normalizer {
+        ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
+            use super::*;
+            use crate::normalizer::Normalize;
+            use crate::{Script, Token};
+
+            #[test]
+            fn normalizer_normalize() {
+                let normalized_tokens: Vec<_> = $tokens
+                    .into_iter()
+                    .map(|token| $normalizer.normalize(token))
+                    .flatten()
+                    .collect();
+                assert_eq!(
+                    &normalized_tokens[..],
+                    $normalizer_result,
+                    "Normalizer {} didn't normalize tokens as expected",
+                    stringify!($normalizer)
+                );
+            }
+
+            #[test]
+            fn global_normalize() {
+                let normalized_tokens: Vec<_> = $tokens.into_iter().normalize().collect();
+                assert_eq!(
+                    &normalized_tokens[..],
+                    $global_result,
+                    "Global normalization pipeline didn't normalize tokens as expected"
+                );
+            }
+        };
+    }
+    pub(crate) use test_normalizer;
+}
