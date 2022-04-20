@@ -24,7 +24,7 @@ criterion_main!(benches);
 fn criterion_benchmark(c: &mut Criterion) {
     // tokenize a first time each text to trigger lazy initializations
     for (_name, text) in DATA_SET {
-        text.tokenize().for_each(|_| {});
+        text.tokenize().count();
     }
 
     benchmark_texts!(c, segment);
@@ -33,15 +33,15 @@ fn criterion_benchmark(c: &mut Criterion) {
 }
 
 fn tokenize(text: &str) {
-    black_box(text).tokenize().for_each(|_| {});
+    black_box(text).tokenize().count();
 }
 
 fn segment_normalize(text: &str) {
-    black_box(text).segment().normalize().for_each(|_| {});
+    black_box(text).segment().normalize().count();
 }
 
 fn segment(text: &str) {
-    black_box(text).segment().for_each(|_| {});
+    black_box(text).segment().count();
 }
 
 macro_rules! benchmark_texts {
