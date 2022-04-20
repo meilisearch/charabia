@@ -14,7 +14,7 @@ pub struct DummySegmenter;
 
 // All specialized segmenters only need to implement the method `segment_str` of the `Segmenter` trait.
 impl Segmenter for DummySegmenter {
-    fn segment_str<'a>(&self, to_segment: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a> {
+    fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         // Create the iterator that will segment the provided text.
         let segment_iterator = to_segment.split_inclusive(' ');
 

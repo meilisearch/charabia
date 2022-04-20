@@ -98,11 +98,11 @@ fn segmenter<'a, 'b>(detector: &'a mut StrDetection) -> &'b impl Segmenter {
 /// A segmenter should be at least a script specialized segmenter.
 pub trait Segmenter: Sync + Send {
     /// Segments the provided text creating an Iterator over `&str`.
-    fn segment_str<'a>(&self, s: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a>;
+    fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 }
 
 impl Segmenter for Box<dyn Segmenter> {
-    fn segment_str<'a>(&self, s: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a> {
+    fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         (**self).segment_str(s)
     }
 }

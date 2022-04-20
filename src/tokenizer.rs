@@ -11,7 +11,7 @@ pub struct ReconstructedTokenIter<'o, 'sw, A: AsRef<[u8]>> {
     original: &'o str,
 }
 
-impl<'o, 'sw, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o, 'sw, A> {
+impl<'o, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o, '_, A> {
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {

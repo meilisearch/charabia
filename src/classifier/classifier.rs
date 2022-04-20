@@ -21,11 +21,11 @@ impl<'sw, A> TokenClassifier<'sw, A> {
     }
 }
 
-impl<'sw, A> TokenClassifier<'sw, A>
+impl<A> TokenClassifier<'_, A>
 where
     A: AsRef<[u8]>,
 {
-    pub fn classify<'t>(&self, mut token: Token<'t>) -> Token<'t> {
+    pub fn classify<'o>(&self, mut token: Token<'o>) -> Token<'o> {
         let word = token.word.as_ref();
         let mut is_hard_separator = false;
         if self.stop_words.map(|stop_words| stop_words.contains(word)).unwrap_or(false) {

@@ -8,7 +8,7 @@ use super::Segmenter;
 pub struct LatinSegmenter;
 
 impl Segmenter for LatinSegmenter {
-    fn segment_str<'a>(&self, s: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a> {
+    fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         Box::new(s.split_word_bounds())
     }
 }
