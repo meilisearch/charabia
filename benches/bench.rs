@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use meilisearch_tokenizer::{Normalize, Segment, Tokenize};
 
-static DATA_SET: [((&str, &str), &str); 11] = [
+static DATA_SET: &[((&str, &str), &str)] = &[
     // short texts (~130 bytes)
     (("132B", "CHSP"), "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。"),
     (("132B", "CHTR"), "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待。"),
@@ -49,7 +49,7 @@ macro_rules! benchmark_texts {
         let mut group = $c.benchmark_group(stringify!($func));
 
         for ((size, script_lang), text) in DATA_SET {
-            group.bench_with_input(BenchmarkId::new(size, script_lang), &text, |b, text| {
+            group.bench_with_input(BenchmarkId::new(*size, *script_lang), &text, |b, text| {
                 b.iter(|| $func(text))
             });
         }
