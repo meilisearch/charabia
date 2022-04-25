@@ -72,11 +72,6 @@ A `Normalizer` is a struct used to alterate the lemme contained in a Token in or
 #### Start the implementation
 We highly recommend to start the implementation by copy-pasting the dummy example (`src/normalizer/dummy_example.rs`) and follow the instructions in comments.
 
-### Q&A
-
-TODO @ManyTheFish: explain why a test or benchmark fails.
-
-
 ## Git Guidelines
 
 ### Git Branches
