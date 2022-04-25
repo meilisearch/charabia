@@ -43,8 +43,8 @@ cargo bench
 ```
 
 ### Implement a `Segmenter`
-A `Segmenter` is a Script or Language specialized struct that segment a text in several lemmes that will be classified as a separator or a word later in the tokenization pipeline.
-A Segmenter will never change, add, or skip a lemme, that means that concatenating all lemmes must be equal to the original text.
+A `Segmenter` is a Script or Language specialized struct that segment a text in several [lemmas](https://en.wikipedia.org/wiki/Lemma_(morphology)) that will be classified as a separator or a word later in the tokenization pipeline.
+A Segmenter will never change, add, or skip a lemme, that means that concatenating all lemmas must be equal to the original text.
 All Segmenters implementation are stored in `src/segmenter`.
 
 #### Start the implementation
