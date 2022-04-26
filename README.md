@@ -17,6 +17,7 @@ Meilisearch’s tokenizer is modular. It goes field by field, determining the mo
 |  Script - Language  |                           specialized segmentation                            | specialized normalization | Performance level |   |
 |---------------------|-------------------------------------------------------------------------------|---------------------------|-------------------|---|
 | **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase              | 🟩 ~25MiB/sec    |   |
+| **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ❌              | 🟩 ~25MiB/sec    |   |
 
 
 We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/tokenizer/issues/new/choose).
