@@ -17,7 +17,7 @@ impl Normalizer for DummyNormalizer {
     // Creates an iterator over the normalized version of the provided token.
     fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         // lowercase the provided token lemma.
-        token.word = (*token.word).lowercase();
+        token.lemma = (*token.lemma).lowercase();
 
         // Create an iterator over the normalized token.
         Box::new(Some(token).into_iter())
@@ -46,14 +46,14 @@ mod test {
     fn tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                word: Owned("PascalCase".to_string()),
+                lemma: Owned("PascalCase".to_string()),
                 char_end: 10,
                 byte_end: 10,
                 script: Script::Latin,
                 ..Default::default()
             },
             Token {
-                word: Owned("ПаскальКейс".to_string()),
+                lemma: Owned("ПаскальКейс".to_string()),
                 char_end: 11,
                 byte_end: 22,
                 script: Script::Latin,
@@ -67,7 +67,7 @@ mod test {
         vec![
             Token {
                 // lowercased
-                word: Owned("pascalcase".to_string()),
+                lemma: Owned("pascalcase".to_string()),
                 char_end: 10,
                 byte_end: 10,
                 script: Script::Latin,
@@ -75,7 +75,7 @@ mod test {
             },
             Token {
                 // lowercased
-                word: Owned("паскалькейс".to_string()),
+                lemma: Owned("паскалькейс".to_string()),
                 char_end: 11,
                 byte_end: 22,
                 script: Script::Latin,
@@ -88,14 +88,14 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                word: Owned("pascalcase".to_string()),
+                lemma: Owned("pascalcase".to_string()),
                 char_end: 10,
                 byte_end: 10,
                 script: Script::Latin,
                 ..Default::default()
             },
             Token {
-                word: Owned("паскалькейс".to_string()),
+                lemma: Owned("паскалькейс".to_string()),
                 char_end: 11,
                 byte_end: 22,
                 script: Script::Latin,

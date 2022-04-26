@@ -12,8 +12,8 @@ impl Normalizer for LowercaseNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         // Cow::Borrowed holds a reference to token, which makes it impossible to directly replace
         // word with the `cow_to_lowercase` result
-        if let Cow::Owned(s) = token.word.cow_to_lowercase() {
-            token.word = Cow::Owned(s);
+        if let Cow::Owned(s) = token.lemma.cow_to_lowercase() {
+            token.lemma = Cow::Owned(s);
         }
 
         Box::new(Some(token).into_iter())
@@ -32,7 +32,7 @@ mod test {
 
     fn tokens() -> Vec<Token<'static>> {
         vec![Token {
-            word: Owned("PascalCase".to_string()),
+            lemma: Owned("PascalCase".to_string()),
             char_end: 10,
             byte_end: 10,
             script: Script::Latin,
@@ -42,7 +42,7 @@ mod test {
 
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![Token {
-            word: Owned("pascalcase".to_string()),
+            lemma: Owned("pascalcase".to_string()),
             char_end: 10,
             byte_end: 10,
             script: Script::Latin,

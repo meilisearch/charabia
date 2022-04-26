@@ -37,16 +37,16 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     ///
     /// let mut tokens = orig.tokenize();
     ///
-    /// let Token { word, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(word, "the");
+    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
+    /// assert_eq!(lemma, "the");
     /// assert_eq!(kind, TokenKind::Word);
     ///
-    /// let Token { word, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(word, " ");
+    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
+    /// assert_eq!(lemma, " ");
     /// assert_eq!(kind, TokenKind::Separator(SeparatorKind::Soft));
     ///
-    /// let Token { word, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(word, "quick");
+    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
+    /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
     fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, A>;
@@ -62,19 +62,19 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     ///
     /// let mut pairs = orig.reconstruct();
     ///
-    /// let (s, Token { word, kind, .. }) = pairs.next().unwrap();
+    /// let (s, Token { lemma, kind, .. }) = pairs.next().unwrap();
     /// assert_eq!(s, "The");
-    /// assert_eq!(word, "the");
+    /// assert_eq!(lemma, "the");
     /// assert_eq!(kind, TokenKind::Word);
     ///
-    /// let (s, Token { word, kind, .. }) = pairs.next().unwrap();
+    /// let (s, Token { lemma, kind, .. }) = pairs.next().unwrap();
     /// assert_eq!(s, " ");
-    /// assert_eq!(word, " ");
+    /// assert_eq!(lemma, " ");
     /// assert_eq!(kind, TokenKind::Separator(SeparatorKind::Soft));
     ///
-    /// let (s, Token { word, kind, .. }) = pairs.next().unwrap();
+    /// let (s, Token { lemma, kind, .. }) = pairs.next().unwrap();
     /// assert_eq!(s, "quick");
-    /// assert_eq!(word, "quick");
+    /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
     fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A>;
@@ -173,7 +173,7 @@ mod test {
         let text = "Hello world! Pleased to see you.";
 
         let tokens: Vec<_> = { text.tokenize().collect() };
-        assert_eq!(tokens.iter().last().map(|t| t.text()), Some("."));
+        assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
 
         let tokens: Vec<_> = {
             let builder = TokenizerBuilder::new();
@@ -183,7 +183,7 @@ mod test {
             };
             tokens
         };
-        assert_eq!(tokens.iter().last().map(|t| t.text()), Some("."));
+        assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
 
         let tokens: Vec<_> = {
             let stop_words = Set::from_iter(["to"].iter()).unwrap();
@@ -195,6 +195,6 @@ mod test {
             };
             tokens
         };
-        assert_eq!(tokens.iter().last().map(|t| t.text()), Some("."));
+        assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
     }
 }

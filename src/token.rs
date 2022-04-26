@@ -36,11 +36,11 @@ impl Default for TokenKind {
 pub struct Token<'o> {
     /// kind of the Token assigned by the classifier
     pub kind: TokenKind,
-    pub word: Cow<'o, str>,
-    /// index of the first and the last character of the original word
+    pub lemma: Cow<'o, str>,
+    /// index of the first and the last character of the original lemma
     pub char_start: usize,
     pub char_end: usize,
-    /// index of the first and the last byte of the original word
+    /// index of the first and the last byte of the original lemma
     pub byte_start: usize,
     pub byte_end: usize,
     /// number of bytes used in the normalized string
@@ -54,34 +54,34 @@ pub struct Token<'o> {
 
 impl PartialEq for Token<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self.text() == other.text()
+        self.lemma() == other.lemma()
     }
 }
 
 impl Eq for Token<'_> {}
 
 impl Token<'_> {
-    /// Returns a reference over the normalized text.
-    pub fn text(&self) -> &str {
-        self.word.as_ref()
+    /// Returns a reference over the normalized lemma.
+    pub fn lemma(&self) -> &str {
+        self.lemma.as_ref()
     }
 
-    /// Returns the lenght in bytes of the normalized text.
+    /// Returns the lenght in bytes of the normalized lemma.
     pub fn byte_len(&self) -> usize {
-        self.word.len()
+        self.lemma.len()
     }
 
-    /// Returns the lenght in bytes of the original text.
+    /// Returns the lenght in bytes of the original lemma.
     pub fn original_byte_len(&self) -> usize {
         self.byte_end - self.byte_start
     }
 
-    /// Returns the count of characters of the normalized text.
+    /// Returns the count of characters of the normalized lemma.
     pub fn char_count(&self) -> usize {
-        self.word.chars().count()
+        self.lemma.chars().count()
     }
 
-    /// Returns the count of characters of the original text.
+    /// Returns the count of characters of the original lemma.
     pub fn original_char_count(&self) -> usize {
         self.char_end - self.char_start
     }
@@ -126,7 +126,7 @@ impl Token<'_> {
     /// the original string for 11 bytes in the normalized string.
     ///
     /// If the `char_map` hasn't been initialized (it is None), usually done
-    /// by the de-unicoder, it counts the number of `(characters, bytes)` in self.word
+    /// by the de-unicoder, it counts the number of `(characters, bytes)` in self.lemma
     /// for the given number of bytes. A char is considered even if the number
     /// of bytes only covers a portion of it.
     ///
@@ -138,7 +138,7 @@ impl Token<'_> {
             None => {
                 // if we don't have a char_map, we look for the number of chars in the current
                 //   (probably normalized) string
-                self.word
+                self.lemma
                     .char_indices()
                     .take_while(|(byte_index, _)| *byte_index < num_bytes)
                     .enumerate()

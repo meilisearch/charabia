@@ -46,16 +46,16 @@ impl<'a> Iterator for SegmentedTokenIter<'a> {
     type Item = Token<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let word = self.inner.next()?;
+        let lemma = self.inner.next()?;
         let char_index = self.char_index;
         let byte_index = self.byte_index;
 
-        self.char_index += word.chars().count();
-        self.byte_index += word.len();
+        self.char_index += lemma.chars().count();
+        self.byte_index += lemma.len();
 
         Some(Token {
             kind: TokenKind::Unknown,
-            word: Cow::Borrowed(word),
+            lemma: Cow::Borrowed(lemma),
             char_start: char_index,
             char_end: self.char_index,
             byte_start: byte_index,
@@ -127,18 +127,18 @@ pub trait Segment<'o> {
     ///
     /// let mut tokens = orig.segment();
     ///
-    /// let Token { word, kind, .. } = tokens.next().unwrap();
+    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
     /// // the token isn't normalized.
-    /// assert_eq!(word, "The");
+    /// assert_eq!(lemma, "The");
     /// // the token isn't classified and defaultly set to Unknown.
     /// assert_eq!(kind, TokenKind::Unknown);
     ///
-    /// let Token { word, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(word, " ");
+    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
+    /// assert_eq!(lemma, " ");
     /// assert_eq!(kind, TokenKind::Unknown);
     ///
-    /// let Token { word, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(word, "quick");
+    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
+    /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Unknown);
     /// ```
     fn segment(&self) -> SegmentedTokenIter<'o>;
@@ -229,7 +229,7 @@ Check if the tested segmenter is assigned to the good Script/Language in `SEGMEN
             #[test]
             fn tokenize() {
                 let tokens: Vec<_> = $text.tokenize().collect();
-                let tokenized_text: Vec<_> = tokens.iter().map(|t| t.text()).collect();
+                let tokenized_text: Vec<_> = tokens.iter().map(|t| t.lemma()).collect();
                 assert_eq!(&tokenized_text[..], $tokenized, r#"
 Global tokenize() function didn't tokenize the text as expected.
 
