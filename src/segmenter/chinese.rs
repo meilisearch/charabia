@@ -11,7 +11,7 @@ pub struct ChineseSegmenter;
 
 impl Segmenter for ChineseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let segmented = JIEBA.cut(to_segment, true);
+        let segmented = JIEBA.cut(to_segment, true); // Use Hidden Markov Models.
 
         Box::new(segmented.into_iter())
     }
@@ -19,12 +19,6 @@ impl Segmenter for ChineseSegmenter {
 
 static JIEBA: Lazy<Jieba> = Lazy::new(Jieba::new);
 
-// Publish the newly implemented Segmenter:
-//	   - import module by adding `mod dummy;` (filename) in `segmenter/mod.rs`
-//	   - publish Segmenter by adding `pub use dummy::ChineseSegmenter;` in `segmenter/mod.rs`
-//     - running `cargo doc --open` you should see your Segmenter in the segmenter module
-
-// Test the segmenter:
 #[cfg(test)]
 mod test {
     use crate::segmenter::test::test_segmenter;
