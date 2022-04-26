@@ -17,7 +17,7 @@ impl Segmenter for ChineseSegmenter {
     }
 }
 
-static JIEBA: Lazy<Jieba> = Lazy::new(|| Jieba::new());
+static JIEBA: Lazy<Jieba> = Lazy::new(Jieba::new);
 
 // Publish the newly implemented Segmenter:
 //	   - import module by adding `mod dummy;` (filename) in `segmenter/mod.rs`
