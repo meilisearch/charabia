@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
+pub use chinese::ChineseSegmenter;
 pub use latin::LatinSegmenter;
 use maplit::hashmap;
 use once_cell::sync::Lazy;
@@ -8,6 +9,7 @@ use once_cell::sync::Lazy;
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::{Token, TokenKind};
 
+mod chinese;
 mod latin;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
@@ -24,6 +26,7 @@ mod latin;
 pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = Lazy::new(|| {
     hashmap! {
         (Script::Latin, Language::Other) => Box::new(LatinSegmenter) as Box<dyn Segmenter>,
+        (Script::Mandarin, Language::Cmn) => Box::new(ChineseSegmenter) as Box<dyn Segmenter>,
     }
 });
 
