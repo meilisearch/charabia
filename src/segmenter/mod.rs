@@ -204,7 +204,7 @@ help: the `segmented` text provided to `test_segmenter!` does not corresponds to
             #[test]
             fn text_lang_script_assignment() {
                 let Token {script, language, ..} = $text.segment().next().unwrap();
-                assert_eq!((script, language.unwrap_or(Language::Other)), ($script, $language), r#"
+                assert_eq!((script, language.unwrap_or($language)), ($script, $language), r#"
 Provided text is not detected as the expected Script or Language to be segmented by {}.
 
 help: The tokenizer Script/Language detector detected the wrong Script/Language for the `segmented` text, the provided text will probably be segmented by an other segmenter.
