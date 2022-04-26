@@ -1,6 +1,9 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use meilisearch_tokenizer::{Normalize, Segment, Tokenize};
 
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 static DATA_SET: &[((&str, &str), &str)] = &[
     // short texts (~130 bytes)
     (("132B", "CHSP"), "人人生而自由﹐在尊严和权利上一律平等。他们赋有理性和良心﹐并应以兄弟关系的精神互相对待。"),
