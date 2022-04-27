@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
+#[cfg(feature = "chinese")]
 pub use chinese::ChineseSegmenter;
 pub use latin::LatinSegmenter;
 use maplit::hashmap;
@@ -9,6 +10,7 @@ use once_cell::sync::Lazy;
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::{Token, TokenKind};
 
+#[cfg(feature = "chinese")]
 mod chinese;
 mod latin;
 
@@ -24,10 +26,15 @@ mod latin;
 /// For example, [`LatinSegmenter`] is assigned to `(Script::Latin, Language::Other)`,
 /// meaning that `LatinSegmenter` is the default `Segmenter` for any `Language` that uses `Latin` `Script`.
 pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = Lazy::new(|| {
-    hashmap! {
-        (Script::Latin, Language::Other) => Box::new(LatinSegmenter) as Box<dyn Segmenter>,
-        (Script::Mandarin, Language::Cmn) => Box::new(ChineseSegmenter) as Box<dyn Segmenter>,
-    }
+    vec![
+        // latin segmenter
+        ((Script::Latin, Language::Other), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
+        // chinese segmenter
+        #[cfg(feature = "chinese")]
+        ((Script::Mandarin, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
+    ]
+    .into_iter()
+    .collect()
 });
 
 /// Picked [`Segmenter`] when no segmenter is specialized to the detected [`Script`].
