@@ -93,7 +93,6 @@ mod test {
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![
             Token {
-                // lowercased
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
@@ -102,7 +101,6 @@ mod test {
                 ..Default::default()
             },
             Token {
-                // lowercased
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
@@ -117,7 +115,6 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                // lowercased
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
@@ -126,7 +123,6 @@ mod test {
                 ..Default::default()
             },
             Token {
-                // lowercased
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
