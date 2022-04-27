@@ -1,14 +1,16 @@
+use chinese::ChineseNormalizer;
 use lowercase::LowercaseNormalizer;
 use once_cell::sync::Lazy;
 
 use crate::detection::{Language, Script};
 use crate::Token;
 
+mod chinese;
 mod lowercase;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`].
-pub static NORMALIZERS: Lazy<[Box<dyn Normalizer>; 1]> =
-    Lazy::new(|| [Box::new(LowercaseNormalizer)]);
+pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> =
+    Lazy::new(|| vec![Box::new(ChineseNormalizer), Box::new(LowercaseNormalizer)]);
 
 /// Iterator over Normalized [`Token`]s.
 pub struct NormalizedTokenIter<'o> {
