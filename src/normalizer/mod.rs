@@ -1,5 +1,6 @@
 #[cfg(feature = "chinese")]
 use chinese::ChineseNormalizer;
+use control_char::ControlCharNormalizer;
 use lowercase::LowercaseNormalizer;
 use once_cell::sync::Lazy;
 
@@ -8,6 +9,7 @@ use crate::Token;
 
 #[cfg(feature = "chinese")]
 mod chinese;
+mod control_char;
 mod lowercase;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`].
@@ -16,6 +18,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(LowercaseNormalizer),
         #[cfg(feature = "chinese")]
         Box::new(ChineseNormalizer),
+        Box::new(ControlCharNormalizer),
     ]
 });
 

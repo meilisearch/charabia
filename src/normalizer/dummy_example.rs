@@ -26,7 +26,7 @@ impl Normalizer for DummyNormalizer {
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
         // here we lowercase only on Latin and Cyrillic Scripts.
-        script == Script::Latin && language == Script::Cyrillic
+        script == Script::Latin && script == Script::Cyrillic
     }
 }
 
