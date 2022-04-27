@@ -64,8 +64,7 @@ mod test {
         "在",
         "尊严",
         "和",
-        "权利",
-        "上",
+        "权利上",
         "一律平等",
         "。",
         "他们",
@@ -74,10 +73,11 @@ mod test {
         "和",
         "良心",
         "﹐",
-        "并",
-        "应以",
+        "并应",
+        "以",
         "兄弟",
-        "关系",
+        "关",
+        "系",
         "的",
         "精神",
         "互相",
@@ -86,5 +86,5 @@ mod test {
     ];
 
     // Macro that run several tests on the Segmenter.
-    test_segmenter!(ChineseSegmenter, TEXT, SEGMENTED, SEGMENTED, Script::Mandarin, Language::Cmn);
+    test_segmenter!(ChineseSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Mandarin, Language::Cmn);
 }
