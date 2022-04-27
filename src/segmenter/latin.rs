@@ -26,7 +26,7 @@ mod test {
     const TOKENIZED: &[&str] = &[
         "the", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can't", " ",
         "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "brr", ",", " ", "it's",
-        " ", "29.3", "°", "f", "!",
+        " ", "29.3", "deg", "f", "!",
     ];
 
     test_segmenter!(LatinSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);
