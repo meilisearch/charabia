@@ -72,18 +72,18 @@ mod test {
     fn tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("\0lol\u{2}oo\0".to_string()),
-                char_end: 14,
-                byte_end: 14,
-                script: Script::Latin,
+                lemma: Owned("\0生而自由\u{2}oo\0".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Mandarin,
                 ..Default::default()
             },
             Token {
-                lemma: Owned("\0lol\u{2}oo\0".to_string()),
-                char_end: 14,
-                byte_end: 14,
-                script: Script::Latin,
-                char_map: Some(vec![1, 1, 1, 1, 1, 1, 1, 1]),
+                lemma: Owned("\0生而自由\u{2}oo\0".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Mandarin,
+                char_map: Some(vec![1, 3, 3, 3, 3, 1, 1, 1, 1]),
                 ..Default::default()
             },
         ]
@@ -94,20 +94,20 @@ mod test {
         vec![
             Token {
                 // lowercased
-                lemma: Owned("loloo".to_string()),
-                char_end: 14,
-                byte_end: 14,
-                script: Script::Latin,
-                char_map: Some(vec![0, 1, 1, 1, 0, 1, 1, 0]),
+                lemma: Owned("生而自由oo".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Mandarin,
+                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
                 ..Default::default()
             },
             Token {
                 // lowercased
-                lemma: Owned("loloo".to_string()),
-                char_end: 14,
-                byte_end: 14,
-                script: Script::Latin,
-                char_map: Some(vec![0, 1, 1, 1, 0, 1, 1, 0]),
+                lemma: Owned("生而自由oo".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Mandarin,
+                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
                 ..Default::default()
             },
         ]
@@ -118,20 +118,20 @@ mod test {
         vec![
             Token {
                 // lowercased
-                lemma: Owned("loloo".to_string()),
-                char_end: 14,
-                byte_end: 14,
-                script: Script::Latin,
-                char_map: Some(vec![0, 1, 1, 1, 0, 1, 1, 0]),
+                lemma: Owned("生而自由oo".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Mandarin,
+                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
                 ..Default::default()
             },
             Token {
                 // lowercased
-                lemma: Owned("loloo".to_string()),
-                char_end: 14,
-                byte_end: 14,
-                script: Script::Latin,
-                char_map: Some(vec![0, 1, 1, 1, 0, 1, 1, 0]),
+                lemma: Owned("生而自由oo".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Mandarin,
+                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
                 ..Default::default()
             },
         ]
