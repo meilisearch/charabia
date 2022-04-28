@@ -1,4 +1,4 @@
-# Tokenizer
+# Charabia
 Library used by Meilisearch to tokenize queries and documents
 
 ## Role
@@ -7,11 +7,11 @@ The tokenizer’s role is to take a sentence or phrase and split it into smaller
 
 ## Details
 
-Meilisearch’s tokenizer is modular. It goes field by field, determining the most likely language for the field and running a different pipeline for each language.
+Charabia is modular. It goes field by field, determining the most likely language for the field and running a different pipeline for each language.
 
 ## Supported languages
 
-**Meilisearch is multilingual**, featuring optimized support for:
+**Charabia is multilingual**, featuring optimized support for:
 
 
 |  Script - Language  |                           specialized segmentation                            | specialized normalization | Segmentation Performance level | Tokenization Performance level |

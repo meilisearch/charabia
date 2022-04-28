@@ -1,5 +1,5 @@
+use charabia::{Normalize, Segment, Tokenize};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use meilisearch_tokenizer::{Normalize, Segment, Tokenize};
 
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;

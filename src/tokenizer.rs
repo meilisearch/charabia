@@ -31,7 +31,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// # Example
     ///
     /// ```
-    /// use meilisearch_tokenizer::{Token, TokenKind, Tokenize, SeparatorKind};
+    /// use charabia::{Token, TokenKind, Tokenize, SeparatorKind};
     ///
     /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
     ///
@@ -56,7 +56,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// # Example
     ///
     /// ```
-    /// use meilisearch_tokenizer::{Token, TokenKind, Tokenize, SeparatorKind};
+    /// use charabia::{Token, TokenKind, Tokenize, SeparatorKind};
     ///
     /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
     ///
@@ -117,7 +117,7 @@ impl<'o, A: AsRef<[u8]>> Tokenize<'o, A> for Tokenizer<'o, '_, A> {
 /// ```
 /// use fst::Set;
 ///
-/// use meilisearch_tokenizer::tokenizer::TokenizerBuilder;
+/// use charabia::tokenizer::TokenizerBuilder;
 ///
 /// // text to tokenize.
 /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";

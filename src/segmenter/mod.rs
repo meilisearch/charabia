@@ -128,7 +128,7 @@ pub trait Segment<'o> {
     /// # Example
     ///
     /// ```
-    /// use meilisearch_tokenizer::{Token, TokenKind, Segment};
+    /// use charabia::{Token, TokenKind, Segment};
     ///
     /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
     ///
@@ -155,7 +155,7 @@ pub trait Segment<'o> {
     /// # Example
     ///
     /// ```
-    /// use meilisearch_tokenizer::Segment;
+    /// use charabia::Segment;
     ///
     /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
     ///
