@@ -2,7 +2,7 @@ use fst::Set;
 
 use crate::classifier::{ClassifiedTokenIter, Classify};
 use crate::normalizer::Normalize;
-use crate::segmenter::Segment;
+use crate::segmenter::{Segment, SegmentedTokenIter};
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
@@ -105,6 +105,16 @@ impl<'o, A: AsRef<[u8]>> Tokenize<'o, A> for Tokenizer<'o, '_, A> {
 
     fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A> {
         ReconstructedTokenIter { original: self.original, token_iter: self.tokenize() }
+    }
+}
+
+impl<'o, A: AsRef<[u8]>> Segment<'o> for Tokenizer<'o, '_, A> {
+    fn segment(&self) -> SegmentedTokenIter<'o> {
+        self.original.segment()
+    }
+
+    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+        self.original.segment_str()
     }
 }
 
