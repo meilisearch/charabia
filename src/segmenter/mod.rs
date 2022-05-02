@@ -4,7 +4,6 @@ use std::collections::HashMap;
 #[cfg(feature = "chinese")]
 pub use chinese::ChineseSegmenter;
 pub use latin::LatinSegmenter;
-use maplit::hashmap;
 use once_cell::sync::Lazy;
 
 use crate::detection::{Detect, Language, Script, StrDetection};

@@ -2,45 +2,6 @@ use deunicode::deunicode_char;
 
 use crate::token::SeparatorKind;
 
-pub fn is_chinese(c: char) -> bool {
-    (c >= '\u{2e80}' && c <= '\u{2eff}')  // CJK Radicals Supplement
-        || (c >= '\u{2f00}' && c <= '\u{2fdf}') // Kangxi radical
-        || (c >= '\u{3100}' && c <= '\u{312f}')
-        || (c >= '\u{3200}' && c <= '\u{32ff}') // Enclosed CJK Letters and Months
-        || (c >= '\u{3400}' && c <= '\u{4dbf}') // CJK Unified Ideographs Extension A
-        || (c >= '\u{4e00}' && c <= '\u{9fff}') // CJK Unified Ideographs
-        || (c >= '\u{f900}' && c <= '\u{faff}') // CJK Compatibility Ideographs
-        || (c >= '\u{ff00}' && c <= '\u{ffef}') // Full-width roman characters and half-width katakana
-}
-
-#[allow(dead_code)]
-pub fn is_hangul(c: char) -> bool {
-    (c >= '\u{1100}' && c <= '\u{11ff}')  // Hangul Jamo
-        || (c >= '\u{3130}' && c <= '\u{318F}') // Hangul Compatibility Jamo
-        || (c >= '\u{a960}' && c <= '\u{a97f}') // Hangul Jamo Extended-A
-        || (c >= '\u{ac00}' && c <= '\u{d7a3}') // Hangul Syllables
-        || (c >= '\u{d7b0}' && c <= '\u{d7ff}') // Hangul Jamo Extended-B
-}
-
-// https://en.wikipedia.org/wiki/Latin_script_in_Unicode
-pub fn is_latin(ch: char) -> bool {
-    matches!(ch,
-        'a'..='z'
-        | 'A'..='Z'
-        | '\u{0080}'..='\u{00FF}'
-        | '\u{0100}'..='\u{017F}'
-        | '\u{0180}'..='\u{024F}'
-        | '\u{0250}'..='\u{02AF}'
-        | '\u{1D00}'..='\u{1D7F}'
-        | '\u{1D80}'..='\u{1DBF}'
-        | '\u{1E00}'..='\u{1EFF}'
-        | '\u{2100}'..='\u{214F}'
-        | '\u{2C60}'..='\u{2C7F}'
-        | '\u{A720}'..='\u{A7FF}'
-        | '\u{AB30}'..='\u{AB6F}'
-    )
-}
-
 pub fn classify_separator(c: char) -> Option<SeparatorKind> {
     match deunicode_char(c)?.chars().next()? {
         // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)

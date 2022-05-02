@@ -17,18 +17,11 @@ deunicode = "1.1.1"
 fst = "0.4"
 jieba-rs = { version = "0.6", optional = true }
 once_cell = "1.5.2"
-slice-group-by = "0.2.6"
 unicode-segmentation = "1.6.0"
 whatlang = "0.13.0"
-lindera = { version = "0.10.0", optional = true }
-lindera-core = { version = "0.10.0", optional = true }
-maplit = "1.0.2"
 
 [features]
-default = ["chinese", "japanese"]
-
-# allow japanese specialized tokenization
-japanese = ["dep:lindera", "dep:lindera-core"]
+default = ["chinese"]
 
 # allow chinese specialized tokenization
 chinese = ["dep:character_converter", "dep:jieba-rs"]
