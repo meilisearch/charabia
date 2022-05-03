@@ -7,7 +7,7 @@ edition = "2021"
 description = "A simple library to detect the language, tokenize the text and normalize the tokens"
 documentation = "https://docs.rs/charabia"
 repository = "https://github.com/meilisearch/charabia"
-keywords = ["segmenter", "tokenizer", "language"]
+keywords = ["segmenter", "tokenizer", "normalize", "language"]
 categories = ["text-processing"]
 
 [dependencies]
