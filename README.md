@@ -23,7 +23,7 @@ We aim to provide global language support, and your feedback helps us [move clos
 
 ### About Performance level
 
-Performances is based on the throughput (MiB/sec) of the tokenizer (computed on a MacBook Pro 2021 - Apple M1 Pro) using je-malloc:
+Performances are based on the throughput (MiB/sec) of the tokenizer (computed on a MacBook Pro 2021 - Apple M1 Pro) using jemalloc:
 - 0️⃣⬛️: 0   -> 1   MiB/sec
 - 1️⃣🟥: 1   -> 5   MiB/sec
 - 2️⃣🟧: 5   -> 12  MiB/sec
