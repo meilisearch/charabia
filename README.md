@@ -1,4 +1,4 @@
-# Tokenizer
+# Charabia
 Library used by Meilisearch to tokenize queries and documents
 
 ## Role
@@ -7,17 +7,65 @@ The tokenizer’s role is to take a sentence or phrase and split it into smaller
 
 ## Details
 
-Meilisearch’s tokenizer is modular. It goes field by field, determining the most likely language for the field and running a different pipeline for each language.
-
-Pipelines include language-specific processes. For example, the Chinese pipeline converts all text into simplified Chinese before tokenization, allowing a single search query to give results in both traditional and simplified Chinese.
-
-If you'd like to read more about the tokenizer design, check out the [feature specification](https://github.com/meilisearch/specifications/blob/master/text/0001-script-based-tokenizer.md).
+Charabia provides a simple API to segment, normalize, or tokenize (segment + normalize) a text of a specific language by detecting its Script/Language and choosing the specialized pipeline for it.
 
 ## Supported languages
 
-**Meilisearch is multilingual**, featuring optimized support for:
+**Charabia is multilingual**, featuring optimized support for:
 
-- **Any language that uses whitespace to separate words**
-- **Chinese** 🇨🇳 (through [Jieba](https://github.com/messense/jieba-rs))
 
-We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/meilisearch/issues/new/choose).
+|  Script - Language  |                           specialized segmentation                            | specialized normalization | Segmentation Performance level | Tokenization Performance level |
+|---------------------|-------------------------------------------------------------------------------|---------------------------|-------------------|---|
+| **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase + deunicode            | 🟩 ~45MiB/sec    | 🟨 ~24MiB/sec    |
+| **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ traditional-to-simplified conversion | 🟨 ~21MiB/sec    | 🟧 ~9MiB/sec    |
+
+We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/charabia/issues/new/choose).
+
+### About Performance level
+
+Performances are based on the throughput (MiB/sec) of the tokenizer (computed on a MacBook Pro 2021 - Apple M1 Pro) using jemalloc:
+- 0️⃣⬛️: 0   -> 1   MiB/sec
+- 1️⃣🟥: 1   -> 5   MiB/sec
+- 2️⃣🟧: 5   -> 12  MiB/sec
+- 3️⃣🟨: 12  -> 35  MiB/sec
+- 4️⃣🟩: 35  -> 75  MiB/sec
+- 5️⃣🟪: 75 MiB/sec or more
+
+## Examples
+
+#### Tokenization
+
+```rust
+use charabia::Tokenize;
+
+let orig = "Thé quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+
+// tokenize the text.
+let mut tokens = orig.tokenize();
+
+let token = tokens.next().unwrap();
+// the lemma into the token is normalized: `Thé` became `the`.
+assert_eq!(token.lemma(), "the");
+// token is classfied as a word
+assert!(token.is_word());
+
+let token = tokens.next().unwrap();
+assert_eq!(token.lemma(), " ");
+// token is classfied as a separator
+assert!(token.is_separator());
+```
+
+#### Segmentation
+
+```rust
+use charabia::Segment;
+
+let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+
+// segment the text.
+let mut segments = orig.segment_str();
+
+assert_eq!(segments.next(), Some("The"));
+assert_eq!(segments.next(), Some(" "));
+assert_eq!(segments.next(), Some("quick"));
+```
