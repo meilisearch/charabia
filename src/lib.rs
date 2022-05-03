@@ -4,24 +4,23 @@
 //! --------
 //! #### Tokenization
 //! ```
-//! use charabia::{Token, TokenKind, Tokenize, SeparatorKind};
+//! use charabia::Tokenize;
 //!
-//! let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+//! let orig = "Thé quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
 //!
 //! // tokenize the text.
 //! let mut tokens = orig.tokenize();
 //!
-//! let Token { lemma, kind, .. } = tokens.next().unwrap();
-//! assert_eq!(lemma, "the");
-//! assert_eq!(kind, TokenKind::Word);
+//! let token = tokens.next().unwrap();
+//! // the lemma into the token is normalized: `Thé` became `the`.
+//! assert_eq!(token.lemma(), "the");
+//! // token is classfied as a word
+//! assert!(token.is_word());
 //!
-//! let Token { lemma, kind, .. } = tokens.next().unwrap();
-//! assert_eq!(lemma, " ");
-//! assert_eq!(kind, TokenKind::Separator(SeparatorKind::Soft));
-//!
-//! let Token { lemma, kind, .. } = tokens.next().unwrap();
-//! assert_eq!(lemma, "quick");
-//! assert_eq!(kind, TokenKind::Word);
+//! let token = tokens.next().unwrap();
+//! assert_eq!(token.lemma(), " ");
+//! // token is classfied as a separator
+//! assert!(token.is_separator());
 //! ```
 //!
 //! #### Segmentation

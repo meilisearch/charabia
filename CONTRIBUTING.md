@@ -2,7 +2,7 @@
 
 First, thank you for contributing to Meilisearch! The goal of this document is to provide everything you need to start contributing to the Meilisearch tokenizer.
 
-Remember that there are many ways to contribute other than writing code: writing [tutorials or blog posts](https://github.com/meilisearch/awesome-meilisearch), improving [the documentation](https://github.com/meilisearch/documentation), submitting [bug reports](https://github.com/meilisearch/tokenizer/issues/new) and [feature requests](https://github.com/meilisearch/product/discussions/categories/feedback-feature-proposal)...
+Remember that there are many ways to contribute other than writing code: writing [tutorials or blog posts](https://github.com/meilisearch/awesome-meilisearch), improving [the documentation](https://github.com/meilisearch/documentation), submitting [bug reports](https://github.com/meilisearch/charabia/issues/new) and [feature requests](https://github.com/meilisearch/product/discussions/categories/feedback-feature-proposal)...
 
 ## Table of Contents
 - [Assumptions](#assumptions)
@@ -20,7 +20,7 @@ Remember that there are many ways to contribute other than writing code: writing
 ## How to Contribute
 
 1. Ensure your change has an issue! Find an
-   [existing issue](https://github.com/meilisearch/tokenizer/issues/) or [open a new issue](https://github.com/meilisearch/tokenizer/issues/new).
+   [existing issue](https://github.com/meilisearch/charabia/issues/) or [open a new issue](https://github.com/meilisearch/charabia/issues/new).
    * This is where you can get a feel if the change will be accepted or not.
 2. Once approved, [fork the Tokenizer repository](https://help.github.com/en/github/getting-started-with-github/fork-a-repo) in your own GitHub account.
 3. [Create a new Git branch](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-and-deleting-branches-within-your-repository)
@@ -95,7 +95,7 @@ We don't follow any other convention, but if you want to use one, we recommend [
 Some notes on GitHub PRs:
 
 - All PRs must be reviewed and approved by at least one maintainer.
-- The PR title should be accurate and descriptive of the changes. The title of the PR will be indeed automatically added to the next [release changelogs](https://github.com/meilisearch/tokenizer/releases/).
+- The PR title should be accurate and descriptive of the changes. The title of the PR will be indeed automatically added to the next [release changelogs](https://github.com/meilisearch/charabia/releases/).
 - [Convert your PR as a draft](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/changing-the-stage-of-a-pull-request) if your changes are a work in progress: no one will review it until you pass your PR as ready for review.<br>
   The draft PRs are recommended when you want to show that you are working on something and make your work visible.
 - The branch related to the PR must be **up-to-date with `main`** before merging. Fortunately, this project uses [Bors](https://github.com/bors-ng/bors-ng) to automatically enforce this requirement without the PR author having to rebase manually.
@@ -121,7 +121,7 @@ Make a PR modifying the file [`Cargo.toml`](/Cargo.toml) with the right version.
 version = "X.X.X"
 ```
 
-Once the changes are merged on `main`, you can publish the current draft release via the [GitHub interface](https://github.com/meilisearch/tokenizer/releases): on this page, click on `Edit` (related to the draft release) > update the description if needed > when you are ready, click on `Publish release`.
+Once the changes are merged on `main`, you can publish the current draft release via the [GitHub interface](https://github.com/meilisearch/charabia/releases): on this page, click on `Edit` (related to the draft release) > update the description if needed > when you are ready, click on `Publish release`.
 
 <hr>
 

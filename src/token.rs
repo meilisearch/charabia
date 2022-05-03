@@ -44,8 +44,9 @@ pub struct Token<'o> {
     pub byte_start: usize,
     pub byte_end: usize,
     /// number of bytes used in the normalized string
-    /// by each char in the original string
-    pub char_map: Option<Vec<usize>>,
+    /// by each char in the original string.
+    /// The char_map must be the same length as the number of chars in the original lemma.
+    pub char_map: Option<Vec<u8>>,
     /// script of the Token
     pub script: Script,
     /// language of the Token
@@ -151,7 +152,7 @@ impl Token<'_> {
                     .iter()
                     .take_while(|bytes_in_char| {
                         if byte_index < num_bytes {
-                            byte_index += *bytes_in_char;
+                            byte_index += **bytes_in_char as usize;
                             true
                         } else {
                             false

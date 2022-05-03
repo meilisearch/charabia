@@ -17,12 +17,13 @@ impl Normalizer for ControlCharNormalizer {
                 Some(mut char_map) => {
                     let mut byte_index = 0;
                     for l in char_map.iter_mut() {
-                        let subset: String = token.lemma[byte_index..byte_index + *l]
+                        let subset: String = token.lemma
+                            [byte_index as usize..(byte_index + *l) as usize]
                             .chars()
                             .filter(|c| !is_control(*c))
                             .collect();
                         byte_index += *l;
-                        *l = subset.len();
+                        *l = subset.len() as u8;
                         lemma.push_str(&subset);
                     }
 
@@ -36,7 +37,7 @@ impl Normalizer for ControlCharNormalizer {
                             // skip character
                             char_map.push(0);
                         } else {
-                            char_map.push(c.len_utf8());
+                            char_map.push(c.len_utf8() as u8);
                             lemma.push(c);
                         }
                     }
