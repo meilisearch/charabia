@@ -147,7 +147,9 @@ pub struct TokenizerBuilder<'sw, A> {
 }
 
 impl<'sw, A> TokenizerBuilder<'sw, A> {
-    /// Create a `TokenizerBuilder` with default settings
+    /// Create a `TokenizerBuilder` with default settings,
+    ///
+    /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
     pub fn new() -> TokenizerBuilder<'sw, A> {
         Self { stop_words: None }
     }
