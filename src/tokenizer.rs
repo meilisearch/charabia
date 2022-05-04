@@ -133,13 +133,13 @@ impl<'o, A: AsRef<[u8]>> Segment<'o> for Tokenizer<'o, '_, A> {
 /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
 ///
 /// // create the builder.
-/// let builder = TokenizerBuilder::new();
+/// let mut builder = TokenizerBuilder::new();
 ///
 /// // create a set of stop words.
 /// let stop_words = Set::from_iter(["the"].iter()).unwrap();
 ///
 /// // configurate stop words.
-/// let builder = builder.stop_words(&stop_words);
+/// builder.stop_words(&stop_words);
 ///
 /// // build the tokenizer passing the text to tokenize.
 /// let tokenizer = builder.build(orig);
@@ -149,9 +149,9 @@ pub struct TokenizerBuilder<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
 }
 
-impl<'sw> TokenizerBuilder<'sw, Vec<u8>> {
+impl<'sw, A> TokenizerBuilder<'sw, A> {
     /// Create a `TokenizerBuilder` with default settings
-    pub fn new() -> TokenizerBuilder<'sw, Vec<u8>> {
+    pub fn new() -> TokenizerBuilder<'sw, A> {
         Self { stop_words: None }
     }
 }
@@ -162,13 +162,20 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
     /// # Arguments
     ///
     /// * `stop_words` - a `Set` of the words to classify as stop words.
-    pub fn stop_words<B: AsRef<[u8]>>(self, stop_words: &'sw Set<B>) -> TokenizerBuilder<'sw, B> {
-        TokenizerBuilder { stop_words: Some(stop_words) }
+    pub fn stop_words(&mut self, stop_words: &'sw Set<A>) -> &mut Self {
+        self.stop_words = Some(stop_words);
+        self
     }
 
     /// Build the configurated `Tokenizer`.
     pub fn build<'o>(&self, original: &'o str) -> Tokenizer<'o, 'sw, A> {
         Tokenizer { original: original, stop_words: self.stop_words }
+    }
+}
+
+impl<'sw> Default for TokenizerBuilder<'sw, Vec<u8>> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -186,7 +193,7 @@ mod test {
         assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
 
         let tokens: Vec<_> = {
-            let builder = TokenizerBuilder::new();
+            let builder = TokenizerBuilder::default();
             let tokens = {
                 let tokenizer = builder.build(text);
                 tokenizer.tokenize().collect()
@@ -196,8 +203,8 @@ mod test {
         assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
 
         let tokens: Vec<_> = {
-            let stop_words = Set::from_iter(["to"].iter()).unwrap();
-            let builder = TokenizerBuilder::new();
+            let stop_words: Set<Vec<u8>> = Set::from_iter(["to"].iter()).unwrap();
+            let mut builder = TokenizerBuilder::new();
             let builder = builder.stop_words(&stop_words);
             let tokens = {
                 let tokenizer = builder.build(text);
