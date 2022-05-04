@@ -93,28 +93,25 @@ impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
 /// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
-pub struct Tokenizer<'o, 'sw, A> {
-    original: &'o str,
+pub struct Tokenizer<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
 }
 
-impl<'o, A: AsRef<[u8]>> Tokenize<'o, A> for Tokenizer<'o, '_, A> {
-    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, A> {
-        self.original.segment().normalize().classify_with_stop_words(self.stop_words)
+impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
+    pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
+        original.segment().normalize().classify_with_stop_words(self.stop_words)
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A> {
-        ReconstructedTokenIter { original: self.original, token_iter: self.tokenize() }
-    }
-}
-
-impl<'o, A: AsRef<[u8]>> Segment<'o> for Tokenizer<'o, '_, A> {
-    fn segment(&self) -> SegmentedTokenIter<'o> {
-        self.original.segment()
+    pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
+        ReconstructedTokenIter { original: original, token_iter: self.tokenize(original) }
     }
 
-    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        self.original.segment_str()
+    pub fn segment(&self, original: &'o str) -> SegmentedTokenIter<'o> {
+        original.segment()
+    }
+
+    pub fn segment_str(&self, original: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+        original.segment_str()
     }
 }
 
@@ -127,7 +124,7 @@ impl<'o, A: AsRef<[u8]>> Segment<'o> for Tokenizer<'o, '_, A> {
 /// ```
 /// use fst::Set;
 ///
-/// use charabia::tokenizer::TokenizerBuilder;
+/// use charabia::TokenizerBuilder;
 ///
 /// // text to tokenize.
 /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
@@ -142,7 +139,7 @@ impl<'o, A: AsRef<[u8]>> Segment<'o> for Tokenizer<'o, '_, A> {
 /// builder.stop_words(&stop_words);
 ///
 /// // build the tokenizer passing the text to tokenize.
-/// let tokenizer = builder.build(orig);
+/// let tokenizer = builder.build();
 /// ```
 ///
 pub struct TokenizerBuilder<'sw, A> {
@@ -168,8 +165,8 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build<'o>(&self, original: &'o str) -> Tokenizer<'o, 'sw, A> {
-        Tokenizer { original: original, stop_words: self.stop_words }
+    pub fn build<'o>(&self) -> Tokenizer<'sw, A> {
+        Tokenizer { stop_words: self.stop_words }
     }
 }
 
@@ -195,8 +192,8 @@ mod test {
         let tokens: Vec<_> = {
             let builder = TokenizerBuilder::default();
             let tokens = {
-                let tokenizer = builder.build(text);
-                tokenizer.tokenize().collect()
+                let tokenizer = builder.build();
+                tokenizer.tokenize(text).collect()
             };
             tokens
         };
@@ -207,8 +204,8 @@ mod test {
             let mut builder = TokenizerBuilder::new();
             let builder = builder.stop_words(&stop_words);
             let tokens = {
-                let tokenizer = builder.build(text);
-                tokenizer.tokenize().collect()
+                let tokenizer = builder.build();
+                tokenizer.tokenize(text).collect()
             };
             tokens
         };
