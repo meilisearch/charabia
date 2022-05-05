@@ -17,7 +17,7 @@ impl Normalizer for DummyNormalizer {
     // Creates an iterator over the normalized version of the provided token.
     fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         // lowercase the provided token lemma.
-        token.lemma = (*token.lemma).lowercase();
+        token.lemma = Cow::Owned(token.lemma().to_lowercase());
 
         // Create an iterator over the normalized token.
         Box::new(Some(token).into_iter())
@@ -31,6 +31,7 @@ impl Normalizer for DummyNormalizer {
 }
 
 // Include the newly implemented Normalizer in the tokenization pipeline:
+//     - change the name of the file `dummy_example.rs` to `dummy.rs`
 //     - import module by adding `mod dummy;` (filename) in `normalizer/mod.rs`
 //     - Add Normalizer in `NORMALIZERS` in `normalizer/mod.rs`
 //     - check if it didn't break any test or benhchmark
@@ -95,7 +96,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("паскалькейс".to_string()),
+                lemma: Owned("paskal'keis".to_string()),
                 char_end: 11,
                 byte_end: 22,
                 script: Script::Latin,
