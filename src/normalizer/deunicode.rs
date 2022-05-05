@@ -18,7 +18,7 @@ impl Normalizer for DeunicodeNormalizer {
             let mut lemma = String::new();
             for c in token.lemma().chars() {
                 // if a char can't be deunicoded, skip it.
-                let deunicoded = deunicode_char(c).unwrap_or("");
+                let deunicoded = deunicode_char(c).unwrap_or("").trim();
                 char_map.push((c.len_utf8() as u8, deunicoded.len() as u8));
                 lemma.push_str(&deunicoded);
             }

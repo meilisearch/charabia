@@ -77,14 +77,14 @@ mod test {
                 lemma: Owned("\0生而自由\u{2}oo\0".to_string()),
                 char_end: 9,
                 byte_end: 17,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("\0生而自由\u{2}oo\0".to_string()),
                 char_end: 9,
                 byte_end: 17,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 char_map: Some(vec![
                     (1, 1),
                     (3, 3),
@@ -108,7 +108,7 @@ mod test {
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
                     (3, 3),
@@ -126,7 +126,7 @@ mod test {
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
                     (3, 3),
@@ -150,7 +150,7 @@ mod test {
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
                     (3, 3),
@@ -168,7 +168,7 @@ mod test {
                 lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
                     (3, 3),
