@@ -21,6 +21,8 @@ Charabia provides a simple API to segment, normalize, or tokenize (segment + nor
 
 We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/charabia/issues/new/choose).
 
+If you have a particular need that charabia does not support, please share it in the product repository by creating a [dedicated discussion](https://github.com/meilisearch/product/discussions?discussions_q=label%3Aproduct%3Acore%3Atokenizer).
+
 ### About Performance level
 
 Performances are based on the throughput (MiB/sec) of the tokenizer (computed on a MacBook Pro 2021 - Apple M1 Pro) using jemalloc:
