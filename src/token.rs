@@ -43,10 +43,9 @@ pub struct Token<'o> {
     /// index of the first and the last byte of the original lemma
     pub byte_start: usize,
     pub byte_end: usize,
-    /// number of bytes used in the normalized string
-    /// by each char in the original string.
+    /// number of bytes used in the original string mapped to the number of bytes used in the normalized string by each char in the original string.
     /// The char_map must be the same length as the number of chars in the original lemma.
-    pub char_map: Option<Vec<u8>>,
+    pub char_map: Option<Vec<(u8, u8)>>,
     /// script of the Token
     pub script: Script,
     /// language of the Token
@@ -144,22 +143,28 @@ impl Token<'_> {
                     .take_while(|(byte_index, _)| *byte_index < num_bytes)
                     .enumerate()
                     .last()
-                    .map_or((0, 0), |(char_index, (byte_index, _))| (char_index, byte_index))
+                    .map_or((0, 0), |(char_index, (byte_index, c))| {
+                        let char_count = char_index + 1;
+                        let byte_len = byte_index + c.len_utf8();
+                        (char_count, byte_len)
+                    })
             }
             Some(char_map) => {
-                let mut byte_index = 0;
-                let char_index = char_map
+                let mut normalized_byte_len = 0;
+                let mut original_byte_len = 0;
+                let char_count = char_map
                     .iter()
-                    .take_while(|bytes_in_char| {
-                        if byte_index < num_bytes {
-                            byte_index += **bytes_in_char as usize;
+                    .take_while(|(original_bytes_in_char, normalized_bytes_in_char)| {
+                        if normalized_byte_len < num_bytes {
+                            original_byte_len += *original_bytes_in_char as usize;
+                            normalized_byte_len += *normalized_bytes_in_char as usize;
                             true
                         } else {
                             false
                         }
                     })
                     .count();
-                (char_index, byte_index)
+                (char_count, original_byte_len)
             }
         }
     }

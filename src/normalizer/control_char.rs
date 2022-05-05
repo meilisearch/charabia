@@ -16,14 +16,14 @@ impl Normalizer for ControlCharNormalizer {
                 // modify the current char map
                 Some(mut char_map) => {
                     let mut byte_index = 0;
-                    for l in char_map.iter_mut() {
+                    for (_, normalized_char_length) in char_map.iter_mut() {
                         let subset: String = token.lemma
-                            [byte_index as usize..(byte_index + *l) as usize]
+                            [byte_index as usize..(byte_index + *normalized_char_length) as usize]
                             .chars()
                             .filter(|c| !is_control(*c))
                             .collect();
-                        byte_index += *l;
-                        *l = subset.len() as u8;
+                        byte_index += *normalized_char_length;
+                        *normalized_char_length = subset.len() as u8;
                         lemma.push_str(&subset);
                     }
 
@@ -33,11 +33,12 @@ impl Normalizer for ControlCharNormalizer {
                 None => {
                     let mut char_map = Vec::new();
                     for c in token.lemma().chars() {
+                        let char_len = c.len_utf8() as u8;
                         if is_control(c) {
                             // skip character
-                            char_map.push(0);
+                            char_map.push((char_len, 0));
                         } else {
-                            char_map.push(c.len_utf8() as u8);
+                            char_map.push((char_len, char_len));
                             lemma.push(c);
                         }
                     }
@@ -84,7 +85,17 @@ mod test {
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Mandarin,
-                char_map: Some(vec![1, 3, 3, 3, 3, 1, 1, 1, 1]),
+                char_map: Some(vec![
+                    (1, 1),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                ]),
                 ..Default::default()
             },
         ]
@@ -98,7 +109,17 @@ mod test {
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Mandarin,
-                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
+                char_map: Some(vec![
+                    (1, 0),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (1, 0),
+                    (1, 1),
+                    (1, 1),
+                    (1, 0),
+                ]),
                 ..Default::default()
             },
             Token {
@@ -106,7 +127,17 @@ mod test {
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Mandarin,
-                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
+                char_map: Some(vec![
+                    (1, 0),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (1, 0),
+                    (1, 1),
+                    (1, 1),
+                    (1, 0),
+                ]),
                 ..Default::default()
             },
         ]
@@ -120,7 +151,17 @@ mod test {
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Mandarin,
-                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
+                char_map: Some(vec![
+                    (1, 0),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (1, 0),
+                    (1, 1),
+                    (1, 1),
+                    (1, 0),
+                ]),
                 ..Default::default()
             },
             Token {
@@ -128,7 +169,17 @@ mod test {
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Mandarin,
-                char_map: Some(vec![0, 3, 3, 3, 3, 0, 1, 1, 0]),
+                char_map: Some(vec![
+                    (1, 0),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (1, 0),
+                    (1, 1),
+                    (1, 1),
+                    (1, 0),
+                ]),
                 ..Default::default()
             },
         ]

@@ -19,7 +19,7 @@ impl Normalizer for DeunicodeNormalizer {
             for c in token.lemma().chars() {
                 // if a char can't be deunicoded, skip it.
                 let deunicoded = deunicode_char(c).unwrap_or("");
-                char_map.push(deunicoded.len() as u8);
+                char_map.push((c.len_utf8() as u8, deunicoded.len() as u8));
                 lemma.push_str(&deunicoded);
             }
 
@@ -70,7 +70,16 @@ mod test {
                 char_end: 8,
                 byte_end: 11,
                 script: Script::Latin,
-                char_map: Some(vec![1, 1, 1, 1, 1, 1, 1, 3]),
+                char_map: Some(vec![
+                    (2, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (3, 3),
+                ]),
                 ..Default::default()
             },
             Token {
@@ -91,7 +100,16 @@ mod test {
                 char_end: 8,
                 byte_end: 11,
                 script: Script::Latin,
-                char_map: Some(vec![1, 1, 1, 1, 1, 1, 1, 3]),
+                char_map: Some(vec![
+                    (2, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (3, 3),
+                ]),
                 ..Default::default()
             },
             Token {
