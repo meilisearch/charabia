@@ -22,7 +22,7 @@ impl Normalizer for ChineseNormalizer {
     }
 
     fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        script == Script::Mandarin
+        script == Script::Cj
     }
 }
 
@@ -41,14 +41,14 @@ mod test {
                 lemma: Owned("尊嚴".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("生而自由".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
         ]
@@ -62,7 +62,7 @@ mod test {
                 lemma: Owned("尊严".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
             Token {
@@ -70,7 +70,7 @@ mod test {
                 lemma: Owned("生而自由".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
         ]
@@ -83,14 +83,14 @@ mod test {
                 lemma: Owned("尊严".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("生而自由".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                script: Script::Mandarin,
+                script: Script::Cj,
                 ..Default::default()
             },
         ]

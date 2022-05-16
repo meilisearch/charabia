@@ -1,6 +1,6 @@
+use deunicode::deunicode_char;
 use fst::Set;
 
-use crate::detection::classify_separator;
 use crate::token::SeparatorKind;
 use crate::{Token, TokenKind};
 
@@ -53,6 +53,21 @@ where
     }
 }
 
+fn classify_separator(c: char) -> Option<SeparatorKind> {
+    match deunicode_char(c)?.chars().next()? {
+        // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
+        _ if ('\u{0410}'..='\u{044f}').contains(&c) => None, // russian cyrillic letters [а-яА-Я]
+        c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
+        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => {
+            Some(SeparatorKind::Soft)
+        }
+        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' => {
+            Some(SeparatorKind::Hard)
+        }
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::borrow::Cow;
@@ -92,11 +107,6 @@ mod test {
         assert!(token.is_word());
 
         let token = classifier.classify(Token { lemma: Cow::Borrowed("ь"), ..Default::default() });
-        assert!(token.is_word());
-
-        // non-breaking space
-        let token =
-            classifier.classify(Token { lemma: Cow::Borrowed("\u{00a0}"), ..Default::default() });
         assert!(token.is_word());
     }
 

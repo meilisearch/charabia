@@ -5,9 +5,10 @@ use std::collections::HashMap;
 pub use chinese::ChineseSegmenter;
 pub use latin::LatinSegmenter;
 use once_cell::sync::Lazy;
+use slice_group_by::StrGroupBy;
 
 use crate::detection::{Detect, Language, Script, StrDetection};
-use crate::token::{Token, TokenKind};
+use crate::token::Token;
 
 #[cfg(feature = "chinese")]
 mod chinese;
@@ -30,7 +31,7 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         ((Script::Latin, Language::Other), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
         // chinese segmenter
         #[cfg(feature = "chinese")]
-        ((Script::Mandarin, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
+        ((Script::Cj, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
@@ -41,34 +42,48 @@ pub static DEFAULT_SEGMENTER: Lazy<Box<dyn Segmenter>> = Lazy::new(|| Box::new(L
 
 /// Iterator over segmented [`Token`]s.
 pub struct SegmentedTokenIter<'a> {
-    inner: Box<dyn Iterator<Item = &'a str> + 'a>,
+    inner: Box<dyn Iterator<Item = Token<'a>> + 'a>,
     char_index: usize,
     byte_index: usize,
-    script: Script,
-    language: Option<Language>,
 }
 
 impl<'a> Iterator for SegmentedTokenIter<'a> {
     type Item = Token<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let lemma = self.inner.next()?;
+        let mut token = self.inner.next()?;
         let char_index = self.char_index;
         let byte_index = self.byte_index;
 
-        self.char_index += lemma.chars().count();
-        self.byte_index += lemma.len();
+        self.char_index += token.lemma().chars().count();
+        self.byte_index += token.lemma().len();
+
+        token.char_start = char_index;
+        token.char_end = self.char_index;
+        token.byte_start = byte_index;
+        token.byte_end = self.byte_index;
+
+        Some(token)
+    }
+}
+
+struct InnerSegmentedTokenIter<'a> {
+    inner: Box<dyn Iterator<Item = &'a str> + 'a>,
+    script: Script,
+    language: Option<Language>,
+}
+
+impl<'a> Iterator for InnerSegmentedTokenIter<'a> {
+    type Item = Token<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let lemma = self.inner.next()?;
 
         Some(Token {
-            kind: TokenKind::Unknown,
             lemma: Cow::Borrowed(lemma),
-            char_start: char_index,
-            char_end: self.char_index,
-            byte_start: byte_index,
-            byte_end: self.byte_index,
-            char_map: None,
             script: self.script,
             language: self.language,
+            ..Default::default()
         })
     }
 }
@@ -169,18 +184,25 @@ pub trait Segment<'o> {
 
 impl<'o> Segment<'o> for &'o str {
     fn segment(&self) -> SegmentedTokenIter<'o> {
-        let mut detector = self.detect();
-        let segmenter = segmenter(&mut detector);
-        let script = detector.script();
-        let language = detector.language;
+        let mut current_script = Script::Other;
+        let inner = self
+            .linear_group_by_key(move |c| {
+                let script = Script::from(c);
+                if script != Script::Other && script != current_script {
+                    current_script = script
+                }
+                current_script
+            })
+            .map(|s| {
+                let mut detector = s.detect();
+                let segmenter = segmenter(&mut detector);
+                let script = detector.script();
+                let language = detector.language;
+                InnerSegmentedTokenIter { inner: segmenter.segment_str(s), script, language }
+            })
+            .flatten();
 
-        SegmentedTokenIter {
-            inner: segmenter.segment_str(self),
-            script,
-            language,
-            char_index: 0,
-            byte_index: 0,
-        }
+        SegmentedTokenIter { inner: Box::new(inner), char_index: 0, byte_index: 0 }
     }
 
     fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {

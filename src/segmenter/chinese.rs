@@ -86,5 +86,5 @@ mod test {
     ];
 
     // Macro that run several tests on the Segmenter.
-    test_segmenter!(ChineseSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Mandarin, Language::Cmn);
+    test_segmenter!(ChineseSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Cj, Language::Cmn);
 }
