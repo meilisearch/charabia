@@ -1,0 +1,4 @@
+contact_links:
+  - name: Feature request & feedback
+    url: https://github.com/meilisearch/product/discussions?discussions_q=label%3Aproduct%3Acore%3Atokenizer
+    about: The feature requests and feedback like language support are not managed in this repository. Please open a discussion in our dedicated product repository.
