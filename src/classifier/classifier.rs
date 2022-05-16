@@ -108,11 +108,6 @@ mod test {
 
         let token = classifier.classify(Token { lemma: Cow::Borrowed("ь"), ..Default::default() });
         assert!(token.is_word());
-
-        // non-breaking space
-        let token =
-            classifier.classify(Token { lemma: Cow::Borrowed("\u{00a0}"), ..Default::default() });
-        assert!(token.is_word());
     }
 
     #[test]
