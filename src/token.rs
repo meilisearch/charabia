@@ -66,12 +66,12 @@ impl Token<'_> {
         self.lemma.as_ref()
     }
 
-    /// Returns the lenght in bytes of the normalized lemma.
+    /// Returns the length in bytes of the normalized lemma.
     pub fn byte_len(&self) -> usize {
         self.lemma.len()
     }
 
-    /// Returns the lenght in bytes of the original lemma.
+    /// Returns the length in bytes of the original lemma.
     pub fn original_byte_len(&self) -> usize {
         self.byte_end - self.byte_start
     }
@@ -133,7 +133,7 @@ impl Token<'_> {
     /// # Arguments
     ///
     /// * `num_bytes` - number of bytes in normalized token
-    pub fn original_lenghts(&self, num_bytes: usize) -> (usize, usize) {
+    pub fn original_lengths(&self, num_bytes: usize) -> (usize, usize) {
         match &self.char_map {
             None => {
                 // if we don't have a char_map, we look for the number of chars in the current
