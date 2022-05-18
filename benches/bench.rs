@@ -12,6 +12,7 @@ static DATA_SET: &[((&str, &str), &str)] = &[
     (("132B", "HIJP"), "だけど、バラ科の仲間ということでは「すもももももももものうち」は正しいことになります。。"),
     (("132B", "LTEN"), "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F! Hello guys, my purpose is to benchmark tokenizer properly."),
     (("132B", "LTFR"), "La ville avait d'abord été nommée « Lutèce » ou « boueuse », ici une tentative d'explication par le latin lŭtum « boue »."),
+    (("132B", "HEBR"), "הַשּׁוּעָל הַמָּהִיר (״הַחוּם״) לֹא יָכוֹל לִקְפֹּץ 8.94 מֶטְרִים, נָכוֹן?"),
 
     // long texts (~365 bytes)
     (("363B", "CHSP"), "距今60万年-2万年的时间内，北京地区处于旧石器时代，在周口店发现了旧石器时代早期北京直立人、中期新洞人和晚期山顶洞人的典型遗址。北京地区在不晚于1万年前已经开始进入新石器时代。当时该地区人类定居生活固定化，逐渐从山洞中迁徙出来，到平原地区定居[12]。"),
@@ -19,6 +20,7 @@ static DATA_SET: &[((&str, &str), &str)] = &[
     (("364B", "HIJP"), "すもももももももものうち！「すもも」も「もも」も丸々としておいしそうという特徴で見ると「すもももももももものうち」は正しいことになります。今日は「すもももももももものうち」について考えます。今日は「すもももももももものうち」について考えます。"),
     (("363B", "LTEN"), "The City of London Corporation is unique in the UK and has some unusual responsibilities for a local council, such as being the police authority. It is also unusual in having responsibilities and ownership beyond its boundaries. The Corporation is headed by the Lord Mayor of the City of London (an office separate from, and much older than, the Mayor of London)."),
     (("363B", "LTFR"), "La position de Lutèce, sur l'île aujourd'hui nommée l'île de la Cité, permettant le franchissement du grand fleuve navigable qu'est la Seine par une voie reliant le Nord et le Sud des Gaules, en fait dès l'Antiquité une cité importante, capitale des Parisii, puis lieu de séjour d'un empereur romain. Le mot Lutèce resulte de la francisation de Lutetia."),
+    (("365B", "HEBR"), "הַשּׁוּעָל הַמָּהִיר (״הַחוּם״) לֹא יָכוֹל לִקְפֹּץ 8.94 מֶטְרִים, נָכוֹן? תַּכְלֶס, אִם הוּא הָיָה יָכוֹל, הוּא חֲתִיכַת שׁוּעָל הַשּׁוּעָל הַזֶּה.. אֲבָל הַאִם לֹא כֻּלָּנוּ שׁוּעָלִים בְּעֶצֶם? יתכן."),
 ];
 
 criterion_group!(benches, criterion_benchmark);

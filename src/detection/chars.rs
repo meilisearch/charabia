@@ -279,4 +279,12 @@ mod tests {
         assert_eq!(is_oriya('୷'), true);
         assert_eq!(is_oriya('౿'), false);
     }
+
+    #[test]
+    fn test_is_hebrew() {
+        assert_eq!(is_hebrew('א'), true);
+        assert_eq!(is_hebrew('ת'), true);
+        assert_eq!(is_hebrew('ׇ'), true);
+        assert_eq!(is_hebrew('s'), false);
+    }
 }
