@@ -3,7 +3,7 @@ name: benchmark on main branch
 on:
   push:
     branches:
-      - benchmarks
+      - main
 
 jobs:
   runBenchmark:
