@@ -18,4 +18,3 @@ jobs:
           override: true
       - name: Run benchmarks
         run: cargo bench
-        
