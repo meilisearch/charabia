@@ -1,4 +1,4 @@
-use charabia::{Normalize, Segment, Tokenize};
+use charabia::{Segment, Tokenize};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
 #[global_allocator]
@@ -33,16 +33,11 @@ fn criterion_benchmark(c: &mut Criterion) {
     }
 
     benchmark_texts!(c, segment);
-    benchmark_texts!(c, segment_normalize);
     benchmark_texts!(c, tokenize);
 }
 
 fn tokenize(text: &str) {
     black_box(text).tokenize().count();
-}
-
-fn segment_normalize(text: &str) {
-    black_box(text).segment().normalize().count();
 }
 
 fn segment(text: &str) {
