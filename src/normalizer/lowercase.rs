@@ -6,6 +6,8 @@ use super::Normalizer;
 use crate::detection::{Language, Script};
 use crate::Token;
 
+/// A global [`Normalizer`] lowercasing characters.
+///
 pub struct LowercaseNormalizer;
 
 impl Normalizer for LowercaseNormalizer {

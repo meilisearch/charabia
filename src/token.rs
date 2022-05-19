@@ -14,7 +14,7 @@ pub enum SeparatorKind {
 }
 
 /// Define the kind of a [`Token`].
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
     Word,
     /// the token is a stop word,
@@ -32,7 +32,7 @@ impl Default for TokenKind {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Token<'o> {
     /// kind of the Token assigned by the classifier
     pub kind: TokenKind,
@@ -51,14 +51,6 @@ pub struct Token<'o> {
     /// language of the Token
     pub language: Option<Language>,
 }
-
-impl PartialEq for Token<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        self.lemma() == other.lemma()
-    }
-}
-
-impl Eq for Token<'_> {}
 
 impl Token<'_> {
     /// Returns a reference over the normalized lemma.

@@ -9,9 +9,9 @@ use crate::Token;
 /// Latin specialized [`Normalizer`] converting unicode chars into Ascii.
 ///
 /// This Normalizer uses [`deunicode`] internally to normalize the provided token.
-pub struct DeunicodeNormalizer;
+pub struct LatinNormalizer;
 
-impl Normalizer for DeunicodeNormalizer {
+impl Normalizer for LatinNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if !token.lemma().is_ascii() {
             let mut char_map = Vec::new();
@@ -71,8 +71,8 @@ mod test {
                 byte_end: 11,
                 script: Script::Latin,
                 char_map: Some(vec![
-                    (2, 1),
                     (1, 1),
+                    (2, 1),
                     (1, 1),
                     (1, 1),
                     (1, 1),
@@ -101,8 +101,8 @@ mod test {
                 byte_end: 11,
                 script: Script::Latin,
                 char_map: Some(vec![
-                    (2, 1),
                     (1, 1),
+                    (2, 1),
                     (1, 1),
                     (1, 1),
                     (1, 1),
@@ -122,5 +122,5 @@ mod test {
         ]
     }
 
-    test_normalizer!(DeunicodeNormalizer, tokens(), normalizer_result(), normalized_tokens());
+    test_normalizer!(LatinNormalizer, tokens(), normalizer_result(), normalized_tokens());
 }

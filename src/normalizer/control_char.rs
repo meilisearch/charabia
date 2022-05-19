@@ -4,7 +4,7 @@ use super::Normalizer;
 use crate::detection::{Language, Script};
 use crate::Token;
 
-/// A [`Normalizer`] removing control characters.
+/// A global [`Normalizer`] removing control characters.
 ///
 pub struct ControlCharNormalizer;
 

@@ -1,21 +1,21 @@
 use once_cell::sync::Lazy;
 
 #[cfg(feature = "chinese")]
-use self::chinese::ChineseNormalizer;
-use self::control_char::ControlCharNormalizer;
-use self::deunicode::DeunicodeNormalizer;
+pub use self::chinese::ChineseNormalizer;
+pub use self::control_char::ControlCharNormalizer;
 #[cfg(feature = "hebrew")]
-use self::hebrew::HebrewNormalizer;
-use self::lowercase::LowercaseNormalizer;
+pub use self::hebrew::HebrewNormalizer;
+pub use self::latin::LatinNormalizer;
+pub use self::lowercase::LowercaseNormalizer;
 use crate::detection::{Language, Script};
 use crate::Token;
 
 #[cfg(feature = "chinese")]
 mod chinese;
 mod control_char;
-mod deunicode;
 #[cfg(feature = "hebrew")]
 mod hebrew;
+mod latin;
 mod lowercase;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`].
@@ -26,7 +26,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(ChineseNormalizer),
         #[cfg(feature = "hebrew")]
         Box::new(HebrewNormalizer),
-        Box::new(DeunicodeNormalizer),
+        Box::new(LatinNormalizer),
         Box::new(ControlCharNormalizer),
     ]
 });
