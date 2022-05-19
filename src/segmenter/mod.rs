@@ -3,6 +3,8 @@ use std::collections::HashMap;
 
 #[cfg(feature = "chinese")]
 pub use chinese::ChineseSegmenter;
+#[cfg(feature = "hebrew")]
+pub use hebrew::HebrewSegmenter;
 pub use latin::LatinSegmenter;
 use once_cell::sync::Lazy;
 use slice_group_by::StrGroupBy;
@@ -12,6 +14,8 @@ use crate::token::Token;
 
 #[cfg(feature = "chinese")]
 mod chinese;
+#[cfg(feature = "hebrew")]
+mod hebrew;
 mod latin;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
@@ -32,6 +36,9 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // chinese segmenter
         #[cfg(feature = "chinese")]
         ((Script::Cj, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
+        // hebrew segmenter
+        #[cfg(feature = "hebrew")]
+        ((Script::Hebrew, Language::Heb), Box::new(HebrewSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
