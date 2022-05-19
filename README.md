@@ -16,8 +16,9 @@ Charabia provides a simple API to segment, normalize, or tokenize (segment + nor
 
 |  Script - Language  |                           specialized segmentation                            | specialized normalization | Segmentation Performance level | Tokenization Performance level |
 |---------------------|-------------------------------------------------------------------------------|---------------------------|-------------------|---|
-| **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase + deunicode            | 🟩 ~45MiB/sec    | 🟨 ~24MiB/sec    |
-| **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ traditional-to-simplified conversion | 🟨 ~21MiB/sec    | 🟧 ~9MiB/sec    |
+| **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase + deunicode            | 🟨 ~28MiB/sec    | 🟨 ~12MiB/sec    |
+| **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ traditional-to-simplified conversion | 🟨 ~17MiB/sec    | 🟧 ~9MiB/sec    |
+| **Hebrew** 🇮🇱 | ✅ [unicode-segmentation](https://github.com/messense/jieba-rs) | ✅ diacritics removal  | 🟩 ~45MiB/sec    | 🟨 ~17MiB/sec    |
 
 We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/charabia/issues/new/choose).
 
