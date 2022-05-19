@@ -1,5 +1,9 @@
 # Charabia
 Library used by Meilisearch to tokenize queries and documents
+We choose the name of this repository because it starts with char which was done in the same mood as discord or meili, giving the name of the problem we want to solve.
+Personally, I don’t feel like it’s an offensive word, but more a funny pun with “char”.
+Moreover, other tokenizers don’t always have an understandable name, for instance [lindera](https://github.com/lindera-morphology/lindera) maintained by [@minoru_osuka](https://twitter.com/minoru_osuka) or even [jieba](https://github.com/messense/jieba-rs).
+I hope my explanation was clear enough and I hope the name will not discourage you to use or even contribute to the project! 😊
 
 ## Role
 
