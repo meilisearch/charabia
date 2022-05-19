@@ -12,7 +12,6 @@ categories = ["text-processing"]
 
 [dependencies]
 character_converter = { version = "1.0.0", optional = true }
-niqqud = { version = "0.1.0", optional = true }
 cow-utils = "0.1"
 deunicode = "1.1.1"
 fst = "0.4"
@@ -29,7 +28,7 @@ default = ["chinese", "hebrew"]
 chinese = ["dep:character_converter", "dep:jieba-rs"]
 
 # allow hebrew specialized tokenization
-hebrew = ["dep:niqqud"]
+hebrew = []
 
 
 [dev-dependencies]
