@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
-use character_converter::CharacterConverter;
-use once_cell::sync::Lazy;
+use character_converter::traditional_to_simplified;
 
 use super::Normalizer;
 use crate::detection::{Language, Script};
@@ -14,8 +13,8 @@ pub struct ChineseNormalizer;
 
 impl Normalizer for ChineseNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if CONVERTER.is_traditional(token.lemma()) {
-            token.lemma = Cow::Owned(CONVERTER.traditional_to_simplified(token.lemma()));
+        if let Cow::Owned(s) = traditional_to_simplified(token.lemma()) {
+            token.lemma = Cow::Owned(s);
         }
 
         Box::new(Some(token).into_iter())
@@ -25,8 +24,6 @@ impl Normalizer for ChineseNormalizer {
         script == Script::Cj
     }
 }
-
-static CONVERTER: Lazy<CharacterConverter> = Lazy::new(CharacterConverter::new);
 
 #[cfg(test)]
 mod test {
