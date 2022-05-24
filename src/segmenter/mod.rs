@@ -43,7 +43,7 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // hebrew segmenter
         #[cfg(feature = "hebrew")]
         ((Script::Hebrew, Language::Heb), Box::new(HebrewSegmenter) as Box<dyn Segmenter>),
-
+        // japanese segmenter
         #[cfg(feature = "japanese")]
         ((Script::Cj, Language::Jpn), Box::new(JapaneseSegmenter) as Box<dyn Segmenter>),
     ]
