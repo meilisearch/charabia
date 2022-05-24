@@ -21,7 +21,7 @@ impl Normalizer for ChineseNormalizer {
     }
 
     fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {
-        script == Script::Cj && language == Some(Language::Cmn)
+        script == Script::Cj && matches!(language, None | Some(Language::Cmn))
     }
 }
 
