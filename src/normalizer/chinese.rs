@@ -20,8 +20,8 @@ impl Normalizer for ChineseNormalizer {
         Box::new(Some(token).into_iter())
     }
 
-    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        script == Script::Cj
+    fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {
+        script == Script::Cj && language == Some(Language::Cmn)
     }
 }
 
@@ -39,6 +39,7 @@ mod test {
                 char_end: 2,
                 byte_end: 6,
                 script: Script::Cj,
+                language: Some(Language::Cmn),
                 ..Default::default()
             },
             Token {
@@ -46,6 +47,7 @@ mod test {
                 char_end: 4,
                 byte_end: 12,
                 script: Script::Cj,
+                language: Some(Language::Cmn),
                 ..Default::default()
             },
         ]
@@ -60,6 +62,7 @@ mod test {
                 char_end: 2,
                 byte_end: 6,
                 script: Script::Cj,
+                language: Some(Language::Cmn),
                 ..Default::default()
             },
             Token {
@@ -68,6 +71,7 @@ mod test {
                 char_end: 4,
                 byte_end: 12,
                 script: Script::Cj,
+                language: Some(Language::Cmn),
                 ..Default::default()
             },
         ]
@@ -81,6 +85,7 @@ mod test {
                 char_end: 2,
                 byte_end: 6,
                 script: Script::Cj,
+                language: Some(Language::Cmn),
                 ..Default::default()
             },
             Token {
@@ -88,6 +93,7 @@ mod test {
                 char_end: 4,
                 byte_end: 12,
                 script: Script::Cj,
+                language: Some(Language::Cmn),
                 ..Default::default()
             },
         ]

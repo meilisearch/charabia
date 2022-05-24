@@ -29,7 +29,7 @@ mod test {
 
     const SEGMENTED: &[&str] = &["関西", "国際", "空港", "限定", "トートバッグ", " ", "すもも", "も", "もも", "も", "もも", "の", "うち"];
 
-    const TOKENIZED: &[&str] = &["関西", "国际", "空港", "限定", "トートバッグ", " ", "すもも", "も", "もも", "も", "もも", "の", "うち"];
+    const TOKENIZED: &[&str] = SEGMENTED;
 
     // Macro that run several tests on the Segmenter.
     test_segmenter!(JapaneseSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Cj, Language::Jpn);
