@@ -1,0 +1,20 @@
+name: benchmark on main branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  runBenchmark:
+    name: run benchmark
+    runs-on: benchmarks
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Run benchmarks
+        run: cargo bench
