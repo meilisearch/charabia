@@ -56,14 +56,14 @@ One that has a size of around 130 bytes and an other that has a size of around 3
 These 2 texts must be added in the `static DATA_SET` global located `benches/bench.rs`:
 
 ```rust
-static DATA_SET: &[((&str, &str), &str)] = &[
+static DATA_SET: &[((usize, Script, Language), &str)] = &[
     // short texts (~130 bytes)
     [...]
-    (("<size in bytes>B", "<Script bigram><Lang bigram>"), "<Text of around 130 bytes>"),
+    ((<size in bytes>, Script, Language), "<Text of around 130 bytes>"),
 
     // long texts (~365 bytes)
     [...]
-    (("<size in bytes>B", "<Script bigram><Lang bigram>"), "<Text of around 365 bytes>"),
+    ((<size in bytes>, Script, Language), "<Text of around 365 bytes>"),
 ```
 
 ### Implement a `Normalizer`
