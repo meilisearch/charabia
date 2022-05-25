@@ -20,9 +20,11 @@ once_cell = "1.5.2"
 slice-group-by = "0.3.0"
 unicode-segmentation = "1.6.0"
 whatlang = "0.13.0"
+lindera = { version = "0.13.5", features = ["ipadic", "unidic"], optional = true }
+lindera-core = { version = "0.13.4", optional = true }
 
 [features]
-default = ["chinese", "hebrew"]
+default = ["chinese", "hebrew", "japanese"]
 
 # allow chinese specialized tokenization
 chinese = ["dep:character_converter", "dep:jieba-rs"]
@@ -30,6 +32,8 @@ chinese = ["dep:character_converter", "dep:jieba-rs"]
 # allow hebrew specialized tokenization
 hebrew = []
 
+# allow japanese specialized tokenization
+japanese = ["dep:lindera", "dep:lindera-core"]
 
 [dev-dependencies]
 criterion = "0.3"
