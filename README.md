@@ -19,9 +19,10 @@ Charabia provides a simple API to segment, normalize, or tokenize (segment + nor
 
 |  Script - Language  |                           specialized segmentation                            | specialized normalization | Segmentation Performance level | Tokenization Performance level |
 |---------------------|-------------------------------------------------------------------------------|---------------------------|-------------------|---|
-| **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase + deunicode            | 🟨 ~28MiB/sec    | 🟨 ~12MiB/sec    |
-| **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ traditional-to-simplified conversion | 🟨 ~17MiB/sec    | 🟧 ~9MiB/sec    |
-| **Hebrew** 🇮🇱 | ✅ [unicode-segmentation](https://github.com/messense/jieba-rs) | ✅ diacritics removal  | 🟩 ~45MiB/sec    | 🟨 ~17MiB/sec    |
+| **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase + deunicode            | 🟨 ~12MiB/sec    | 🟧 ~5MiB/sec    |
+| **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ traditional-to-simplified conversion | 🟨 ~9MiB/sec    | 🟧 ~4MiB/sec    |
+| **Hebrew** 🇮🇱 | ✅ [unicode-segmentation](https://github.com/messense/jieba-rs) | ✅ diacritics removal  | 🟩 ~21MiB/sec    | 🟨 ~9MiB/sec    |
+| **Japanese** 🇯🇵 | ✅ [lindera](https://github.com/lindera-morphology/lindera) | ❌ | 🟧 ~3MiB/sec    | 🟧 ~3MiB/sec    |
 
 We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/charabia/issues/new/choose).
 
@@ -29,13 +30,13 @@ If you have a particular need that charabia does not support, please share it in
 
 ### About Performance level
 
-Performances are based on the throughput (MiB/sec) of the tokenizer (computed on a MacBook Pro 2021 - Apple M1 Pro) using jemalloc:
-- 0️⃣⬛️: 0   -> 1   MiB/sec
-- 1️⃣🟥: 1   -> 5   MiB/sec
-- 2️⃣🟧: 5   -> 12  MiB/sec
-- 3️⃣🟨: 12  -> 35  MiB/sec
-- 4️⃣🟩: 35  -> 75  MiB/sec
-- 5️⃣🟪: 75 MiB/sec or more
+Performances are based on the throughput (MiB/sec) of the tokenizer (computed on a [scaleway Elastic Metal server EM-A410X-SSD](https://www.scaleway.com/en/pricing/) - CPU: Intel Xeon E5 1650 - RAM: 64 Go) using jemalloc:
+- 0️⃣⬛️:  0  ->  1  MiB/sec
+- 1️⃣🟥:  1  ->  3  MiB/sec
+- 2️⃣🟧:  3  ->  8  MiB/sec
+- 3️⃣🟨:  8  -> 20  MiB/sec
+- 4️⃣🟩: 20  -> 50  MiB/sec
+- 5️⃣🟪: 50 MiB/sec or more
 
 ## Examples
 

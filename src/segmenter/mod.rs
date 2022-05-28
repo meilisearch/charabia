@@ -5,6 +5,8 @@ use std::collections::HashMap;
 pub use chinese::ChineseSegmenter;
 #[cfg(feature = "hebrew")]
 pub use hebrew::HebrewSegmenter;
+#[cfg(feature = "japanese")]
+pub use japanese::JapaneseSegmenter;
 pub use latin::LatinSegmenter;
 use once_cell::sync::Lazy;
 use slice_group_by::StrGroupBy;
@@ -16,6 +18,8 @@ use crate::token::Token;
 mod chinese;
 #[cfg(feature = "hebrew")]
 mod hebrew;
+#[cfg(feature = "japanese")]
+mod japanese;
 mod latin;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
@@ -39,6 +43,9 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // hebrew segmenter
         #[cfg(feature = "hebrew")]
         ((Script::Hebrew, Language::Heb), Box::new(HebrewSegmenter) as Box<dyn Segmenter>),
+        // japanese segmenter
+        #[cfg(feature = "japanese")]
+        ((Script::Cj, Language::Jpn), Box::new(JapaneseSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
@@ -265,6 +272,7 @@ Check if the tested segmenter is assigned to the good Script/Language in `SEGMEN
             fn tokenize() {
                 let tokens: Vec<_> = $text.tokenize().collect();
                 let tokenized_text: Vec<_> = tokens.iter().map(|t| t.lemma()).collect();
+
                 assert_eq!(&tokenized_text[..], $tokenized, r#"
 Global tokenize() function didn't tokenize the text as expected.
 
