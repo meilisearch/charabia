@@ -113,9 +113,8 @@ impl Token<'_> {
     /// token.
     ///
     /// chars are counted in the pre-processed string (just before normalizing).
-    /// For example, consider the string "Go💼od" which gets normalized to "gobriefcase od".
-    /// `original_lengths(11)` for this token will return `(3, 6)` - the number of `(characters, bytes)` in
-    /// the original string for 11 bytes in the normalized string.
+    /// For example, consider the string "léopard" which gets normalized to "leopard".
+    /// `original_lengths(3)` for this token will return `(3, 4)` - the number of `(characters, bytes)` in
     ///
     /// If the `char_map` hasn't been initialized (it is None), usually done
     /// by the de-unicoder, it counts the number of `(characters, bytes)` in self.lemma
