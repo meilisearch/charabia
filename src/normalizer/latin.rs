@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use deunicode::deunicode_char;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -13,6 +13,27 @@ pub struct LatinNormalizer;
 
 impl Normalizer for LatinNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+        if !token.lemma().is_ascii() {
+            let mut char_map = Vec::new();
+            let mut lemma = String::new();
+            for c in token.lemma().chars() {
+                // if a char can't be deunicoded, skip it.
+                let deunicoded = deunicode_char(c).unwrap_or("").trim();
+                char_map.push((c.len_utf8() as u8, deunicoded.len() as u8));
+                lemma.push_str(&deunicoded);
+            }
+
+            token.lemma = Cow::Owned(lemma);
+            token.char_map = Some(char_map);
+        }
+
+        // Create an iterator over the normalized token.
+        Box::new(Some(token).into_iter())
+    }
+
+    fn normalize_with_option<'o>(&self, token: Token<'o>, options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+        // TODO: create char map and just don't add it to token or don't create it at all?
+        //
         if !token.lemma().is_ascii() {
             let mut char_map = Vec::new();
             let mut lemma = String::new();

@@ -57,12 +57,33 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
     }
 }
 
+/// Structure for providing options to a normalizer.
+pub struct NormalizerOption {
+    create_char_map: bool,
+}
+
+impl NormalizerOption {
+    
+    /// Creates a new [`NormalizerOption`] with default options set.
+    fn new() -> NormalizerOption {
+        NormalizerOption {
+            create_char_map: true,
+        }
+    }
+}
+
 /// Trait defining a normalizer.
 pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
     ///
     /// A Normalizer can return several `Token`s.
     fn normalize<'o>(&self, token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
+
+    /// Normalize the provided [`Token`].
+    /// Options can be set using the provided [`NormalizerOption`].
+    ///
+    /// A Normalizer can return several `Token`s.
+    fn normalize_with_option<'o>(&self, token: Token<'o>, options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
 
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
