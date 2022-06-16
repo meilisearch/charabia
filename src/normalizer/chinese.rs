@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use character_converter::traditional_to_simplified;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -18,6 +18,10 @@ impl Normalizer for ChineseNormalizer {
         }
 
         Box::new(Some(token).into_iter())
+    }
+
+    fn normalize_with_option<'o>(&self, token: Token<'o>, _options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+        self.normalize(token)
     }
 
     fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {

@@ -52,7 +52,9 @@ mod tokenizer;
 
 pub use classifier::Classify;
 pub use detection::{Language, Script};
-pub use normalizer::Normalize;
+// TODO
+//pub use normalizer::Normalize;
+pub use normalizer::{Normalize, NormalizerOption};
 pub use segmenter::Segment;
 pub use token::{SeparatorKind, Token, TokenKind};
 pub use tokenizer::{ReconstructedTokenIter, Tokenize, Tokenizer, TokenizerBuilder};

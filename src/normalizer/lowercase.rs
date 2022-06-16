@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use cow_utils::CowUtils;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -19,6 +19,10 @@ impl Normalizer for LowercaseNormalizer {
         }
 
         Box::new(Some(token).into_iter())
+    }
+
+    fn normalize_with_option<'o>(&self, token: Token<'o>, _options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+        self.normalize(token)
     }
 
     fn should_normalize(&self, _script: Script, _language: Option<Language>) -> bool {

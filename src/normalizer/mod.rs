@@ -36,6 +36,7 @@ pub struct NormalizedTokenIter<'o> {
     token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     normalizer: &'static Box<dyn Normalizer>,
+    options: Option<NormalizerOption>,
 }
 
 impl<'o> Iterator for NormalizedTokenIter<'o> {
@@ -47,7 +48,14 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
             None => {
                 let token = self.token_iter.next()?;
                 if self.normalizer.should_normalize(token.script, token.language) {
-                    self.inner = self.normalizer.normalize(token);
+                    match &self.options {
+                        Some(options) => {
+                            self.inner = self.normalizer.normalize_with_option(token, options.clone());
+                        }
+                        None => {
+                            self.inner = self.normalizer.normalize(token);
+                        }
+                    }
                     self.next()
                 } else {
                     Some(token)
@@ -58,14 +66,15 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
 }
 
 /// Structure for providing options to a normalizer.
+#[derive(Clone)]
 pub struct NormalizerOption {
-    create_char_map: bool,
+    pub create_char_map: bool,
 }
 
 impl NormalizerOption {
     
     /// Creates a new [`NormalizerOption`] with default options set.
-    fn new() -> NormalizerOption {
+    pub fn new() -> NormalizerOption {
         NormalizerOption {
             create_char_map: true,
         }
@@ -105,14 +114,33 @@ where
             token_iter: Box::new(self),
             inner: Box::new(None.into_iter()),
             normalizer: NORMALIZERS.first().unwrap(),
+            options: None,
+        };
+        
+        NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
+            token_iter: Box::new(token_iter),
+            inner: Box::new(None.into_iter()),
+            normalizer,
+            options: None,
+        })
+    }
+
+    fn normalize_with_option(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
+        let first = NormalizedTokenIter {
+            token_iter: Box::new(self),
+            inner: Box::new(None.into_iter()),
+            normalizer: NORMALIZERS.first().unwrap(),
+            options: Some(options.clone()),
         };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
             inner: Box::new(None.into_iter()),
             normalizer,
+            options: Some(options.clone()),
         })
     }
+
 }
 
 impl<'o, T> Normalize<'o> for T where T: Iterator<Item = Token<'o>> + 'o {}
