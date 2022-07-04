@@ -9,7 +9,7 @@ use crate::Token;
 pub struct ControlCharNormalizer;
 
 impl Normalizer for ControlCharNormalizer {
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize_with_option<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if token.lemma().chars().any(is_control) {
             let mut lemma = String::new();
             let char_map = match token.char_map.take() {
@@ -53,10 +53,6 @@ impl Normalizer for ControlCharNormalizer {
 
         // Create an iterator over the normalized token.
         Box::new(Some(token).into_iter())
-    }
-
-    fn normalize_with_option<'o>(&self, token: Token<'o>, _options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        self.normalize(token)
     }
 
     fn should_normalize(&self, _script: Script, _language: Option<Language>) -> bool {

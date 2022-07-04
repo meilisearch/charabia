@@ -36,7 +36,7 @@ pub struct NormalizedTokenIter<'o> {
     token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     normalizer: &'static Box<dyn Normalizer>,
-    options: Option<NormalizerOption>,
+    options: NormalizerOption,
 }
 
 impl<'o> Iterator for NormalizedTokenIter<'o> {
@@ -48,14 +48,7 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
             None => {
                 let token = self.token_iter.next()?;
                 if self.normalizer.should_normalize(token.script, token.language) {
-                    match &self.options {
-                        Some(options) => {
-                            self.inner = self.normalizer.normalize_with_option(token, options.clone());
-                        }
-                        None => {
-                            self.inner = self.normalizer.normalize(token);
-                        }
-                    }
+                    self.inner = self.normalizer.normalize_with_option(token, self.options.clone());
                     self.next()
                 } else {
                     Some(token)
@@ -71,10 +64,8 @@ pub struct NormalizerOption {
     pub create_char_map: bool,
 }
 
-impl NormalizerOption {
-    
-    /// Creates a new [`NormalizerOption`] with default options set.
-    pub fn new() -> NormalizerOption {
+impl Default for NormalizerOption {
+    fn default() -> Self {
         NormalizerOption {
             create_char_map: true,
         }
@@ -84,13 +75,13 @@ impl NormalizerOption {
 /// Trait defining a normalizer.
 pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
-    ///
-    /// A Normalizer can return several `Token`s.
-    fn normalize<'o>(&self, token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
-
-    /// Normalize the provided [`Token`].
     /// Options can be set using the provided [`NormalizerOption`].
     ///
+    /// A Normalizer can return several `Token`s.
+    fn normalize<'o>(&self, token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+        self.normalize_with_option(token, NormalizerOption::default())
+    }
+
     /// A Normalizer can return several `Token`s.
     fn normalize_with_option<'o>(&self, token: Token<'o>, options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
 
@@ -106,38 +97,30 @@ where
     Self: Sized,
     Self: Iterator<Item = Token<'o>> + 'o,
 {
+
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
     fn normalize(self) -> NormalizedTokenIter<'o> {
-        let first = NormalizedTokenIter {
-            token_iter: Box::new(self),
-            inner: Box::new(None.into_iter()),
-            normalizer: NORMALIZERS.first().unwrap(),
-            options: None,
-        };
-        
-        NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
-            token_iter: Box::new(token_iter),
-            inner: Box::new(None.into_iter()),
-            normalizer,
-            options: None,
-        })
+        self.normalize_with_option(NormalizerOption::default())
     }
 
+    /// Normalize [`Token`]s using all the compatible Normalizers.
+    ///
+    /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
     fn normalize_with_option(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
         let first = NormalizedTokenIter {
             token_iter: Box::new(self),
             inner: Box::new(None.into_iter()),
             normalizer: NORMALIZERS.first().unwrap(),
-            options: Some(options.clone()),
+            options: options.clone(),
         };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
             inner: Box::new(None.into_iter()),
             normalizer,
-            options: Some(options.clone()),
+            options: options.clone(),
         })
     }
 

@@ -95,17 +95,12 @@ impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 pub struct Tokenizer<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
-    create_char_map: bool,
+    normalizer_option: NormalizerOption,
 }
 
 impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
     pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
-        if self.create_char_map {
-            original.segment().normalize().classify_with_stop_words(self.stop_words)
-        } else {
-            let options = NormalizerOption { create_char_map: false };
-            original.segment().normalize_with_option(options).classify_with_stop_words(self.stop_words)
-        }
+        original.segment().normalize_with_option(self.normalizer_option.clone()).classify_with_stop_words(self.stop_words)
     }
 
     pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
@@ -150,7 +145,7 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
 ///
 pub struct TokenizerBuilder<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
-    create_char_map: bool,
+    normalizer_option: NormalizerOption,
 }
 
 impl<'sw, A> TokenizerBuilder<'sw, A> {
@@ -158,7 +153,7 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
     pub fn new() -> TokenizerBuilder<'sw, A> {
-        Self { stop_words: None, create_char_map: true }
+        Self { stop_words: None, normalizer_option: NormalizerOption::default() }
     }
 }
 
@@ -179,13 +174,13 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
     ///
     /// * `create_char_map` - a `bool` that indicates whether a `char_map` should be created.   
     pub fn create_char_map(&mut self, create_char_map: bool) -> &mut Self {
-        self.create_char_map = create_char_map;
+        self.normalizer_option.create_char_map = create_char_map;
         self
     }
 
     /// Build the configurated `Tokenizer`.
     pub fn build<'o>(&self) -> Tokenizer<'sw, A> {
-        Tokenizer { stop_words: self.stop_words, create_char_map: self.create_char_map }
+        Tokenizer { stop_words: self.stop_words, normalizer_option: self.normalizer_option.clone() }
     }
 }
 

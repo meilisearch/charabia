@@ -15,16 +15,12 @@ pub struct DummyNormalizer;
 // All normalizers only need to implement the method `normalize` and the method `should_normalize` of the `Normalizer` trait.
 impl Normalizer for DummyNormalizer {
     // Creates an iterator over the normalized version of the provided token.
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize_with_option<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         // lowercase the provided token lemma.
         token.lemma = Cow::Owned(token.lemma().to_lowercase());
 
         // Create an iterator over the normalized token.
         Box::new(Some(token).into_iter())
-    }
-
-    fn normalize_with_option<'o>(&self, token: Token<'o>, _options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        self.normalize(token)
     }
 
     // Returns `true` if the Normalizer should be used.
