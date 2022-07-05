@@ -12,35 +12,36 @@ use crate::Token;
 pub struct LatinNormalizer;
 
 impl Normalizer for LatinNormalizer {
-
-    fn normalize_with_option<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(
+        &self,
+        mut token: Token<'o>,
+        options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if !token.lemma().is_ascii() {
-            let mut char_map = if options.create_char_map { Some(Vec::new()) } else { None };
             let mut lemma = String::new();
             if options.create_char_map {
+                let mut char_map = Vec::new();
                 for c in token.lemma().chars() {
                     // if a char can't be deunicoded, skip it.
                     let deunicoded = deunicode_char(c).unwrap_or("").trim();
-                    char_map.as_mut().map(|char_map| char_map.push((c.len_utf8() as u8, deunicoded.len() as u8)));
+                    char_map.push((c.len_utf8() as u8, deunicoded.len() as u8));
                     lemma.push_str(&deunicoded);
                 }
+                token.char_map = Some(char_map);
             } else {
                 lemma.push_str(&deunicode(token.lemma()));
             }
             token.lemma = Cow::Owned(lemma);
-            token.char_map = char_map;
         }
 
         // Create an iterator over the normalized token.
         Box::new(Some(token).into_iter())
-    }    
+    }
 
     fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
         script == Script::Latin
     }
-
 }
-
 
 #[cfg(test)]
 mod test {

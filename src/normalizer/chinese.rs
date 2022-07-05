@@ -12,7 +12,11 @@ use crate::Token;
 pub struct ChineseNormalizer;
 
 impl Normalizer for ChineseNormalizer {
-    fn normalize_with_option<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(
+        &self,
+        mut token: Token<'o>,
+        _options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if let Cow::Owned(s) = traditional_to_simplified(token.lemma()) {
             token.lemma = Cow::Owned(s);
         }

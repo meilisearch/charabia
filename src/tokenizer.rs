@@ -82,7 +82,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
 
 impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
     fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, Vec<u8>> {
-        self.segment().normalize().classify()
+        self.segment().normalize(NormalizerOption::default()).classify()
     }
 
     fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, Vec<u8>> {
@@ -100,7 +100,10 @@ pub struct Tokenizer<'sw, A> {
 
 impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
     pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
-        original.segment().normalize_with_option(self.normalizer_option.clone()).classify_with_stop_words(self.stop_words)
+        original
+            .segment()
+            .normalize(self.normalizer_option)
+            .classify_with_stop_words(self.stop_words)
     }
 
     pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
@@ -167,8 +170,8 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
         self.stop_words = Some(stop_words);
         self
     }
-    
-    /// Enable or disable the creation of `char_map`. 
+
+    /// Enable or disable the creation of `char_map`.
     ///
     /// # Arguments
     ///
@@ -180,7 +183,7 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
 
     /// Build the configurated `Tokenizer`.
     pub fn build<'o>(&self) -> Tokenizer<'sw, A> {
-        Tokenizer { stop_words: self.stop_words, normalizer_option: self.normalizer_option.clone() }
+        Tokenizer { stop_words: self.stop_words, normalizer_option: self.normalizer_option }
     }
 }
 
