@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use character_converter::traditional_to_simplified;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -12,7 +12,11 @@ use crate::Token;
 pub struct ChineseNormalizer;
 
 impl Normalizer for ChineseNormalizer {
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(
+        &self,
+        mut token: Token<'o>,
+        _options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if let Cow::Owned(s) = traditional_to_simplified(token.lemma()) {
             token.lemma = Cow::Owned(s);
         }

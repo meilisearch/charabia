@@ -1,7 +1,7 @@
 use fst::Set;
 
 use crate::classifier::{ClassifiedTokenIter, Classify};
-use crate::normalizer::Normalize;
+use crate::normalizer::{Normalize, NormalizerOption};
 use crate::segmenter::{Segment, SegmentedTokenIter};
 use crate::Token;
 
@@ -82,7 +82,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
 
 impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
     fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, Vec<u8>> {
-        self.segment().normalize().classify()
+        self.segment().normalize(NormalizerOption::default()).classify()
     }
 
     fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, Vec<u8>> {
@@ -95,11 +95,15 @@ impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 pub struct Tokenizer<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
+    normalizer_option: NormalizerOption,
 }
 
 impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
     pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
-        original.segment().normalize().classify_with_stop_words(self.stop_words)
+        original
+            .segment()
+            .normalize(self.normalizer_option)
+            .classify_with_stop_words(self.stop_words)
     }
 
     pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
@@ -144,6 +148,7 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
 ///
 pub struct TokenizerBuilder<'sw, A> {
     stop_words: Option<&'sw Set<A>>,
+    normalizer_option: NormalizerOption,
 }
 
 impl<'sw, A> TokenizerBuilder<'sw, A> {
@@ -151,7 +156,7 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
     pub fn new() -> TokenizerBuilder<'sw, A> {
-        Self { stop_words: None }
+        Self { stop_words: None, normalizer_option: NormalizerOption::default() }
     }
 }
 
@@ -166,9 +171,19 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
         self
     }
 
+    /// Enable or disable the creation of `char_map`.
+    ///
+    /// # Arguments
+    ///
+    /// * `create_char_map` - a `bool` that indicates whether a `char_map` should be created.   
+    pub fn create_char_map(&mut self, create_char_map: bool) -> &mut Self {
+        self.normalizer_option.create_char_map = create_char_map;
+        self
+    }
+
     /// Build the configurated `Tokenizer`.
     pub fn build<'o>(&self) -> Tokenizer<'sw, A> {
-        Tokenizer { stop_words: self.stop_words }
+        Tokenizer { stop_words: self.stop_words, normalizer_option: self.normalizer_option }
     }
 }
 

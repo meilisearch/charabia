@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 // Import `Normalizer` trait.
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -15,7 +15,7 @@ pub struct DummyNormalizer;
 // All normalizers only need to implement the method `normalize` and the method `should_normalize` of the `Normalizer` trait.
 impl Normalizer for DummyNormalizer {
     // Creates an iterator over the normalized version of the provided token.
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         // lowercase the provided token lemma.
         token.lemma = Cow::Owned(token.lemma().to_lowercase());
 

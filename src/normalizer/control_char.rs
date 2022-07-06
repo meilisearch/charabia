@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -9,7 +9,11 @@ use crate::Token;
 pub struct ControlCharNormalizer;
 
 impl Normalizer for ControlCharNormalizer {
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(
+        &self,
+        mut token: Token<'o>,
+        _options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if token.lemma().chars().any(is_control) {
             let mut lemma = String::new();
             let char_map = match token.char_map.take() {

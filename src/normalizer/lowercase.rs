@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use cow_utils::CowUtils;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -11,7 +11,11 @@ use crate::Token;
 pub struct LowercaseNormalizer;
 
 impl Normalizer for LowercaseNormalizer {
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(
+        &self,
+        mut token: Token<'o>,
+        _options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         // Cow::Borrowed holds a reference to token, which makes it impossible to directly replace
         // word with the `cow_to_lowercase` result
         if let Cow::Owned(s) = token.lemma.cow_to_lowercase() {

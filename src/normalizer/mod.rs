@@ -36,6 +36,7 @@ pub struct NormalizedTokenIter<'o> {
     token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     normalizer: &'static Box<dyn Normalizer>,
+    options: NormalizerOption,
 }
 
 impl<'o> Iterator for NormalizedTokenIter<'o> {
@@ -47,7 +48,7 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
             None => {
                 let token = self.token_iter.next()?;
                 if self.normalizer.should_normalize(token.script, token.language) {
-                    self.inner = self.normalizer.normalize(token);
+                    self.inner = self.normalizer.normalize(token, self.options);
                     self.next()
                 } else {
                     Some(token)
@@ -57,12 +58,29 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
     }
 }
 
+/// Structure for providing options to a normalizer.
+#[derive(Clone, Copy)]
+pub struct NormalizerOption {
+    pub create_char_map: bool,
+}
+
+impl Default for NormalizerOption {
+    fn default() -> Self {
+        NormalizerOption { create_char_map: false }
+    }
+}
+
 /// Trait defining a normalizer.
 pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
+    /// Options can be set using the provided [`NormalizerOption`].
     ///
     /// A Normalizer can return several `Token`s.
-    fn normalize<'o>(&self, token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
+    fn normalize<'o>(
+        &self,
+        token: Token<'o>,
+        options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
 
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
@@ -79,17 +97,19 @@ where
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    fn normalize(self) -> NormalizedTokenIter<'o> {
+    fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
         let first = NormalizedTokenIter {
             token_iter: Box::new(self),
             inner: Box::new(None.into_iter()),
             normalizer: NORMALIZERS.first().unwrap(),
+            options: options,
         };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
             inner: Box::new(None.into_iter()),
             normalizer,
+            options: options,
         })
     }
 }
@@ -108,7 +128,7 @@ mod test {
             fn normalizer_normalize() {
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
-                    .map(|token| $normalizer.normalize(token))
+                    .map(|token| $normalizer.normalize(token, NormalizerOption { create_char_map: true }))
                     .flatten()
                     .collect();
                 assert_eq!(
@@ -126,7 +146,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 
             #[test]
             fn global_normalize() {
-                let normalized_tokens: Vec<_> = $tokens.into_iter().normalize().collect();
+                let normalized_tokens: Vec<_> = $tokens.into_iter().normalize(NormalizerOption { create_char_map: true }).collect();
                 assert_eq!(
                     &normalized_tokens[..],
                     $global_result,

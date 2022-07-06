@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::Normalizer;
+use super::{Normalizer, NormalizerOption};
 use crate::{Language, Script, Token};
 
 /// Normalize Hebrew characters by undiacritisizing (removing diacritics) them.
@@ -11,21 +11,27 @@ use crate::{Language, Script, Token};
 pub struct HebrewNormalizer;
 
 impl Normalizer for HebrewNormalizer {
-    fn normalize<'o>(&self, mut token: Token<'o>) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
+    fn normalize<'o>(
+        &self,
+        mut token: Token<'o>,
+        options: NormalizerOption,
+    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if token.lemma().chars().any(is_diacritic) {
-            let mut char_map = Vec::new();
+            let mut char_map = if options.create_char_map { Some(Vec::new()) } else { None };
             let mut lemma = String::new();
             for c in token.lemma().chars() {
                 if is_diacritic(c) {
-                    char_map.push((c.len_utf8() as u8, 0));
+                    char_map.as_mut().map(|char_map| char_map.push((c.len_utf8() as u8, 0)));
                 } else {
-                    char_map.push((c.len_utf8() as u8, c.len_utf8() as u8));
+                    char_map
+                        .as_mut()
+                        .map(|char_map| char_map.push((c.len_utf8() as u8, c.len_utf8() as u8)));
                     lemma.push(c);
                 }
             }
 
             token.lemma = Cow::Owned(lemma);
-            token.char_map = Some(char_map);
+            token.char_map = char_map;
         }
 
         Box::new(Some(token).into_iter())
