@@ -1,6 +1,6 @@
 use crate::segmenter::Segmenter;
-use lindera::tokenizer::{Tokenizer as LinderaTokenizer, TokenizerConfig};
-use lindera_core::viterbi::{Mode, Penalty};
+use lindera::mode::{Mode, Penalty};
+use lindera::tokenizer::{Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 
 /// Japanese specialized [`Segmenter`].
@@ -8,10 +8,10 @@ use once_cell::sync::Lazy;
 /// This Segmenter uses lindera internally to segment the provided text.
 pub struct JapaneseSegmenter;
 
-static LINDERA: Lazy<LinderaTokenizer> = Lazy::new(|| {
+static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
     let config =
         TokenizerConfig { mode: Mode::Decompose(Penalty::default()), ..TokenizerConfig::default() };
-    LinderaTokenizer::with_config(config).unwrap()
+    Tokenizer::with_config(config).unwrap()
 });
 
 impl Segmenter for JapaneseSegmenter {
