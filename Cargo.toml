@@ -11,6 +11,7 @@ keywords = ["segmenter", "tokenizer", "normalize", "language"]
 categories = ["text-processing"]
 
 [dependencies]
+chamkho = "0.2.2"
 character_converter = { version = "2.1.0", optional = true }
 cow-utils = "0.1"
 deunicode = "1.1.1"
@@ -36,7 +37,7 @@ japanese = ["dep:lindera"]
 
 [dev-dependencies]
 criterion = "0.3"
-jemallocator = "0.3.0"
+#jemallocator = "0.3.0"
 
 [[bench]]
 name = "bench"
