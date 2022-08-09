@@ -1,9 +1,12 @@
 // Import `Segmenter` trait.
-extern crate chamkho;
+use crate::segmenter::Segmenter;
+use tokenizer::{Tokenizer, th};
+use once_cell::sync::Lazy;
 
-use chamkho::wordcut::Wordcut;
-use chamkho::dict::Dict;
-// Make a small documentation of the specialized Segmenter like below.
+
+/*
+Make a small documentation of the specialized Segmenter like below.
+*/
 /// <Script/Language> specialized [`Segmenter`].
 ///
 /// This Segmenter uses [`<UsedLibraryToSegment>`] internally to segment the provided text.
@@ -12,20 +15,31 @@ use chamkho::dict::Dict;
 //TIP: Name the Segmenter with its purpose and not its internal behavior:
 //     prefer JapaneseSegmenter (based on the Language) instead of LinderaSegmenter (based on the used Library).
 //     Same for the filename, prefer `japanese.rs` instead of `lindera.rs`.
-let dict = Dict::load(Dict::default_path());
-pub struct ThaiSegmenter;
 
-static CHAMKHO: Wordcut = Wordcut::new(dict.unwrap());
-// All specialized segmenters only need to implement the method `segment_str` of the `Segmenter` trait.
+pub struct ThaiSegmenter;
+static SOMCHAI: Lazy<tokenizer::th::Tokenizer> = Lazy::new(||
+
+{
+    let tokenizer = th::Tokenizer::new("C:\\Users\\macth\\Desktop\\Rust-Playground\\src\\words_th.txt").expect("Dictionary file not found");
+    tokenizer
+});
+
+/*
+All specialized segmenters only need to implement the method `segment_str` of the `Segmenter` trait.
+*/
 impl Segmenter for ThaiSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         // Create the iterator that will segment the provided text.
-        let segmented = wordcut.segment_into_strings(&to_segment.to_string());
+        // Assuming dictinoary contains "ภาษาไทย" and "นิดเดียว" but not "ง่าย"
+        //let somchai = th::Tokenizer::new("C:\\Users\\macth\\Desktop\\Rust-Playground\\src\\words_th.txt").expect("Dictionary file not found");
+    
+        let segmented = SOMCHAI.tokenize(to_segment);
 
         // Return the created iterator wrapping it in a Box.
         Box::new(segmented.into_iter())
     }
 }
+
 
 //TIP: Some segmentation Libraries need to initialize a instance of the Segmenter.
 //     This initialization could be time-consuming and shouldn't be done at each call of `segment_str`.
@@ -48,16 +62,15 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     // Original version of the text.
-    const TEXT: &str = "Hello World!";
+    const TEXT: &str = "ภาษาไทยง่ายนิดเดียว";
 
     // Segmented version of the text.
-    const SEGMENTED: &[&str] = &["Hello", " World!"];
+    const SEGMENTED: &[&str] = &["ภาษาไทย", "ง่าย", "นิดเดียว"];
 
     // Segmented and normalized version of the text.
-    const TOKENIZED: &[&str] = &["hello", " world!"];
-
+    const TOKENIZED: &[&str] = SEGMENTED;
     // Macro that run several tests on the Segmenter.
-    test_segmenter!(DummySegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);
+    test_segmenter!(ThaiSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Thai, Language::Tha);
 }
 
 // Include the newly implemented Segmenter in the tokenization pipeline:
