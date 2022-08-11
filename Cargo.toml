@@ -23,6 +23,7 @@ unicode-segmentation = "1.6.0"
 whatlang = "0.13.0"
 lindera = { version = "=0.14.0", features = ["ipadic"], optional = true }
 
+
 [features]
 default = ["chinese", "hebrew", "japanese", "thai"]
 
@@ -39,7 +40,7 @@ thai = ["dep:tokenizer"]
 
 [dev-dependencies]
 criterion = "0.3"
-#jemallocator = "0.3.0"
+jemallocator = "0.3.0"
 
 [[bench]]
 name = "bench"
