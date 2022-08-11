@@ -13,7 +13,7 @@ pub struct ThaiSegmenter;
 static SOMCHAI: Lazy<tokenizer::th::Tokenizer> = Lazy::new(||
 
 {
-    let tokenizer = th::Tokenizer::new("C:\\Users\\macth\\Desktop\\Rust-Playground\\src\\words_th.txt").expect("Dictionary file not found");
+    let tokenizer = th::Tokenizer::new(include_str!("words_th.txt")).expect("Dictionary file not found");
     tokenizer
 });
 
