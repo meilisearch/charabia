@@ -18,7 +18,7 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
     ((363, Script::Latin, Language::Eng), "The City of London Corporation is unique in the UK and has some unusual responsibilities for a local council, such as being the police authority. It is also unusual in having responsibilities and ownership beyond its boundaries. The Corporation is headed by the Lord Mayor of the City of London (an office separate from, and much older than, the Mayor of London)."),
     ((363, Script::Latin, Language::Fra), "La position de Lutèce, sur l'île aujourd'hui nommée l'île de la Cité, permettant le franchissement du grand fleuve navigable qu'est la Seine par une voie reliant le Nord et le Sud des Gaules, en fait dès l'Antiquité une cité importante, capitale des Parisii, puis lieu de séjour d'un empereur romain. Le mot Lutèce resulte de la francisation de Lutetia."),
     ((365, Script::Hebrew, Language::Heb), "הַשּׁוּעָל הַמָּהִיר (״הַחוּם״) לֹא יָכוֹל לִקְפֹּץ 8.94 מֶטְרִים, נָכוֹן? תַּכְלֶס, אִם הוּא הָיָה יָכוֹל, הוּא חֲתִיכַת שׁוּעָל הַשּׁוּעָל הַזֶּה.. אֲבָל הַאִם לֹא כֻּלָּנוּ שׁוּעָלִים בְּעֶצֶם? יתכן."),
-    ((132, Script::Thai, Language::Tha), "เราจะทำตามสัญญาขอเวลาอีกไม่นานแล้วแผ่นดินที่งดงามจะคืนกลับมาเราจะทำอย่างซื่อตรงขอแค่เธอจงไว้ใจและศรัทธาแผ่นดินจะดีในไม่ช้า"),
+    ((366, Script::Thai, Language::Tha), "เราจะทำตามสัญญาขอเวลาอีกไม่นานแล้วแผ่นดินที่งดงามจะคืนกลับมาเราจะทำอย่างซื่อตรงขอแค่เธอจงไว้ใจและศรัทธาแผ่นดินจะดีในไม่ช้า"),
     ];
 
 criterion_group!(benches, criterion_benchmark);

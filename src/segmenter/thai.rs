@@ -6,7 +6,8 @@ use tokenizer::{th, Tokenizer};
 
 /// Thai specialized [`Segmenter`].
 ///
-/// This Segmenter uses the very creatively named, tokenizer library internally to segment the provided text.
+/// This Segmenter uses the very creatively named, tokenizer library internally to segment the provided text. 
+/// Dictionary source: PyThaiNLP project on https://github.com/PyThaiNLP/nlpo3
 
 pub struct ThaiSegmenter;
 static SOMCHAI: Lazy<tokenizer::th::Tokenizer> = Lazy::new(|| {
