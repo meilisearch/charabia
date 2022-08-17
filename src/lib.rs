@@ -50,9 +50,9 @@ mod detection;
 mod token;
 mod tokenizer;
 
+pub use crate::tokenizer::{ReconstructedTokenIter, Tokenize, Tokenizer, TokenizerBuilder};
 pub use classifier::Classify;
 pub use detection::{Language, Script};
 pub use normalizer::Normalize;
 pub use segmenter::Segment;
 pub use token::{SeparatorKind, Token, TokenKind};
-pub use crate::tokenizer::{ReconstructedTokenIter, Tokenize, Tokenizer, TokenizerBuilder};

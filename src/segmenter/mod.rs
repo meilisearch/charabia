@@ -13,7 +13,6 @@ use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
 
-
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::Token;
 
@@ -26,7 +25,6 @@ mod japanese;
 mod latin;
 #[cfg(feature = "thai")]
 mod thai;
-
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
 ///
@@ -54,7 +52,7 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         ((Script::Cj, Language::Jpn), Box::new(JapaneseSegmenter) as Box<dyn Segmenter>),
         // thai segmenter
         #[cfg(feature = "thai")]
-        ((Script::Thai, Language::Tha), Box::new(ThaiSegmenter) as Box<dyn Segmenter>)
+        ((Script::Thai, Language::Tha), Box::new(ThaiSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
@@ -186,7 +184,7 @@ pub trait Segment<'o> {
     /// assert_eq!(kind, TokenKind::Unknown);
     /// ```
     fn segment(&self) -> SegmentedTokenIter<'o>;
- 
+
     /// Segments the provided text creating an Iterator over `&str`.
     ///
     /// # Example
