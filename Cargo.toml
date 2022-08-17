@@ -11,6 +11,7 @@ keywords = ["segmenter", "tokenizer", "normalize", "language"]
 categories = ["text-processing"]
 
 [dependencies]
+tokenizer = { version = "0.1.2", optional = true }
 character_converter = { version = "2.1.0", optional = true }
 cow-utils = "0.1"
 deunicode = "1.1.1"
@@ -22,8 +23,9 @@ unicode-segmentation = "1.6.0"
 whatlang = "0.13.0"
 lindera = { version = "=0.14.0", features = ["ipadic"], optional = true }
 
+
 [features]
-default = ["chinese", "hebrew", "japanese"]
+default = ["chinese", "hebrew", "japanese", "thai"]
 
 # allow chinese specialized tokenization
 chinese = ["dep:character_converter", "dep:jieba-rs"]
@@ -33,6 +35,8 @@ hebrew = []
 
 # allow japanese specialized tokenization
 japanese = ["dep:lindera"]
+
+thai = ["dep:tokenizer"]
 
 [dev-dependencies]
 criterion = "0.3"
