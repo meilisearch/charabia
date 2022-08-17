@@ -1,7 +1,6 @@
 // Import `Segmenter` trait.
 use crate::segmenter::Segmenter;
 use once_cell::sync::Lazy;
-use std::{ffi::OsStr, fs, path::Path};
 use tokenizer::{th, Tokenizer};
 
 /// Thai specialized [`Segmenter`].
