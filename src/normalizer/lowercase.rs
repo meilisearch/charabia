@@ -25,8 +25,9 @@ impl Normalizer for LowercaseNormalizer {
         Box::new(Some(token).into_iter())
     }
 
-    fn should_normalize(&self, _script: Script, _language: Option<Language>) -> bool {
-        true
+    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
+        // https://en.wikipedia.org/wiki/Letter_case#Capitalisation
+        matches!(script, Script::Latin | Script::Cyrillic | Script::Greek | Script::Georgian)
     }
 }
 
