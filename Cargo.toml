@@ -9,9 +9,9 @@ documentation = "https://docs.rs/charabia"
 repository = "https://github.com/meilisearch/charabia"
 keywords = ["segmenter", "tokenizer", "normalize", "language"]
 categories = ["text-processing"]
+exclude = ["/dictionaries/txt/"]
 
 [dependencies]
-tokenizer = { version = "0.1.2", optional = true }
 character_converter = { version = "2.1.0", optional = true }
 cow-utils = "0.1"
 deunicode = "1.1.1"
@@ -36,7 +36,8 @@ hebrew = []
 # allow japanese specialized tokenization
 japanese = ["dep:lindera"]
 
-thai = ["dep:tokenizer"]
+# allow thai specialized tokenization
+thai = []
 
 [dev-dependencies]
 criterion = "0.3"
