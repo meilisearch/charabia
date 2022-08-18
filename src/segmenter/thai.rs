@@ -14,27 +14,25 @@ static WORDS_FST: Lazy<Fst<&[u8]>> =
     Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap());
 
 impl Segmenter for ThaiSegmenter {
-    fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let mut byte_index = 0;
+    fn segment_str<'o>(&self, mut to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let iter = std::iter::from_fn(move || {
-            let tailstr = &to_segment[byte_index..];
-
             // if we reach the end of the text, we return None.
-            if tailstr.is_empty() {
+            if to_segment.is_empty() {
                 return None;
             }
 
-            let length = match find_longest_prefix(&WORDS_FST, tailstr.as_bytes()) {
+            let length = match find_longest_prefix(&WORDS_FST, to_segment.as_bytes()) {
                 Some((_, length)) => length,
                 None => {
                     // if no sequence matches, we return the next character as a lemma.
-                    let first = tailstr.chars().next().unwrap();
+                    let first = to_segment.chars().next().unwrap();
                     first.len_utf8()
                 }
             };
 
-            byte_index += length;
-            Some(&tailstr[..length])
+            let (left, right) = to_segment.split_at(length);
+            to_segment = right;
+            Some(left)
         });
 
         Box::new(iter)

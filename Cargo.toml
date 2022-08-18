@@ -36,6 +36,7 @@ hebrew = []
 # allow japanese specialized tokenization
 japanese = ["dep:lindera"]
 
+# allow thai specialized tokenization
 thai = []
 
 [dev-dependencies]
