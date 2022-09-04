@@ -1,7 +1,7 @@
 name-template: 'Charabia v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 exclude-labels:
-  - 'skip-changelog'
+  - 'skip changelog'
 version-resolver:
   minor:
     labels:
@@ -9,7 +9,7 @@ version-resolver:
   default: patch
 categories:
   - title: 'Breaking changes ⚠️'
-    label: 'breaking-change'
+    label: 'breaking change'
 template: |
   ## Changes
 
