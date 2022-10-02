@@ -6,12 +6,12 @@ use crate::segmenter::Segmenter;
 /// Chinese Script specialized [`Segmenter`].
 ///
 /// This Segmenter uses [`Jieba`] internally to segment the provided text
-/// using HMM feature.
+/// using HMM feature (Deactivated).
 pub struct ChineseSegmenter;
 
 impl Segmenter for ChineseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let segmented = JIEBA.cut(to_segment, true); // Use Hidden Markov Models.
+        let segmented = JIEBA.cut(to_segment, false); // Not Using Hidden Markov Models.
 
         Box::new(segmented.into_iter())
     }
