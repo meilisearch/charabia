@@ -6,7 +6,7 @@ use crate::segmenter::Segmenter;
 /// Chinese Script specialized [`Segmenter`].
 ///
 /// This Segmenter uses [`Jieba`] internally to segment the provided text
-/// using HMM feature (Deactivated).
+/// without using HMM feature.
 pub struct ChineseSegmenter;
 
 impl Segmenter for ChineseSegmenter {
