@@ -22,6 +22,7 @@ slice-group-by = "0.3.0"
 unicode-segmentation = "1.6.0"
 whatlang = "0.16.1"
 lindera = { version = "=0.16.0", features = ["ipadic"], optional = true }
+pinyin = "0.9"
 
 
 [features]
