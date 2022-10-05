@@ -91,7 +91,8 @@ make_language! {
     Lat,
     Slk,
     Cat,
-    Tgl
+    Tgl,
+    Hye
 }
 
 macro_rules! make_script {
@@ -119,6 +120,7 @@ macro_rules! make_script {
 
 make_script! {
     Arabic,
+    Armenian,
     Bengali,
     Cyrillic,
     Devanagari,
