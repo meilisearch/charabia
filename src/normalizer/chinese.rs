@@ -42,8 +42,6 @@ impl Normalizer for ChineseNormalizer {
         }
 
         token.lemma = Cow::Owned(lemma);
-        token.char_end = token.lemma.chars().count();
-        token.byte_end = token.lemma.len();
         token.char_map = char_map;
 
         Box::new(Some(token).into_iter())
@@ -88,8 +86,8 @@ mod test {
             Token {
                 // lowercased
                 lemma: Owned("zūnyán".to_string()),
-                char_end: "zūnyán".chars().count(),
-                byte_end: "zūnyán".len(),
+                char_end: 2,
+                byte_end: 6,
                 char_map: Some(vec![(3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
@@ -98,8 +96,8 @@ mod test {
             Token {
                 // lowercased
                 lemma: Owned("shēngérzìyóu".to_string()),
-                char_end: "shēngérzìyóu".chars().count(),
-                byte_end: "shēngérzìyóu".len(),
+                char_end: 4,
+                byte_end: 12,
                 char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
@@ -113,8 +111,8 @@ mod test {
         vec![
             Token {
                 lemma: Owned("zūnyán".to_string()),
-                char_end: "zūnyán".chars().count(),
-                byte_end: "zūnyán".len(),
+                char_end: 2,
+                byte_end: 6,
                 char_map: Some(vec![(3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
@@ -122,8 +120,8 @@ mod test {
             },
             Token {
                 lemma: Owned("shēngérzìyóu".to_string()),
-                char_end: "shēngérzìyóu".chars().count(),
-                byte_end: "shēngérzìyóu".len(),
+                char_end: 4,
+                byte_end: 12,
                 char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),

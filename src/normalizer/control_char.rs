@@ -152,8 +152,8 @@ mod test {
         vec![
             Token {
                 lemma: Owned("shēngérzìyóuoo".to_string()),
-                char_end: 17,
-                byte_end: 21,
+                char_end: 9,
+                byte_end: 17,
                 script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
@@ -170,8 +170,8 @@ mod test {
             },
             Token {
                 lemma: Owned("shēngérzìyóuoo".to_string()),
-                char_end: 17,
-                byte_end: 21,
+                char_end: 9,
+                byte_end: 17,
                 script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
