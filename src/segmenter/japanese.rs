@@ -1,7 +1,8 @@
-use crate::segmenter::Segmenter;
 use lindera::mode::{Mode, Penalty};
 use lindera::tokenizer::{Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
+
+use crate::segmenter::Segmenter;
 
 /// Japanese specialized [`Segmenter`].
 ///
