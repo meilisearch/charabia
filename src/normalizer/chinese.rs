@@ -18,29 +18,33 @@ impl Normalizer for ChineseNormalizer {
         options: NormalizerOption,
     ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         let mut lemma = String::new();
-
-        // Need to create char_map before converting into Pinyin
-        if options.create_char_map {
-            let mut char_map = Vec::new();
-
-            for c in token.lemma().chars() {
-                let char_len = c.len_utf8() as u8;
-
-                char_map.push((char_len, char_len));
-            }
-
-            token.char_map = Some(char_map);
-        }
+        let mut char_map = if options.create_char_map { Some(Vec::new()) } else { None };
 
         for c in token.lemma().chars() {
             match c.to_pinyin() {
-                Some(converted) => lemma.push_str(converted.plain()),
-                None => lemma.push(c),
+                Some(converted) => {
+                    let with_tone = converted.with_tone();
+
+                    char_map
+                        .as_mut()
+                        .map(|char_map| char_map.push((c.len_utf8() as u8, with_tone.len() as u8)));
+
+                    lemma.push_str(with_tone);
+                }
+                None => {
+                    char_map
+                        .as_mut()
+                        .map(|char_map| char_map.push((c.len_utf8() as u8, c.len_utf8() as u8)));
+
+                    lemma.push(c);
+                }
             }
         }
 
         token.lemma = Cow::Owned(lemma);
         token.char_end = token.lemma.chars().count();
+        token.byte_end = token.lemma.len();
+        token.char_map = char_map;
 
         Box::new(Some(token).into_iter())
     }
@@ -83,20 +87,20 @@ mod test {
         vec![
             Token {
                 // lowercased
-                lemma: Owned("zunyan".to_string()),
-                char_end: 6,
-                byte_end: 6,
-                char_map: Some(vec![(3, 3), (3, 3)]),
+                lemma: Owned("zūnyán".to_string()),
+                char_end: "zūnyán".chars().count(),
+                byte_end: "zūnyán".len(),
+                char_map: Some(vec![(3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
             },
             Token {
                 // lowercased
-                lemma: Owned("shengerziyou".to_string()),
-                char_end: 12,
-                byte_end: 12,
-                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
+                lemma: Owned("shēngérzìyóu".to_string()),
+                char_end: "shēngérzìyóu".chars().count(),
+                byte_end: "shēngérzìyóu".len(),
+                char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
@@ -108,19 +112,19 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("zunyan".to_string()),
-                char_end: 6,
-                byte_end: 6,
-                char_map: Some(vec![(3, 3), (3, 3)]),
+                lemma: Owned("zūnyán".to_string()),
+                char_end: "zūnyán".chars().count(),
+                byte_end: "zūnyán".len(),
+                char_map: Some(vec![(3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
             },
             Token {
-                lemma: Owned("shengerziyou".to_string()),
-                char_end: 12,
-                byte_end: 12,
-                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
+                lemma: Owned("shēngérzìyóu".to_string()),
+                char_end: "shēngérzìyóu".chars().count(),
+                byte_end: "shēngérzìyóu".len(),
+                char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
