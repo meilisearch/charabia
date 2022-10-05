@@ -215,7 +215,7 @@ impl<'o> Segment<'o> for &'o str {
                 current_script
             })
             .map(|s| {
-                let mut detector = s.detect();
+                let mut detector = s.detect(None);
                 let segmenter = segmenter(&mut detector);
                 let script = detector.script();
                 let language = detector.language;
@@ -227,7 +227,7 @@ impl<'o> Segment<'o> for &'o str {
     }
 
     fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let mut detector = self.detect();
+        let mut detector = self.detect(None);
         let segmenter = segmenter(&mut detector);
 
         segmenter.segment_str(self)
