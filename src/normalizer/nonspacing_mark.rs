@@ -7,7 +7,7 @@ use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
 
-static HASHSET: Lazy<HashSet<u32>> = Lazy::new(|| {
+static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
     let bytes = include_bytes!("../../dictionaries/bin/nonspacing_mark/marks.bin");
 
     HashSet::from_iter(
@@ -28,7 +28,7 @@ impl Normalizer for NonspacingMarkNormalizer {
     ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if token.lemma().chars().any(is_nonspacing_mark) {
             let mut lemma = String::new();
-            let mut char_map = if options.create_char_map { Some(Vec::new()) } else { None };
+            let mut char_map = options.create_char_map.then_some(Vec::new());
 
             for c in token.lemma().chars() {
                 if is_nonspacing_mark(c) {
@@ -49,14 +49,14 @@ impl Normalizer for NonspacingMarkNormalizer {
         Box::new(Some(token).into_iter())
     }
 
-    fn should_normalize(&self, _script: Script, _language: Option<Language>) -> bool {
-        true
+    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
+        matches!(script, Script::Hebrew | Script::Thai | Script::Arabic)
     }
 }
 
 /// Returns true if the character is a nonspacing mark
 fn is_nonspacing_mark(c: char) -> bool {
-    HASHSET.contains(&(c as u32))
+    NONSPACING_MARKS.contains(&(c as u32))
 }
 
 #[cfg(test)]
@@ -72,16 +72,14 @@ mod test {
                 lemma: Owned("ง่าย".to_string()),
                 char_end: "ง่าย".chars().count(),
                 byte_end: "ง่าย".len(),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
+                script: Script::Thai,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("أَب".to_string()),
                 char_end: "أَب".chars().count(),
                 byte_end: "أَب".len(),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
+                script: Script::Arabic,
                 ..Default::default()
             },
             Token {
@@ -102,8 +100,7 @@ mod test {
                 char_end: 4,
                 byte_end: 12,
                 char_map: Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
+                script: Script::Thai,
                 ..Default::default()
             },
             Token {
@@ -111,8 +108,7 @@ mod test {
                 char_end: "أَب".chars().count(),
                 byte_end: "أَب".len(),
                 char_map: Some(vec![(2, 2), (2, 0), (2, 2)]),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
+                script: Script::Arabic,
                 ..Default::default()
             },
             Token {
@@ -134,8 +130,7 @@ mod test {
                 char_end: 4,
                 byte_end: 12,
                 char_map: Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
+                script: Script::Thai,
                 ..Default::default()
             },
             Token {
@@ -143,8 +138,7 @@ mod test {
                 char_end: "أَب".chars().count(),
                 byte_end: "أَب".len(),
                 char_map: Some(vec![(2, 2), (2, 0), (2, 2)]),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
+                script: Script::Arabic,
                 ..Default::default()
             },
             Token {
