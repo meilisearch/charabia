@@ -185,7 +185,7 @@ pub trait Segment<'o> {
     /// ```
     fn segment(&self) -> SegmentedTokenIter<'o>;
 
-    /// Segments the provided text creating an Iterator over Tokens.
+    /// Segments the provided text creating an Iterator over Tokens. With allowlist.
     /// Created Tokens are not normalized nether classified,
     /// otherwise, better use the [`tokenize`] method.
     ///
@@ -216,7 +216,7 @@ pub trait Segment<'o> {
     /// ```
     fn segment_with_allowlist(&self, allow_list: Option<HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>;
 
-    /// Segments the provided text creating an Iterator over `&str`.
+    /// Segments the provided text creating an Iterator over `&str`. 
     ///
     /// # Example
     ///
@@ -233,7 +233,7 @@ pub trait Segment<'o> {
     /// ```
     fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 
-    /// Segments the provided text creating an Iterator over `&str`.
+    /// Segments the provided text creating an Iterator over `&str`. With allowlist.
     ///
     /// # Example
     ///
