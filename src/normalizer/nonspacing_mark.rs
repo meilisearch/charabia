@@ -28,7 +28,7 @@ impl Normalizer for NonspacingMarkNormalizer {
     ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         if token.lemma().chars().any(is_nonspacing_mark) {
             let mut lemma = String::new();
-            let mut char_map = options.create_char_map.then_some(Vec::new());
+            let mut char_map = options.create_char_map.then(Vec::new);
 
             for c in token.lemma().chars() {
                 if is_nonspacing_mark(c) {
