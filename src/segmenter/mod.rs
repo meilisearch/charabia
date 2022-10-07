@@ -25,6 +25,7 @@ mod japanese;
 mod latin;
 #[cfg(feature = "thai")]
 mod thai;
+mod utils;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
 ///
