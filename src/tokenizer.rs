@@ -192,7 +192,7 @@ impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     /// # Arguments
     ///
     /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.   
-    pub fn allow_list(&mut self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> &mut Self {
+    pub fn allow_list<>(&mut self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> &mut Self {
         self.allow_list = allow_list;
         self
     }

@@ -185,35 +185,7 @@ pub trait Segment<'o, 'al> {
     /// ```
     fn segment(&self) -> SegmentedTokenIter<'o>;
 
-    /// Segments the provided text creating an Iterator over Tokens. With allowlist.
-    /// Created Tokens are not normalized nether classified,
-    /// otherwise, better use the [`tokenize`] method.
-    ///
-    /// [`tokenize`]: crate::tokenizer::Tokenize#tymethod.tokenize
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use charabia::{Token, TokenKind, Segment};
-    ///
-    /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
-    ///
-    /// let mut tokens = orig.segment();
-    ///
-    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
-    /// // the token isn't normalized.
-    /// assert_eq!(lemma, "The");
-    /// // the token isn't classified and defaultly set to Unknown.
-    /// assert_eq!(kind, TokenKind::Unknown);
-    ///
-    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(lemma, " ");
-    /// assert_eq!(kind, TokenKind::Unknown);
-    ///
-    /// let Token { lemma, kind, .. } = tokens.next().unwrap();
-    /// assert_eq!(lemma, "quick");
-    /// assert_eq!(kind, TokenKind::Unknown);
-    /// ```
+    /// Segments the provided text creating an Iterator over Tokens where you can specify an allowed list of languages to be used with a script.
     fn segment_with_allowlist(&self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
     where 'al: 'o;
 
@@ -234,24 +206,27 @@ pub trait Segment<'o, 'al> {
     /// ```
     fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 
-    /// Segments the provided text creating an Iterator over `&str`. With allowlist.
+    /// Segments the provided text creating an Iterator over `&str` where you can specify an allowed list of languages to be used with a script.
     ///
     /// # Example
     ///
     /// ```
     /// use charabia::Segment;
+    /// use charabia::{Language, Script};
+    /// use std::collections::HashMap;
     ///
     /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
     ///
-    /// let mut segments = orig.segment_str();
+    /// let allow_list: Option<HashMap<Script,Vec<Language>>> = Some([
+    ///     (Script::Latin, vec![Language::Eng]),
+    ///     ].into_iter().collect());
+    /// let mut segments = orig.segment_str_with_allowlist(&allow_list);
     ///
     /// assert_eq!(segments.next(), Some("The"));
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
     fn segment_str_with_allowlist(&self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o>;
-
-
 
 }
 
