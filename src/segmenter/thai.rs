@@ -78,7 +78,7 @@ mod test {
 
     const SEGMENTED: &[&str] = &["ภาษาไทย", "ง่าย", "นิดเดียว"];
 
-    const TOKENIZED: &[&str] = SEGMENTED;
+    const TOKENIZED: &[&str] = &["ภาษาไทย", "งาย", "นดเดยว"];
     // Macro that run several tests on the Segmenter.
     test_segmenter!(ThaiSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Thai, Language::Tha);
 }

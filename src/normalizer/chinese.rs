@@ -18,7 +18,7 @@ impl Normalizer for ChineseNormalizer {
         options: NormalizerOption,
     ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
         let mut lemma = String::new();
-        let mut char_map = if options.create_char_map { Some(Vec::new()) } else { None };
+        let mut char_map = options.create_char_map.then(Vec::new);
 
         for c in token.lemma().chars() {
             match c.to_pinyin() {
