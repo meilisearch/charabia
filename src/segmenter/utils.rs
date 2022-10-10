@@ -1,18 +1,18 @@
 use fst::raw::{Fst, Output};
 
 /// Final-state-transducer (FST) Segmenter
-pub(crate) struct FstSegmenter<'o> {
-    words_fst: &'o Fst<&'o [u8]>
+pub(crate) struct FstSegmenter<'fst> {
+    words_fst: &'fst Fst<&'fst [u8]>
 }
 
-impl<'o> FstSegmenter<'o> {
-    pub(crate) fn new(words_fst: &'o Fst<&'o [u8]>) -> Self {
+impl<'fst> FstSegmenter<'fst> {
+    pub(crate) fn new(words_fst: &'fst Fst<&'fst [u8]>) -> Self {
         Self { words_fst }
     }
 }
 
-impl<'o> FstSegmenter<'o> {
-    pub fn segment_str(&'o self, mut to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+impl<'fst> FstSegmenter<'fst> {
+    pub fn segment_str(&'fst self, mut to_segment: &'fst str) -> Box<dyn Iterator<Item = &'fst str> + 'fst> {
         let iter = std::iter::from_fn(move || {
             // if we reach the end of the text, we return None.
             if to_segment.is_empty() {
