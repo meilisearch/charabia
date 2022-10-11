@@ -7,8 +7,8 @@ use whatlang::Detector;
 mod chars;
 mod script_language;
 
-pub struct StrDetection<'al> {
-    inner: &'al str,
+pub struct StrDetection<'o, 'al> {
+    inner: &'o str,
     pub script: Option<Script>,
     pub language: Option<Language>,
     allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
