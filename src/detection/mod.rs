@@ -50,11 +50,11 @@ impl<'o, 'al> StrDetection<'o, 'al> {
 }
 
 pub trait Detect<'al> {
-    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al>;
+    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al, 'al>;
 }
 
 impl<'al> Detect<'al> for &str {
-    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al> 
+    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al, 'al> 
     {
         StrDetection::new(self,allow_list)
     }
