@@ -1,3 +1,5 @@
+use core::str::FromStr;
+
 use super::chars;
 
 macro_rules! make_language {
@@ -18,6 +20,19 @@ macro_rules! make_language {
         impl Default for Language {
             fn default() -> Self {
                 Self::Other
+            }
+        }
+
+        impl Language {
+            pub fn name(&self) -> &'static str {
+                match self {
+                    $(Language::$language => whatlang::Lang::$language.code()), +,
+                    _other => "other",
+                }
+            }
+
+            pub fn from_name<S: AsRef<str>>(code: S) -> Language {
+                whatlang::Lang::from_code(code.as_ref()).map(Language::from).unwrap_or_default()
             }
         }
     };
@@ -114,6 +129,19 @@ macro_rules! make_script {
                 }
             }
 
+        }
+
+        impl Script {
+            pub fn name(&self) -> &'static str {
+                match self {
+                    $(Script::$script => whatlang::Script::$script.name()), +,
+                    _other => "other",
+                }
+            }
+
+            pub fn from_name<S: AsRef<str>>(code: S) -> Script {
+                whatlang::Script::from_str(code.as_ref()).map(Script::from).unwrap_or_default()
+            }
         }
     };
 }
