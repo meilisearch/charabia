@@ -101,8 +101,7 @@ pub struct Tokenizer<'sw, 'al, A> {
     allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
 }
 
-impl<'o, 'al, A: AsRef<[u8]>> Tokenizer<'_, 'al, A>
-where 'al: 'o
+impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A>
 {
     pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
         original

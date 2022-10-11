@@ -153,7 +153,7 @@ impl Segmenter for Box<dyn Segmenter> {
 }
 
 /// Trait defining methods to segment a text.
-pub trait Segment<'o, 'al> {
+pub trait Segment<'o> {
     /// Segments the provided text creating an Iterator over Tokens.
     /// Created Tokens are not normalized nether classified,
     /// otherwise, better use the [`tokenize`] method.
@@ -186,8 +186,7 @@ pub trait Segment<'o, 'al> {
     fn segment(&self) -> SegmentedTokenIter<'o>;
 
     /// Segments the provided text creating an Iterator over Tokens where you can specify an allowed list of languages to be used with a script.
-    fn segment_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
-    where 'al: 'o;
+    fn segment_with_allowlist(&self, allow_list: Option<&'o HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>;
 
     /// Segments the provided text creating an Iterator over `&str`. 
     ///
@@ -227,11 +226,11 @@ pub trait Segment<'o, 'al> {
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
-    fn segment_str_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o>;
+    fn segment_str_with_allowlist(&self, allow_list: Option<&'o HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 
 }
 
-impl<'o, 'al> Segment<'o, 'al> for &'o str {
+impl<'o> Segment<'o> for &'o str {
     fn segment(&self) -> SegmentedTokenIter<'o> {
         self.segment_with_allowlist(None)
     }
@@ -240,8 +239,7 @@ impl<'o, 'al> Segment<'o, 'al> for &'o str {
         self.segment_str_with_allowlist(None)
     }
 
-    fn segment_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
-    where 'al: 'o
+    fn segment_with_allowlist(&self, allow_list: Option<&'o HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
     {
         let mut current_script = Script::Other;
         let inner = self
@@ -264,7 +262,7 @@ impl<'o, 'al> Segment<'o, 'al> for &'o str {
         SegmentedTokenIter::<'o> { inner: Box::new(inner), char_index: 0, byte_index: 0 }
     }
 
-    fn segment_str_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+    fn segment_str_with_allowlist(&self, allow_list: Option<&'o HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let mut detector = self.detect(allow_list);
         let segmenter = segmenter(&mut detector);
 
