@@ -49,7 +49,7 @@ impl<'a> StrDetection<'a> {
     }
 }
 
-pub trait Detect<'a> {
+pub trait Detect<'al> {
     fn detect(&'a self, allow_list: &'a Option<HashMap<Script,Vec<Language>>>) -> StrDetection<'a>;
 }
 
