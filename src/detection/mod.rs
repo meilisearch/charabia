@@ -49,12 +49,12 @@ impl<'o, 'al> StrDetection<'o, 'al> {
     }
 }
 
-pub trait Detect<'al> {
-    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al, 'al>;
+pub trait Detect<'o, 'al> {
+    fn detect(&'o self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'o, 'al>;
 }
 
-impl<'al> Detect<'al> for &str {
-    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al, 'al> 
+impl<'o, 'al> Detect<'o, 'al> for &str {
+    fn detect(&'o self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'o, 'al> 
     {
         StrDetection::new(self,allow_list)
     }
