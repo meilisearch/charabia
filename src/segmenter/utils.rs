@@ -9,9 +9,7 @@ impl<'fst> FstSegmenter<'fst> {
     pub(crate) fn new(words_fst: &'fst Fst<&'fst [u8]>) -> Self {
         Self { words_fst }
     }
-}
 
-impl<'fst> FstSegmenter<'fst> {
     pub fn segment_str<'o>(
         &'fst self,
         mut to_segment: &'o str
