@@ -7,16 +7,16 @@ use whatlang::Detector;
 mod chars;
 mod script_language;
 
-pub struct StrDetection<'a> {
-    inner: &'a str,
+pub struct StrDetection<'al> {
+    inner: &'al str,
     pub script: Option<Script>,
     pub language: Option<Language>,
-    allow_list : &'a Option<HashMap<Script,Vec<Language>>>,
+    allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
 }
 
-impl<'a> StrDetection<'a> {
-    pub fn new(inner: &'a str, allow_list: &'a Option<HashMap<Script,Vec<Language>>>) -> Self {
-        Self { inner, script: None, language: None, allow_list: &allow_list }
+impl<'al> StrDetection<'al> {
+    pub fn new(inner: &'al str, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Self {
+        Self { inner, script: None, language: None, allow_list: allow_list }
     }
 
     pub fn script(&mut self) -> Script {
@@ -38,11 +38,11 @@ impl<'a> StrDetection<'a> {
 
     /// detect lang with whatlang
     /// if no language is detected, return Language::Other
-    fn detect_lang(text: &str, script: Script, allow_list : &Option<HashMap<Script,Vec<Language>>>) -> Language {
+    fn detect_lang(text: &str, script: Script, allow_list : Option<&HashMap<Script,Vec<Language>>>) -> Language {
             let detector = allow_list
                 .and_then(|allow_list| allow_list.get(&script))
-                .and_then(|allow_list| allow_list.iter().map(|lang| (*lang).into()).collect())
-                .and_then(Detector::with_allowlist)
+                .and_then(|allow_list| Some(allow_list.iter().map(|lang|(*lang).into()).collect()))
+                .and_then(|allow_list| Some(Detector::with_allowlist(allow_list)))
                 .unwrap_or_default();
                 
             detector.detect_lang(text).map(Language::from).unwrap_or_default()
@@ -50,12 +50,12 @@ impl<'a> StrDetection<'a> {
 }
 
 pub trait Detect<'al> {
-    fn detect(&'a self, allow_list: &'a Option<HashMap<Script,Vec<Language>>>) -> StrDetection<'a>;
+    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al>;
 }
 
-impl<'a> Detect<'a> for &str {
-    fn detect(&'a self, allow_list: &'a Option<HashMap<Script,Vec<Language>>>) -> StrDetection<'a> 
+impl<'al> Detect<'al> for &str {
+    fn detect(&'al self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'al> 
     {
-        StrDetection::new(self,&allow_list)
+        StrDetection::new(self,allow_list)
     }
 }

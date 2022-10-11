@@ -154,7 +154,7 @@ where 'al: 'o
 pub struct TokenizerBuilder<'sw, 'al, A> {
     stop_words: Option<&'sw Set<A>>,
     normalizer_option: NormalizerOption,
-    allow_list : &'al Option<HashMap<Script,Vec<Language>>>,
+    allow_list : Option< &'al HashMap<Script,Vec<Language>>>,
 }
 
 impl<'sw,'al, A> TokenizerBuilder<'sw, 'al, A> {
@@ -162,7 +162,7 @@ impl<'sw,'al, A> TokenizerBuilder<'sw, 'al, A> {
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
     pub fn new() -> TokenizerBuilder<'sw, 'al, A> {
-        Self { stop_words: None, normalizer_option: NormalizerOption::default(), allow_list: &None }
+        Self { stop_words: None, normalizer_option: NormalizerOption::default(), allow_list: None }
     }
 }
 
@@ -192,8 +192,8 @@ impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     /// # Arguments
     ///
     /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.   
-    pub fn allow_list(&mut self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> &mut Self {
-        self.allow_list = allow_list;
+    pub fn allow_list(&mut self, allow_list: &'al HashMap<Script,Vec<Language>>) -> &mut Self {
+        self.allow_list = Some(allow_list);
         self
     }
 

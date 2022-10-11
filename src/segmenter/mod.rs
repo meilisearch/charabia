@@ -186,7 +186,7 @@ pub trait Segment<'o, 'al> {
     fn segment(&self) -> SegmentedTokenIter<'o>;
 
     /// Segments the provided text creating an Iterator over Tokens where you can specify an allowed list of languages to be used with a script.
-    fn segment_with_allowlist(&self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
+    fn segment_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
     where 'al: 'o;
 
     /// Segments the provided text creating an Iterator over `&str`. 
@@ -216,30 +216,31 @@ pub trait Segment<'o, 'al> {
     /// use std::collections::HashMap;
     ///
     /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
-    ///
-    /// let allow_list: Option<HashMap<Script,Vec<Language>>> = Some([
+    /// 
+    /// let scrip_language_map = [
     ///     (Script::Latin, vec![Language::Eng]),
-    ///     ].into_iter().collect());
-    /// let mut segments = orig.segment_str_with_allowlist(&allow_list);
+    ///     ].into_iter().collect();
+    /// let allow_list: Option<&HashMap<Script,Vec<Language>>> = Some(&scrip_language_map);
+    /// let mut segments = orig.segment_str_with_allowlist(allow_list);
     ///
     /// assert_eq!(segments.next(), Some("The"));
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
-    fn segment_str_with_allowlist(&self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o>;
+    fn segment_str_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o>;
 
 }
 
 impl<'o, 'al> Segment<'o, 'al> for &'o str {
     fn segment(&self) -> SegmentedTokenIter<'o> {
-        self.segment_with_allowlist(&None)
+        self.segment_with_allowlist(None)
     }
 
     fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        self.segment_str_with_allowlist(&None)
+        self.segment_str_with_allowlist(None)
     }
 
-    fn segment_with_allowlist(&self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
+    fn segment_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> SegmentedTokenIter<'o>
     where 'al: 'o
     {
         let mut current_script = Script::Other;
@@ -263,7 +264,7 @@ impl<'o, 'al> Segment<'o, 'al> for &'o str {
         SegmentedTokenIter::<'o> { inner: Box::new(inner), char_index: 0, byte_index: 0 }
     }
 
-    fn segment_str_with_allowlist(&self, allow_list: &'al Option<HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+    fn segment_str_with_allowlist(&self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let mut detector = self.detect(allow_list);
         let segmenter = segmenter(&mut detector);
 
