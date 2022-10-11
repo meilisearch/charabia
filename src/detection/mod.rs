@@ -26,7 +26,8 @@ impl<'a> StrDetection<'a> {
 
     pub fn language(&mut self) -> Language {
         let inner = self.inner;
-        *self.language.get_or_insert_with(|| Self::detect_lang(inner, self.script, self.allow_list))
+        let script = self.script();
+        *self.language.get_or_insert_with(|| Self::detect_lang(inner, script, self.allow_list))
     }
 
     /// detect script with whatlang,
