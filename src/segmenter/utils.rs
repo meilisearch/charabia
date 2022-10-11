@@ -12,7 +12,12 @@ impl<'fst> FstSegmenter<'fst> {
 }
 
 impl<'fst> FstSegmenter<'fst> {
-    pub fn segment_str(&'fst self, mut to_segment: &'fst str) -> Box<dyn Iterator<Item = &'fst str> + 'fst> {
+    pub fn segment_str<'o>(
+        &'fst self,
+        mut to_segment: &'o str
+    ) -> Box<dyn Iterator<Item = &'o str> + 'o>
+        where
+            'fst: 'o {
         let iter = std::iter::from_fn(move || {
             // if we reach the end of the text, we return None.
             if to_segment.is_empty() {
