@@ -98,7 +98,7 @@ impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
 pub struct Tokenizer<'sw, 'al, A> {
     stop_words: Option<&'sw Set<A>>,
     normalizer_option: NormalizerOption,
-    allow_list : &'al Option<HashMap<Script,Vec<Language>>>,
+    allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
 }
 
 impl<'o, 'al, A: AsRef<[u8]>> Tokenizer<'_, 'al, A>
