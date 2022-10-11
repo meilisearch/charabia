@@ -14,8 +14,8 @@ pub struct StrDetection<'o, 'al> {
     allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
 }
 
-impl<'al> StrDetection<'al> {
-    pub fn new(inner: &'al str, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Self {
+impl<'o, 'al> StrDetection<'o, 'al> {
+    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Self {
         Self { inner, script: None, language: None, allow_list: allow_list }
     }
 
