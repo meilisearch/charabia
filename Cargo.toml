@@ -20,7 +20,7 @@ once_cell = "1.5.2"
 slice-group-by = "0.3.0"
 unicode-segmentation = "1.6.0"
 whatlang = "0.16.1"
-lindera = { version = "=0.17.0", features = ["ipadic", "ko-dic"], optional = true }
+lindera = { version = "=0.17.0", default-features = false, optional = true }
 pinyin = { version = "0.9", default-features = false, features = ["with_tone"], optional = true }
 
 [features]
@@ -33,10 +33,10 @@ chinese = ["dep:pinyin", "dep:jieba-rs"]
 hebrew = []
 
 # allow japanese specialized tokenization
-japanese = ["dep:lindera"]
+japanese = ["dep:lindera", "lindera/ipadic"]
 
 # allow korean specialized tokenization
-korean = ["dep:lindera"]
+korean = ["dep:lindera", "lindera/ko-dic"]
 
 # allow thai specialized tokenization
 thai = []
