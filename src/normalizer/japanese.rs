@@ -10,25 +10,22 @@ use wana_kana::Options;
 /// Japanese specialized [`Normalizer`].
 ///
 /// This Normalizer uses [`wana_kana`] internally to convert Katakana and Kanji to Hiragana
+///
+/// The input and output of `is_hiragana` will have identical char len according to manual testing [1],
+/// therefore the `options.create_char_map` should be ignored for now [2].
+///
+/// [wana_kana]: https://docs.rs/wana_kana/latest/wana_kana/
+/// [1]: https://github.com/meilisearch/charabia/pull/149#issuecomment-1273540805
+/// [2]: https://github.com/meilisearch/charabia/pull/149#discussion_r991337772
 pub struct JapaneseNormalizer;
 
 impl Normalizer for JapaneseNormalizer {
     fn normalize<'o>(
         &self,
         mut token: Token<'o>,
-        options: NormalizerOption,
+        _options: NormalizerOption,
     ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if is_hiragana(token.lemma()) {
-            // No need to convert
-
-            if options.create_char_map && token.char_map.is_none() {
-                let mut char_map = Vec::new();
-                for c in token.lemma().chars() {
-                    char_map.push((c.len_utf8() as u8, c.len_utf8() as u8));
-                }
-                token.char_map = Some(char_map);
-            }
-        } else {
+        if !is_hiragana(token.lemma()) {
             // Convert Katakana to Hiragana
             let new_lemma = to_hiragana_with_opt(
                 token.lemma(),
@@ -37,26 +34,6 @@ impl Normalizer for JapaneseNormalizer {
                     ..Default::default()
                 },
             );
-
-            if options.create_char_map && token.char_map.is_none() {
-                debug_assert!(
-                    token.lemma().len() == new_lemma.len(),
-                    concat!(
-                        r#"`to_hiragana` changed the lemma len from {} to {} but the current `char_map` computation "#,
-                        r#"expected them to be equal. If `to_hiragana` does change len of char somehow, consider "#,
-                        r#"calling `to_hiragana(char)` char by char instead of only calling `to_hiragana(lemma)` once."#
-                    ),
-                    token.lemma().len(),
-                    new_lemma.len()
-                );
-                let old_new_chars = token.lemma().chars().zip(new_lemma.chars());
-
-                let mut char_map = Vec::new();
-                for (_i, (old_char, new_char)) in old_new_chars.enumerate() {
-                    char_map.push((old_char.len_utf8() as u8, new_char.len_utf8() as u8))
-                }
-                token.char_map = Some(char_map);
-            }
 
             token.lemma = Cow::Owned(new_lemma);
         }
@@ -113,7 +90,6 @@ mod test {
                 lemma: Owned("だめ".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                char_map: Some(vec![(3, 3), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
                 ..Default::default()
@@ -131,16 +107,6 @@ mod test {
                 lemma: Owned("だめ駄目だめHi".to_string()),
                 char_end: 8,
                 byte_end: 20,
-                char_map: Some(vec![
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (1, 1),
-                    (1, 1),
-                ]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
                 ..Default::default()
@@ -155,7 +121,6 @@ mod test {
                 lemma: Owned("だめ".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                char_map: Some(vec![(3, 3), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
                 ..Default::default()
@@ -173,16 +138,6 @@ mod test {
                 lemma: Owned("だめ駄目だめHi".to_string()),
                 char_end: 8,
                 byte_end: 20,
-                char_map: Some(vec![
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (3, 3),
-                    (1, 1),
-                    (1, 1),
-                ]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
                 ..Default::default()
