@@ -33,10 +33,10 @@ chinese = ["dep:pinyin", "dep:jieba-rs"]
 hebrew = []
 
 # allow japanese specialized tokenization
-japanese = ["dep:lindera", "lindera/ipadic"]
+japanese = ["lindera/ipadic"]
 
 # allow korean specialized tokenization
-korean = ["dep:lindera", "lindera/ko-dic"]
+korean = ["lindera/ko-dic"]
 
 # allow thai specialized tokenization
 thai = []
