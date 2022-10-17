@@ -19,7 +19,7 @@ Charabia provides a simple API to segment, normalize, or tokenize (segment + nor
 | **Latin** - **Any** | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ lowercase + deunicode            | 🟨 ~13MiB/sec    | 🟧 ~5MiB/sec    |
 | **Chinese** - **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ traditional-to-simplified conversion | 🟨 ~9MiB/sec    | 🟧 ~5MiB/sec    |
 | **Hebrew** 🇮🇱 | ✅ [unicode-segmentation](https://github.com/unicode-rs/unicode-segmentation) | ✅ diacritics removal  | 🟩 ~21MiB/sec    | 🟨 ~11MiB/sec    |
-| **Japanese** 🇯🇵 | ✅ [lindera](https://github.com/lindera-morphology/lindera) | ❌ | 🟧 ~5MiB/sec    | 🟧 ~4MiB/sec    |
+| **Japanese** 🇯🇵 | ✅ [lindera](https://github.com/lindera-morphology/lindera) | ✅ convert to Hiragana | 🟧 ~5MiB/sec    | 🟧 ~4MiB/sec    |
 | **Thai** 🇹🇭 | ✅ [dictionary based](https://github.com/PyThaiNLP/nlpo3) | ❌ | 🟩 ~23MiB/sec    | 🟨 ~14MiB/sec    |
 
 We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/charabia/issues/new/choose).
