@@ -281,57 +281,66 @@ impl<'o> Segment<'o> for &'o str {
 #[cfg(test)]
 mod test {
     macro_rules! test_segmenter {
-    ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
-            use crate::{Token, Language, Script};
-            use crate::segmenter::Segment;
-            use crate::tokenizer::Tokenize;
-            use super::*;
+    ($segmenter:expr, $script:expr, $language:expr $(, $name:ident, $text:expr, $segmented:expr, $tokenized:expr)+) => {
 
-            #[test]
-            fn segmenter_segment_str() {
-                let segmented_text: Vec<_> = $segmenter.segment_str($text).collect();
-                assert_eq!(&segmented_text[..], $segmented, r#"
-Segmenter {} didn't segment the text as expected.
+      use crate::{Token, Language, Script};
+      use crate::segmenter::Segment;
+      use crate::tokenizer::Tokenize;
+      use super::*;
 
-help: the `segmented` text provided to `test_segmenter!` does not corresponds to the output of the tested segmenter, it's probably due to a bug in the segmenter or a mistake in the provided segmented text.
-"#, stringify!($segmenter));
-            }
+      $(
+        paste::item!{
+          #[test]
+          fn [< segmenter_segment_str_ $name >] () {
+              let segmented_text: Vec<_> = $segmenter.segment_str($text).collect();
+              assert_eq!(&segmented_text[..], $segmented, r#"
+      Segmenter {} didn't segment the text as expected.
+      
+      help: the `segmented` text provided to `test_segmenter!` does not corresponds to the output of the tested segmenter, it's probably due to a bug in the segmenter or a mistake in the provided segmented text.
+      "#, stringify!($segmenter));
+          }
+          #[test]
+          fn [<text_lang_script_assignment_ $name>] () {
+              let Token {script, language, ..} = $text.segment().next().unwrap();
+              assert_eq!((script, language.unwrap_or($language)), ($script, $language), r#"
+      Provided text is not detected as the expected Script or Language to be segmented by {}.
+      
+      help: The tokenizer Script/Language detector detected the wrong Script/Language for the `segmented` text, the provided text will probably be segmented by an other segmenter.
+      Check if the expected Script/Language corresponds to the detected Script/Language.
+      "#, stringify!($segmenter));
+          }
 
-            #[test]
-            fn text_lang_script_assignment() {
-                let Token {script, language, ..} = $text.segment().next().unwrap();
-                assert_eq!((script, language.unwrap_or($language)), ($script, $language), r#"
-Provided text is not detected as the expected Script or Language to be segmented by {}.
+          #[test]
+          fn [< segment_ $name >] () {
+              let segmented_text: Vec<_> = $text.segment_str().collect();
+              assert_eq!(&segmented_text[..], $segmented, r#"
+      Segmenter chosen by global segment() function, didn't segment the text as expected.
+      
+      help: The selected segmenter is probably the wrong one.
+      Check if the tested segmenter is assigned to the good Script/Language in `SEGMENTERS` global in `src/segmenter/mod.rs`.
+      "#);
+          }
 
-help: The tokenizer Script/Language detector detected the wrong Script/Language for the `segmented` text, the provided text will probably be segmented by an other segmenter.
-Check if the expected Script/Language corresponds to the detected Script/Language.
-"#, stringify!($segmenter));
-            }
+          #[test]
+          fn [< tokenize_ $name >] () {
+              let tokens: Vec<_> = $text.tokenize().collect();
+              let tokenized_text: Vec<_> = tokens.iter().map(|t| t.lemma()).collect();
 
-            #[test]
-            fn segment() {
-                let segmented_text: Vec<_> = $text.segment_str().collect();
-                assert_eq!(&segmented_text[..], $segmented, r#"
-Segmenter chosen by global segment() function, didn't segment the text as expected.
-
-help: The selected segmenter is probably the wrong one.
-Check if the tested segmenter is assigned to the good Script/Language in `SEGMENTERS` global in `src/segmenter/mod.rs`.
-"#);
-            }
-
-            #[test]
-            fn tokenize() {
-                let tokens: Vec<_> = $text.tokenize().collect();
-                let tokenized_text: Vec<_> = tokens.iter().map(|t| t.lemma()).collect();
-
-                assert_eq!(&tokenized_text[..], $tokenized, r#"
-Global tokenize() function didn't tokenize the text as expected.
-
-help: The normalized version of the segmented text is probably wrong, the used normalizers make unexpeted changes to the provided text.
-Make sure that normalized text is valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
-"#);
-            }
+              assert_eq!(&tokenized_text[..], $tokenized, r#"
+      Global tokenize() function didn't tokenize the text as expected.
+      
+      help: The normalized version of the segmented text is probably wrong, the used normalizers make unexpeted changes to the provided text.
+      Make sure that normalized text is valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
+      "#);
+          }
         }
+
+      )*
+
+    };
+    ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
+      test_segmenter!($segmenter, $script, $language, default, $text, $segmented, $tokenized);
+    };
     }
     pub(crate) use test_segmenter;
 }
