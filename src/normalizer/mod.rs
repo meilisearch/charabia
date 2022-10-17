@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 #[cfg(feature = "chinese")]
 pub use self::chinese::ChineseNormalizer;
 pub use self::control_char::ControlCharNormalizer;
-#[cfg(feature = "japanese")]
+#[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::latin::LatinNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
@@ -14,7 +14,7 @@ use crate::Token;
 #[cfg(feature = "chinese")]
 mod chinese;
 mod control_char;
-#[cfg(feature = "japanese")]
+#[cfg(feature = "japanese-transliteration")]
 mod japanese;
 mod latin;
 mod lowercase;
@@ -26,7 +26,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(LowercaseNormalizer),
         #[cfg(feature = "chinese")]
         Box::new(ChineseNormalizer),
-        #[cfg(feature = "japanese")]
+        #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
         Box::new(LatinNormalizer),
         Box::new(ControlCharNormalizer),

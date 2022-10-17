@@ -21,8 +21,10 @@ slice-group-by = "0.3.0"
 unicode-segmentation = "1.6.0"
 whatlang = "0.16.1"
 lindera = { version = "=0.16.0", features = ["ipadic"], optional = true }
-pinyin = { version = "0.9", default-features = false, features = ["with_tone"], optional = true }
-wana_kana = "2.1.0"
+pinyin = { version = "0.9", default-features = false, features = [
+  "with_tone",
+], optional = true }
+wana_kana = { version = "2.1.0", optional = true }
 
 [features]
 default = ["chinese", "hebrew", "japanese", "thai"]
@@ -35,6 +37,7 @@ hebrew = []
 
 # allow japanese specialized tokenization
 japanese = ["dep:lindera"]
+japanese-transliteration = ["dep:wana_kana"]
 
 # allow thai specialized tokenization
 thai = []

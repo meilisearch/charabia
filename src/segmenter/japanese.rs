@@ -49,7 +49,8 @@ mod test {
         "国際",
         "空港",
         "限定",
-        "とうとばっぐ",
+        // Use "とうとばっぐ" instead when feature "japanese-transliteration" is enabled or become default
+        "トートバッグ",
         " ",
         "すもも",
         "も",
