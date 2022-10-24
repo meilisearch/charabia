@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use once_cell::sync::Lazy;
 
 #[cfg(feature = "chinese")]
@@ -37,7 +39,6 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 /// Iterator over Normalized [`Token`]s.
 pub struct NormalizedTokenIter<'o> {
     token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
-    inner: Box<dyn Iterator<Item = Token<'o>> + 'o>,
     normalizer: &'static Box<dyn Normalizer>,
     options: NormalizerOption,
 }
@@ -46,17 +47,11 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
     type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.inner.next() {
-            Some(token) => Some(token),
-            None => {
-                let token = self.token_iter.next()?;
-                if self.normalizer.should_normalize(token.script, token.language) {
-                    self.inner = self.normalizer.normalize(token, self.options);
-                    self.next()
-                } else {
-                    Some(token)
-                }
-            }
+        let token = self.token_iter.next()?;
+        if self.normalizer.should_normalize(token.script, token.language) {
+            Some(self.normalizer.normalize(token, self.options))
+        } else {
+            Some(token)
         }
     }
 }
@@ -78,12 +73,46 @@ pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
     /// Options can be set using the provided [`NormalizerOption`].
     ///
-    /// A Normalizer can return several `Token`s.
-    fn normalize<'o>(
-        &self,
-        token: Token<'o>,
-        options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o>;
+    fn normalize<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Token<'o> {
+        if options.create_char_map {
+            match token.char_map.take() {
+                Some(mut char_map) => {
+                    let mut lemma = String::new();
+                    let mut tail = token.lemma.as_ref();
+                    for (_, normalized_len) in char_map.iter_mut() {
+                        let (head, t) = tail.split_at(*normalized_len as usize);
+                        tail = t;
+                        let normalized = self.normalize_str(head);
+                        *normalized_len = normalized.len() as u8;
+                        lemma.push_str(normalized.as_ref());
+                    }
+
+                    token.lemma = Cow::Owned(lemma);
+                    token.char_map = Some(char_map);
+                }
+                None => {
+                    let mut buffer = [0; 4];
+                    let mut char_map = Vec::new();
+                    let mut lemma = String::new();
+                    for c in token.lemma().chars() {
+                        let char_str = c.encode_utf8(&mut buffer);
+                        let normalized = self.normalize_str(char_str);
+                        char_map.push((char_str.len() as u8, normalized.len() as u8));
+                        lemma.push_str(normalized.as_ref());
+                    }
+
+                    token.lemma = Cow::Owned(lemma);
+                    token.char_map = Some(char_map);
+                }
+            }
+        } else if let Cow::Owned(lemma) = self.normalize_str(token.lemma()) {
+            token.lemma = Cow::Owned(lemma);
+        }
+
+        token
+    }
+
+    fn normalize_str<'o>(&self, s: &'o str) -> Cow<'o, str>;
 
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
@@ -103,14 +132,12 @@ where
     fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
         let first = NormalizedTokenIter {
             token_iter: Box::new(self),
-            inner: Box::new(None.into_iter()),
             normalizer: NORMALIZERS.first().unwrap(),
             options: options,
         };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
-            inner: Box::new(None.into_iter()),
             normalizer,
             options: options,
         })
@@ -132,7 +159,6 @@ mod test {
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
                     .map(|token| $normalizer.normalize(token, NormalizerOption { create_char_map: true }))
-                    .flatten()
                     .collect();
                 assert_eq!(
                     &normalized_tokens[..],

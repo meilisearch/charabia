@@ -4,7 +4,6 @@ use pinyin::ToPinyin;
 
 use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
-use crate::Token;
 
 /// Normalize Chinese characters by converting them into Pinyin characters.
 ///
@@ -12,39 +11,22 @@ use crate::Token;
 pub struct ChineseNormalizer;
 
 impl Normalizer for ChineseNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        let mut lemma = String::new();
-        let mut char_map = options.create_char_map.then(Vec::new);
-
-        for c in token.lemma().chars() {
+    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
+        let mut dst = String::new();
+        for c in src.chars() {
             match c.to_pinyin() {
                 Some(converted) => {
                     let with_tone = converted.with_tone();
 
-                    char_map
-                        .as_mut()
-                        .map(|char_map| char_map.push((c.len_utf8() as u8, with_tone.len() as u8)));
-
-                    lemma.push_str(with_tone);
+                    dst.push_str(with_tone);
                 }
                 None => {
-                    char_map
-                        .as_mut()
-                        .map(|char_map| char_map.push((c.len_utf8() as u8, c.len_utf8() as u8)));
-
-                    lemma.push(c);
+                    dst.push(c);
                 }
             }
         }
 
-        token.lemma = Cow::Owned(lemma);
-        token.char_map = char_map;
-
-        Box::new(Some(token).into_iter())
+        Cow::Owned(dst)
     }
 
     fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {

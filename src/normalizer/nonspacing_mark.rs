@@ -5,7 +5,6 @@ use once_cell::sync::Lazy;
 
 use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
-use crate::Token;
 
 static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
     let bytes = include_bytes!("../../dictionaries/bin/nonspacing_mark/marks.bin");
@@ -21,32 +20,12 @@ static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
 pub struct NonspacingMarkNormalizer;
 
 impl Normalizer for NonspacingMarkNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if token.lemma().chars().any(is_nonspacing_mark) {
-            let mut lemma = String::new();
-            let mut char_map = options.create_char_map.then(Vec::new);
-
-            for c in token.lemma().chars() {
-                if is_nonspacing_mark(c) {
-                    char_map.as_mut().map(|char_map| char_map.push((c.len_utf8() as u8, 0)));
-                } else {
-                    char_map
-                        .as_mut()
-                        .map(|char_map| char_map.push((c.len_utf8() as u8, c.len_utf8() as u8)));
-
-                    lemma.push(c);
-                }
-            }
-
-            token.lemma = Cow::Owned(lemma);
-            token.char_map = char_map;
+    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
+        if src.chars().any(is_nonspacing_mark) {
+            src.chars().filter(|c| !is_nonspacing_mark(*c)).collect()
+        } else {
+            Cow::Borrowed(src)
         }
-
-        Box::new(Some(token).into_iter())
     }
 
     fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {

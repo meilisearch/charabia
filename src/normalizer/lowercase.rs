@@ -1,7 +1,5 @@
 use std::borrow::Cow;
 
-use cow_utils::CowUtils;
-
 use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
 use crate::Token;
@@ -11,18 +9,22 @@ use crate::Token;
 pub struct LowercaseNormalizer;
 
 impl Normalizer for LowercaseNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        _options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        // Cow::Borrowed holds a reference to token, which makes it impossible to directly replace
-        // word with the `cow_to_lowercase` result
-        if let Cow::Owned(s) = token.lemma.cow_to_lowercase() {
-            token.lemma = Cow::Owned(s);
+    // lowercasing characters doesn't change the characters length,
+    // so the `normalize` method is overloaded to skip the useless char_map computing.
+    fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
+        if let Cow::Owned(lemma) = self.normalize_str(token.lemma()) {
+            token.lemma = Cow::Owned(lemma);
         }
 
-        Box::new(Some(token).into_iter())
+        token
+    }
+
+    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
+        if src.chars().any(char::is_uppercase) {
+            Cow::Owned(src.to_lowercase())
+        } else {
+            Cow::Borrowed(src)
+        }
     }
 
     fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
