@@ -3,7 +3,8 @@ use std::borrow::Cow;
 use deunicode::deunicode;
 
 use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
+use crate::detection::Script;
+use crate::Token;
 
 /// Latin specialized [`Normalizer`] converting unicode chars into Ascii.
 ///
@@ -12,15 +13,11 @@ pub struct LatinNormalizer;
 
 impl Normalizer for LatinNormalizer {
     fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        if src.is_ascii() {
-            Cow::Borrowed(src)
-        } else {
-            Cow::Owned(deunicode(src))
-        }
+        Cow::Owned(deunicode(src))
     }
 
-    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        script == Script::Latin
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Latin && !token.lemma().is_ascii()
     }
 }
 

@@ -4,7 +4,8 @@ use std::collections::HashSet;
 use once_cell::sync::Lazy;
 
 use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
+use crate::detection::Script;
+use crate::Token;
 
 static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
     let bytes = include_bytes!("../../dictionaries/bin/nonspacing_mark/marks.bin");
@@ -21,15 +22,12 @@ pub struct NonspacingMarkNormalizer;
 
 impl Normalizer for NonspacingMarkNormalizer {
     fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        if src.chars().any(is_nonspacing_mark) {
-            src.chars().filter(|c| !is_nonspacing_mark(*c)).collect()
-        } else {
-            Cow::Borrowed(src)
-        }
+        src.chars().filter(|c| !is_nonspacing_mark(*c)).collect()
     }
 
-    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        matches!(script, Script::Hebrew | Script::Thai | Script::Arabic)
+    fn should_normalize(&self, token: &Token) -> bool {
+        matches!(token.script, Script::Hebrew | Script::Thai | Script::Arabic)
+            && token.lemma().chars().any(is_nonspacing_mark)
     }
 }
 

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
+use crate::Token;
 
 /// A global [`Normalizer`] removing control characters.
 ///
@@ -12,8 +12,8 @@ impl Normalizer for ControlCharNormalizer {
         src.chars().filter(|c| !is_control(*c)).collect()
     }
 
-    fn should_normalize(&self, _script: Script, _language: Option<Language>) -> bool {
-        true
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.lemma().chars().any(is_control)
     }
 }
 

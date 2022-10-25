@@ -4,6 +4,7 @@ use pinyin::ToPinyin;
 
 use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
+use crate::Token;
 
 /// Normalize Chinese characters by converting them into Pinyin characters.
 ///
@@ -29,8 +30,8 @@ impl Normalizer for ChineseNormalizer {
         Cow::Owned(dst)
     }
 
-    fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {
-        script == Script::Cj && matches!(language, None | Some(Language::Cmn))
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Cj && matches!(token.language, None | Some(Language::Cmn))
     }
 }
 

@@ -32,24 +32,22 @@ impl Normalizer for JapaneseNormalizer {
     }
 
     fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        if is_hiragana(src) {
-            Cow::Borrowed(src)
-        } else {
-            // Convert Katakana to Hiragana
-            let dst = to_hiragana_with_opt(
-                src,
-                Options {
-                    pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
-                    ..Default::default()
-                },
-            );
+        // Convert Katakana to Hiragana
+        let dst = to_hiragana_with_opt(
+            src,
+            Options {
+                pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
+                ..Default::default()
+            },
+        );
 
-            Cow::Owned(dst)
-        }
+        Cow::Owned(dst)
     }
 
-    fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {
-        script == Script::Cj && matches!(language, None | Some(Language::Jpn))
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Cj
+            && matches!(token.language, None | Some(Language::Jpn))
+            && !is_hiragana(token.lemma())
     }
 }
 

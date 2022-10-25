@@ -9,7 +9,6 @@ pub use self::control_char::ControlCharNormalizer;
 pub use self::japanese::JapaneseNormalizer;
 pub use self::latin::LatinNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
-use crate::detection::{Language, Script};
 use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
 use crate::Token;
 
@@ -48,7 +47,7 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let token = self.token_iter.next()?;
-        if self.normalizer.should_normalize(token.script, token.language) {
+        if self.normalizer.should_normalize(&token) {
             Some(self.normalizer.normalize(token, self.options))
         } else {
             Some(token)
@@ -117,7 +116,7 @@ pub trait Normalizer: Sync + Send {
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
     /// Some normalizer are specialized for a `Script` or/and a `Language` and shouldn't be called on every `Token`s.
-    fn should_normalize(&self, script: Script, language: Option<Language>) -> bool;
+    fn should_normalize(&self, token: &Token) -> bool;
 }
 
 /// Trait defining methods to normalize [`Token`]s.
@@ -158,7 +157,11 @@ mod test {
             fn normalizer_normalize() {
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
-                    .map(|token| $normalizer.normalize(token, NormalizerOption { create_char_map: true }))
+                    .map(|token| if $normalizer.should_normalize(&token) {
+                        $normalizer.normalize(token, NormalizerOption { create_char_map: true })
+                    } else {
+                        token
+                    })
                     .collect();
                 assert_eq!(
                     &normalized_tokens[..],
