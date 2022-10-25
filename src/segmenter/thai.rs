@@ -27,26 +27,11 @@ impl Segmenter for ThaiSegmenter {
 mod test {
     use crate::segmenter::test::test_segmenter;
 
-    const BASE: &str = "ภาษาไทยง่ายนิดเดียว";
-    const FIRST_HOMOGRAPH: &str = "ไก่ขันตอนเช้าบนขันน้ำ";
+    const TEXT: &str = "ภาษาไทยง่ายนิดเดียว";
 
-    const SEGMENTED_BASE: &[&str] = &["ภาษาไทย", "ง่าย", "นิดเดียว"];
-    const SEGMENTED_FIRST_HOMOGRAPH: &[&str] = &["ไก่", "ขัน", "ตอนเช้า", "บน", "ขันน้ำ"];
+    const SEGMENTED: &[&str] = &["ภาษาไทย", "ง่าย", "นิดเดียว"];
 
-    const TOKENIZED_BASE: &[&str] = &["ภาษาไทย", "งาย", "นดเดยว"];
-    const TOKENIZED_FIRST_HOMOGRAPH: &[&str] = &["ไก", "ขน", "ตอนเชา", "บน", "ขนนำ"];
+    const TOKENIZED: &[&str] = &["ภาษาไทย", "งาย", "นดเดยว"];
     // Macro that run several tests on the Segmenter.
-    test_segmenter!(
-        ThaiSegmenter,
-        Script::Thai,
-        Language::Tha,
-        default,
-        BASE,
-        SEGMENTED_BASE,
-        TOKENIZED_BASE,
-        first_homograph,
-        FIRST_HOMOGRAPH,
-        SEGMENTED_FIRST_HOMOGRAPH,
-        TOKENIZED_FIRST_HOMOGRAPH
-    );
+    test_segmenter!(ThaiSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Thai, Language::Tha);
 }
