@@ -29,17 +29,12 @@ mod test {
 
     const BASE: &str = "ภาษาไทยง่ายนิดเดียว";
     const FIRST_HOMOGRAPH: &str = "ไก่ขันตอนเช้าบนขันน้ำ";
-    const SECOND_HOMOGRAPH: &str = "ฉันสระผมที่สระน้ำด้วยน้ำยาสระผม";
 
     const SEGMENTED_BASE: &[&str] = &["ภาษาไทย", "ง่าย", "นิดเดียว"];
     const SEGMENTED_FIRST_HOMOGRAPH: &[&str] = &["ไก่", "ขัน", "ตอนเช้า", "บน", "ขันน้ำ"];
-    const SEGMENTED_SECOND_HOMOGRAPH: &[&str] =
-        &["ฉัน", "สระผม", "ที่", "สระน้ำ", "ด้วย", "น้ำยา", "สระผม"];
 
     const TOKENIZED_BASE: &[&str] = &["ภาษาไทย", "งาย", "นดเดยว"];
     const TOKENIZED_FIRST_HOMOGRAPH: &[&str] = &["ไก", "ขน", "ตอนเชา", "บน", "ขนนำ"];
-    const TOKENIZED_SECOND_HOMOGRAPH: &[&str] =
-        &["ฉน", "สระผม", "ท", "สระนำ", "ดวย", "นำยา", "สระผม"];
     // Macro that run several tests on the Segmenter.
     test_segmenter!(
         ThaiSegmenter,
@@ -52,10 +47,6 @@ mod test {
         first_homograph,
         FIRST_HOMOGRAPH,
         SEGMENTED_FIRST_HOMOGRAPH,
-        TOKENIZED_FIRST_HOMOGRAPH,
-        second_homograph,
-        SECOND_HOMOGRAPH,
-        SEGMENTED_SECOND_HOMOGRAPH,
-        TOKENIZED_SECOND_HOMOGRAPH
+        TOKENIZED_FIRST_HOMOGRAPH
     );
 }
