@@ -21,9 +21,11 @@ impl Normalizer for DummyNormalizer {
     }
 
     // Returns `true` if the Normalizer should be used.
-    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        // here we lowercase only on Latin and Cyrillic Scripts.
-        script == Script::Latin && script == Script::Cyrillic
+    fn should_normalize(&self, token: &Token) -> bool {
+        // here we lowercase only on Latin and Cyrillic Scripts and if the current token contains an uppercased character.
+        token.script == Script::Latin
+            && token.script == Script::Cyrillic
+            && token.lemma.chars().any(char::is_uppercase)
     }
 }
 
