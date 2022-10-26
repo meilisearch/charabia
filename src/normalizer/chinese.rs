@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pinyin::ToPinyin;
 
-use super::{Normalizer, NormalizerOption};
+use super::Normalizer;
 use crate::detection::{Language, Script};
 use crate::Token;
 
@@ -40,6 +40,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::NormalizerOption;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

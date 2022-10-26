@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::{Normalizer, NormalizerOption};
+use super::Normalizer;
 use crate::Token;
 
 /// A global [`Normalizer`] removing control characters.
@@ -26,6 +26,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::NormalizerOption;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
