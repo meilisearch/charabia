@@ -1,9 +1,8 @@
-use std::borrow::Cow;
-
 use pinyin::ToPinyin;
 
-use super::Normalizer;
+use super::CharNormalizer;
 use crate::detection::{Language, Script};
+use crate::normalizer::CharOrStr;
 use crate::Token;
 
 /// Normalize Chinese characters by converting them into Pinyin characters.
@@ -11,23 +10,16 @@ use crate::Token;
 /// This Normalizer uses [`pinyin`] internally to normalize the provided token.
 pub struct ChineseNormalizer;
 
-impl Normalizer for ChineseNormalizer {
-    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        let mut dst = String::new();
-        for c in src.chars() {
-            match c.to_pinyin() {
-                Some(converted) => {
-                    let with_tone = converted.with_tone();
+impl CharNormalizer for ChineseNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        match c.to_pinyin() {
+            Some(converted) => {
+                let with_tone = converted.with_tone();
 
-                    dst.push_str(with_tone);
-                }
-                None => {
-                    dst.push(c);
-                }
+                Some(with_tone.to_string().into())
             }
+            None => Some(c.into()),
         }
-
-        Cow::Owned(dst)
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -40,7 +32,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
-    use crate::normalizer::NormalizerOption;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

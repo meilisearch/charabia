@@ -1,15 +1,14 @@
-use std::borrow::Cow;
-
-use super::Normalizer;
+use super::CharNormalizer;
+use crate::normalizer::CharOrStr;
 use crate::Token;
 
 /// A global [`Normalizer`] removing control characters.
 ///
 pub struct ControlCharNormalizer;
 
-impl Normalizer for ControlCharNormalizer {
-    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        src.chars().filter(|c| !is_control(*c)).collect()
+impl CharNormalizer for ControlCharNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        (!is_control(c)).then(|| c.into())
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -26,7 +25,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
-    use crate::normalizer::NormalizerOption;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

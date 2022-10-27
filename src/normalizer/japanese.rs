@@ -24,24 +24,17 @@ impl Normalizer for JapaneseNormalizer {
     // converting katakana to hiragana doesn't change the characters length,
     // so the `normalize` method is overloaded to skip the useless char_map computing.
     fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
-        if let Cow::Owned(lemma) = self.normalize_str(token.lemma()) {
-            token.lemma = Cow::Owned(lemma);
-        }
-
-        token
-    }
-
-    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
         // Convert Katakana to Hiragana
         let dst = to_hiragana_with_opt(
-            src,
+            token.lemma(),
             Options {
                 pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
                 ..Default::default()
             },
         );
 
-        Cow::Owned(dst)
+        token.lemma = Cow::Owned(dst);
+        token
     }
 
     fn should_normalize(&self, token: &Token) -> bool {

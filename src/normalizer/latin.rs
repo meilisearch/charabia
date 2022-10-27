@@ -1,9 +1,7 @@
-use std::borrow::Cow;
+use deunicode::deunicode_char;
 
-use deunicode::deunicode;
-
-use super::Normalizer;
 use crate::detection::Script;
+use crate::normalizer::{CharNormalizer, CharOrStr};
 use crate::Token;
 
 /// Latin specialized [`Normalizer`] converting unicode chars into Ascii.
@@ -11,9 +9,18 @@ use crate::Token;
 /// This Normalizer uses [`deunicode`] internally to normalize the provided token.
 pub struct LatinNormalizer;
 
-impl Normalizer for LatinNormalizer {
-    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        Cow::Owned(deunicode(src))
+impl CharNormalizer for LatinNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        // if deunicode don't manage to decode the character, we remove it.
+        let normalized = deunicode_char(c)?;
+        let mut chars = normalized.chars();
+
+        // if the original character is converted in exactly one character,
+        // then we return the character directly instead of creating a string for it.
+        match (chars.next(), chars.next()) {
+            (Some(c), None) => Some(c.into()),
+            _otherwise => Some(normalized.to_string().into()),
+        }
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -26,7 +33,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
-    use crate::normalizer::NormalizerOption;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

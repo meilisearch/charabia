@@ -1,10 +1,10 @@
-use std::borrow::Cow;
 use std::collections::HashSet;
 
 use once_cell::sync::Lazy;
 
-use super::Normalizer;
+use super::CharNormalizer;
 use crate::detection::Script;
+use crate::normalizer::CharOrStr;
 use crate::Token;
 
 static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
@@ -20,9 +20,9 @@ static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
 /// This normalizer uses built-in `HashSet` internally to check over the marks set
 pub struct NonspacingMarkNormalizer;
 
-impl Normalizer for NonspacingMarkNormalizer {
-    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        src.chars().filter(|c| !is_nonspacing_mark(*c)).collect()
+impl CharNormalizer for NonspacingMarkNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        (!is_nonspacing_mark(c)).then(|| c.into())
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -41,7 +41,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
-    use crate::normalizer::NormalizerOption;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

@@ -12,15 +12,9 @@ impl Normalizer for LowercaseNormalizer {
     // lowercasing characters doesn't change the characters length,
     // so the `normalize` method is overloaded to skip the useless char_map computing.
     fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
-        if let Cow::Owned(lemma) = self.normalize_str(token.lemma()) {
-            token.lemma = Cow::Owned(lemma);
-        }
+        token.lemma = Cow::Owned(token.lemma().to_lowercase());
 
         token
-    }
-
-    fn normalize_str<'o>(&self, src: &'o str) -> Cow<'o, str> {
-        Cow::Owned(src.to_lowercase())
     }
 
     fn should_normalize(&self, token: &Token) -> bool {

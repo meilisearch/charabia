@@ -72,6 +72,68 @@ pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
     /// Options can be set using the provided [`NormalizerOption`].
     ///
+    fn normalize<'o>(&self, token: Token<'o>, options: NormalizerOption) -> Token<'o>;
+
+    /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
+    ///
+    /// Some normalizer are specialized for a `Script` or/and a `Language` and shouldn't be called on every `Token`s.
+    fn should_normalize(&self, token: &Token) -> bool;
+}
+
+fn shrink_cow<'o>(s: &Cow<'o, str>, new_size: usize) -> Cow<'o, str> {
+    match s {
+        Cow::Borrowed(s) => Cow::Borrowed(&s[..new_size]),
+        Cow::Owned(s) => Cow::Owned(s[..new_size].to_string()),
+    }
+}
+
+pub trait CharNormalizer: Sync + Send {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr>;
+
+    fn normalize_cow_str<'o>(&self, s: Cow<'o, str>) -> Cow<'o, str> {
+        let mut new: Option<Cow<str>> = None;
+
+        for (i, c) in s.char_indices() {
+            new = match self.normalize_char(c) {
+                Some(CharOrStr::Char(normalized)) if normalized == c => {
+                    new.take().map(|mut new| {
+                        new.to_mut().push(normalized);
+                        new
+                    })
+                }
+                Some(CharOrStr::Char(normalized)) => {
+                    new.take().or_else(|| Some(shrink_cow(&s, i))).map(|mut new| {
+                        new.to_mut().push(normalized);
+                        new
+                    })
+                }
+                Some(CharOrStr::Str(normalized)) => {
+                    new.take().or_else(|| Some(shrink_cow(&s, i))).map(|mut new| {
+                        new.to_mut().push_str(&normalized);
+                        new
+                    })
+                }
+                None => new.take().or_else(|| Some(shrink_cow(&s, i))),
+            }
+        }
+
+        new.unwrap_or(s)
+    }
+
+    fn normalize_str<'o>(&self, s: &'o str) -> Cow<'o, str> {
+        self.normalize_cow_str(Cow::Borrowed(s))
+    }
+
+    /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
+    ///
+    /// Some normalizer are specialized for a `Script` or/and a `Language` and shouldn't be called on every `Token`s.
+    fn should_normalize(&self, token: &Token) -> bool;
+}
+
+impl<T> Normalizer for T
+where
+    T: CharNormalizer,
+{
     fn normalize<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Token<'o> {
         if options.create_char_map {
             match token.char_map.take() {
@@ -104,19 +166,33 @@ pub trait Normalizer: Sync + Send {
                     token.char_map = Some(char_map);
                 }
             }
-        } else if let Cow::Owned(lemma) = self.normalize_str(token.lemma()) {
-            token.lemma = Cow::Owned(lemma);
+        } else {
+            token.lemma = self.normalize_cow_str(token.lemma);
         }
 
         token
     }
 
-    fn normalize_str<'o>(&self, s: &'o str) -> Cow<'o, str>;
+    fn should_normalize(&self, token: &Token) -> bool {
+        CharNormalizer::should_normalize(self, token)
+    }
+}
 
-    /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
-    ///
-    /// Some normalizer are specialized for a `Script` or/and a `Language` and shouldn't be called on every `Token`s.
-    fn should_normalize(&self, token: &Token) -> bool;
+pub enum CharOrStr {
+    Char(char),
+    Str(String),
+}
+
+impl From<char> for CharOrStr {
+    fn from(c: char) -> Self {
+        Self::Char(c)
+    }
+}
+
+impl From<String> for CharOrStr {
+    fn from(s: String) -> Self {
+        Self::Str(s)
+    }
 }
 
 /// Trait defining methods to normalize [`Token`]s.
@@ -157,7 +233,7 @@ mod test {
             fn normalizer_normalize() {
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
-                    .map(|token| if $normalizer.should_normalize(&token) {
+                    .map(|token| if Normalizer::should_normalize(&$normalizer, &token) {
                         $normalizer.normalize(token, NormalizerOption { create_char_map: true })
                     } else {
                         token
