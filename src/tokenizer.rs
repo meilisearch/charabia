@@ -1,7 +1,7 @@
 use fst::Set;
 
 use crate::classifier::{ClassifiedTokenIter, Classify};
-use crate::normalizer::{Normalize, NormalizerOption};
+use crate::normalizer::{NormalizedTokenIter, Normalize, NormalizerOption};
 use crate::segmenter::{Segment, SegmentedTokenIter};
 use crate::Token;
 use crate::detection::{Language,Script};
@@ -9,7 +9,7 @@ use std::collections::HashMap;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
 pub struct ReconstructedTokenIter<'o, 'sw, A: AsRef<[u8]>> {
-    token_iter: ClassifiedTokenIter<'o, 'sw, A>,
+    token_iter: NormalizedTokenIter<'o, 'sw, A>,
     original: &'o str,
 }
 
@@ -51,7 +51,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, A>;
+    fn tokenize(&self) -> NormalizedTokenIter<'o, '_, A>;
 
     /// Attaches each [`Token`] to its corresponding portion of the original text.
     ///
@@ -83,7 +83,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
 }
 
 impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
-    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, Vec<u8>> {
+    fn tokenize(&self) -> NormalizedTokenIter<'o, '_, Vec<u8>> {
         self.segment().classify().normalize(NormalizerOption::default())
     }
 
@@ -103,7 +103,7 @@ pub struct Tokenizer<'sw, 'al, A> {
 
 impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A>
 {
-    pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
+    pub fn tokenize(&self, original: &'o str) -> NormalizedTokenIter<'o, '_, A> {
         original
             .segment_with_allowlist(self.allow_list)
             .classify_with_stop_words(self.stop_words)
