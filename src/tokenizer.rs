@@ -84,7 +84,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
 
 impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
     fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, Vec<u8>> {
-        self.segment().normalize(NormalizerOption::default()).classify()
+        self.segment().classify().normalize(NormalizerOption::default())
     }
 
     fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, Vec<u8>> {
@@ -106,8 +106,8 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A>
     pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
         original
             .segment_with_allowlist(self.allow_list)
-            .normalize(self.normalizer_option)
             .classify_with_stop_words(self.stop_words)
+            .normalize(self.normalizer_option)
     }
 
     pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
