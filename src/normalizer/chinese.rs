@@ -1,9 +1,8 @@
-use std::borrow::Cow;
-
 use pinyin::ToPinyin;
 
-use super::{Normalizer, NormalizerOption};
+use super::CharNormalizer;
 use crate::detection::{Language, Script};
+use crate::normalizer::CharOrStr;
 use crate::Token;
 
 /// Normalize Chinese characters by converting them into Pinyin characters.
@@ -11,44 +10,20 @@ use crate::Token;
 /// This Normalizer uses [`pinyin`] internally to normalize the provided token.
 pub struct ChineseNormalizer;
 
-impl Normalizer for ChineseNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        let mut lemma = String::new();
-        let mut char_map = options.create_char_map.then(Vec::new);
+impl CharNormalizer for ChineseNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        match c.to_pinyin() {
+            Some(converted) => {
+                let with_tone = converted.with_tone();
 
-        for c in token.lemma().chars() {
-            match c.to_pinyin() {
-                Some(converted) => {
-                    let with_tone = converted.with_tone();
-
-                    char_map
-                        .as_mut()
-                        .map(|char_map| char_map.push((c.len_utf8() as u8, with_tone.len() as u8)));
-
-                    lemma.push_str(with_tone);
-                }
-                None => {
-                    char_map
-                        .as_mut()
-                        .map(|char_map| char_map.push((c.len_utf8() as u8, c.len_utf8() as u8)));
-
-                    lemma.push(c);
-                }
+                Some(with_tone.to_string().into())
             }
+            None => Some(c.into()),
         }
-
-        token.lemma = Cow::Owned(lemma);
-        token.char_map = char_map;
-
-        Box::new(Some(token).into_iter())
     }
 
-    fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {
-        script == Script::Cj && matches!(language, None | Some(Language::Cmn))
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Cj && matches!(token.language, None | Some(Language::Cmn))
     }
 }
 
@@ -57,6 +32,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

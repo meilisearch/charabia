@@ -1,11 +1,12 @@
 use std::borrow::Cow;
 
-use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
-use crate::Token;
 use wana_kana::is_hiragana::*;
 use wana_kana::to_hiragana::to_hiragana_with_opt;
 use wana_kana::Options;
+
+use super::{Normalizer, NormalizerOption};
+use crate::detection::{Language, Script};
+use crate::Token;
 
 /// Japanese specialized [`Normalizer`].
 ///
@@ -20,29 +21,26 @@ use wana_kana::Options;
 pub struct JapaneseNormalizer;
 
 impl Normalizer for JapaneseNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        _options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if !is_hiragana(token.lemma()) {
-            // Convert Katakana to Hiragana
-            let new_lemma = to_hiragana_with_opt(
-                token.lemma(),
-                Options {
-                    pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
-                    ..Default::default()
-                },
-            );
+    // converting katakana to hiragana doesn't change the characters length,
+    // so the `normalize` method is overloaded to skip the useless char_map computing.
+    fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
+        // Convert Katakana to Hiragana
+        let dst = to_hiragana_with_opt(
+            token.lemma(),
+            Options {
+                pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
+                ..Default::default()
+            },
+        );
 
-            token.lemma = Cow::Owned(new_lemma);
-        }
-
-        Box::new(Some(token).into_iter())
+        token.lemma = Cow::Owned(dst);
+        token
     }
 
-    fn should_normalize(&self, script: Script, language: Option<Language>) -> bool {
-        script == Script::Cj && matches!(language, None | Some(Language::Jpn))
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Cj
+            && matches!(token.language, None | Some(Language::Jpn))
+            && !is_hiragana(token.lemma())
     }
 }
 
