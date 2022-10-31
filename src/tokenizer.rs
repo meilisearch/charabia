@@ -1,6 +1,6 @@
 use fst::Set;
 
-use crate::classifier::{ClassifiedTokenIter, Classify};
+use crate::classifier::{Classify};
 use crate::normalizer::{NormalizedTokenIter, Normalize, NormalizerOption};
 use crate::segmenter::{Segment, SegmentedTokenIter};
 use crate::Token;
@@ -8,7 +8,7 @@ use crate::detection::{Language,Script};
 use std::collections::HashMap;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o, 'sw, A: AsRef<[u8]>> {
+pub struct ReconstructedTokenIter<'o: AsRef<[u8]>> {
     token_iter: NormalizedTokenIter<'o>,
     original: &'o str,
 }
