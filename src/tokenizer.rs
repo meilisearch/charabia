@@ -8,12 +8,12 @@ use crate::detection::{Language,Script};
 use std::collections::HashMap;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o: AsRef<[u8]>> {
+pub struct ReconstructedTokenIter<'o> {
     token_iter: NormalizedTokenIter<'o>,
     original: &'o str,
 }
 
-impl<'o, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o, '_, A> {
+impl<'o, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o> {
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -79,7 +79,7 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A>;
+    fn reconstruct(&self) -> ReconstructedTokenIter<'o>;
 }
 
 impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
@@ -87,7 +87,7 @@ impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
         self.segment().classify().normalize(NormalizerOption::default())
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, Vec<u8>> {
+    fn reconstruct(&self) -> ReconstructedTokenIter<'o> {
         ReconstructedTokenIter { token_iter: self.tokenize(), original: self }
     }
 }
@@ -110,7 +110,7 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A>
             .normalize(self.normalizer_option)
     }
 
-    pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
+    pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o> {
         ReconstructedTokenIter { original: original, token_iter: self.tokenize(original) }
     }
 
