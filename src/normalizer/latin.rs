@@ -1,9 +1,7 @@
-use std::borrow::Cow;
+use deunicode::deunicode_char;
 
-use deunicode::{deunicode, deunicode_char};
-
-use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
+use crate::detection::Script;
+use crate::normalizer::{CharNormalizer, CharOrStr};
 use crate::Token;
 
 /// Latin specialized [`Normalizer`] converting unicode chars into Ascii.
@@ -11,35 +9,22 @@ use crate::Token;
 /// This Normalizer uses [`deunicode`] internally to normalize the provided token.
 pub struct LatinNormalizer;
 
-impl Normalizer for LatinNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if !token.lemma().is_ascii() {
-            let mut lemma = String::new();
-            if options.create_char_map {
-                let mut char_map = Vec::new();
-                for c in token.lemma().chars() {
-                    // if a char can't be deunicoded, skip it.
-                    let deunicoded = deunicode_char(c).unwrap_or("").trim();
-                    char_map.push((c.len_utf8() as u8, deunicoded.len() as u8));
-                    lemma.push_str(&deunicoded);
-                }
-                token.char_map = Some(char_map);
-            } else {
-                lemma.push_str(&deunicode(token.lemma()));
-            }
-            token.lemma = Cow::Owned(lemma);
-        }
+impl CharNormalizer for LatinNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        // if deunicode don't manage to decode the character, we remove it.
+        let normalized = deunicode_char(c)?;
+        let mut chars = normalized.chars();
 
-        // Create an iterator over the normalized token.
-        Box::new(Some(token).into_iter())
+        // if the original character is converted in exactly one character,
+        // then we return the character directly instead of creating a string for it.
+        match (chars.next(), chars.next()) {
+            (Some(c), None) => Some(c.into()),
+            _otherwise => Some(normalized.to_string().into()),
+        }
     }
 
-    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        script == Script::Latin
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Latin && !token.lemma().is_ascii()
     }
 }
 
@@ -48,6 +33,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {

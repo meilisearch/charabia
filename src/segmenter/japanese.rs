@@ -50,6 +50,9 @@ mod test {
         "空港",
         "限定",
         // Use "とうとばっぐ" instead when feature "japanese-transliteration" is enabled or become default
+        #[cfg(feature = "japanese-transliteration")]
+        "とうとばっぐ",
+        #[cfg(not(feature = "japanese-transliteration"))]
         "トートバッグ",
         " ",
         "すもも",
