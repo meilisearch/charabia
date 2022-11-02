@@ -11,7 +11,7 @@ pub struct LatinSegmenter;
 impl Segmenter for LatinSegmenter {
     fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let re = Regex::new(r"([a-z&])([&A-Z0-9])").unwrap();
-        Box::new(s.split_word_bounds().map(|x| re.replace_all(x, "{1} {2}").split(" ")).flatten().map(|lemma| lemma.split_inclusive('\'')).flatten())
+        Box::new(s.split_word_bounds().map(move |x| re.replace_all(x, "{1} {2}").split(" ")).flatten().map(|lemma| lemma.split_inclusive('\'')).flatten())
     }
 }
 
