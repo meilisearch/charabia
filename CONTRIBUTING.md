@@ -128,7 +128,7 @@ This project integrates a tool to create automated changelogs: the [release-draf
 
 ### How to Publish the Release <!-- omit in toc -->
 
-Make a PR modifying the file [`Cargo.toml`](/Cargo.toml) with the right version.
+Make a PR modifying the file [`Cargo.toml`](/Cargo.toml) with the right version by using our automation -> Go to [this GitHub Action](https://github.com/meilisearch/charabia/actions/workflows/update-cargo-toml-version.yml), click on `Run workflow`, and fill the appropriate version before validating. A PR updating the version will be created.
 
 ```toml
 version = "X.X.X"
