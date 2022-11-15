@@ -8,7 +8,9 @@ use kvariants::KVARIANTS;
 
 mod kvariants;
 
-/// Normalize Chinese characters by converting them into Pinyin characters.
+/// Normalize Chinese characters by:
+/// 1. convert Z, Simplified, Semantic, Old, and Wrong variants
+/// 2. converting them into Pinyin characters
 ///
 /// This Normalizer uses [`pinyin`] internally to normalize the provided token.
 pub struct ChineseNormalizer;
