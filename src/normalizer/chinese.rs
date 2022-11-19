@@ -18,19 +18,21 @@ pub struct ChineseNormalizer;
 impl CharNormalizer for ChineseNormalizer {
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
         // Normalize Z, Simplified, Semantic, Old, and Wrong variants
-        let c = match KVARIANTS.get(&c) {
+        let kvariant = match KVARIANTS.get(&c) {
             Some(kvariant) => kvariant.destination_ideograph,
             None => c,
         };
 
         // Normalize to Pinyin
-        match c.to_pinyin() {
+        // If we don't manage to convert the kvariant, we try to convert the original character.
+        // If none of them are converted, we return the kvariant.
+        match kvariant.to_pinyin().or_else(|| c.to_pinyin()) {
             Some(converted) => {
                 let with_tone = converted.with_tone();
 
                 Some(with_tone.to_string().into())
             }
-            None => Some(c.into()),
+            None => Some(kvariant.into()), // e.g. 杤
         }
     }
 
@@ -66,7 +68,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("澚䀾亚㮺刄".to_string()),
+                lemma: Owned("澚䀾亚㮺刄杤".to_string()),
                 char_end: 5,
                 byte_end: 15,
                 script: Script::Cj,
@@ -101,10 +103,10 @@ mod test {
             },
             Token {
                 // It would be "yudǔyàběnrèn" without the kvariant normalization.
-                lemma: Owned("àoqìyàběnrèn".to_string()),
+                lemma: Owned("àoqìyàběnrènwàn".to_string()),
                 char_end: 5,
                 byte_end: 15,
-                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4)]),
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
@@ -134,10 +136,10 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("àoqìyàběnrèn".to_string()),
+                lemma: Owned("àoqìyàběnrènwàn".to_string()),
                 char_end: 5,
                 byte_end: 15,
-                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4)]),
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
