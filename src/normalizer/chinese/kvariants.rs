@@ -142,4 +142,83 @@ mod test {
             }
         }
     }
+
+    use pinyin::ToPinyin;
+    use std::{fs::File, io::Write};
+
+    #[test]
+    fn demo_simplified_kvariant_to_pinyin_converiton() {
+        let mut csv = File::create("demo_simplified_kvariant_to_pinyin_converiton.csv").unwrap();
+
+        csv.write(b"kind, source, source_pinyin, destination, destination_pinyin\n").unwrap();
+        for value in KVARIANTS.values().filter(|k| k.classification == KVariantClass::Simplified) {
+            let source_pinyin = value.source_ideograph.to_pinyin().map_or("?", |p| p.with_tone());
+            let destination_pinyin =
+                value.destination_ideograph.to_pinyin().map_or("?", |p| p.with_tone());
+
+            let kind = match (source_pinyin, destination_pinyin) {
+                ("?", "?") => "BOTH_NO_PINYIN",
+                ("?", _) => "SOURCE_NO_PINYIN",
+                (_, "?") => "DESTINATION_NO_PINYIN",
+                (s, d) => {
+                    if s == d {
+                        "SAME_PINYIN"
+                    } else {
+                        "DIFFERENT_PINYIN"
+                    }
+                }
+            };
+            csv.write(
+                format!(
+                    "{}, {}, {}, {}, {}\n",
+                    kind,
+                    value.source_ideograph,
+                    source_pinyin,
+                    value.destination_ideograph,
+                    destination_pinyin
+                )
+                .as_bytes(),
+            )
+            .unwrap();
+        }
+        csv.flush().unwrap();
+    }
+
+    #[test]
+    fn demo_all_kvariant_to_pinyin_converiton() {
+        let mut csv = File::create("demo_all_kvariant_to_pinyin_converiton.csv").unwrap();
+
+        csv.write(b"kind, source, source_pinyin, destination, destination_pinyin\n").unwrap();
+        for value in KVARIANTS.values() {
+            let source_pinyin = value.source_ideograph.to_pinyin().map_or("?", |p| p.with_tone());
+            let destination_pinyin =
+                value.destination_ideograph.to_pinyin().map_or("?", |p| p.with_tone());
+
+            let kind = match (source_pinyin, destination_pinyin) {
+                ("?", "?") => "BOTH_NO_PINYIN",
+                ("?", _) => "SOURCE_NO_PINYIN",
+                (_, "?") => "DESTINATION_NO_PINYIN",
+                (s, d) => {
+                    if s == d {
+                        "SAME_PINYIN"
+                    } else {
+                        "DIFFERENT_PINYIN"
+                    }
+                }
+            };
+            csv.write(
+                format!(
+                    "{}, {}, {}, {}, {}\n",
+                    kind,
+                    value.source_ideograph,
+                    source_pinyin,
+                    value.destination_ideograph,
+                    destination_pinyin
+                )
+                .as_bytes(),
+            )
+            .unwrap();
+        }
+        csv.flush().unwrap();
+    }
 }
