@@ -4,21 +4,35 @@ use super::CharNormalizer;
 use crate::detection::{Language, Script};
 use crate::normalizer::CharOrStr;
 use crate::Token;
+use kvariants::KVARIANTS;
 
-/// Normalize Chinese characters by converting them into Pinyin characters.
+mod kvariants;
+
+/// Normalize Chinese characters by:
+/// 1. convert Z, Simplified, Semantic, Old, and Wrong variants
+/// 2. converting them into Pinyin characters
 ///
 /// This Normalizer uses [`pinyin`] internally to normalize the provided token.
 pub struct ChineseNormalizer;
 
 impl CharNormalizer for ChineseNormalizer {
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
-        match c.to_pinyin() {
+        // Normalize Z, Simplified, Semantic, Old, and Wrong variants
+        let kvariant = match KVARIANTS.get(&c) {
+            Some(kvariant) => kvariant.destination_ideograph,
+            None => c,
+        };
+
+        // Normalize to Pinyin
+        // If we don't manage to convert the kvariant, we try to convert the original character.
+        // If none of them are converted, we return the kvariant.
+        match kvariant.to_pinyin().or_else(|| c.to_pinyin()) {
             Some(converted) => {
                 let with_tone = converted.with_tone();
 
                 Some(with_tone.to_string().into())
             }
-            None => Some(c.into()),
+            None => Some(kvariant.into()), // e.g. 杤
         }
     }
 
@@ -53,6 +67,14 @@ mod test {
                 language: Some(Language::Cmn),
                 ..Default::default()
             },
+            Token {
+                lemma: Owned("澚䀾亚㮺刄杤".to_string()),
+                char_end: 5,
+                byte_end: 15,
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+                ..Default::default()
+            },
         ]
     }
 
@@ -79,6 +101,16 @@ mod test {
                 language: Some(Language::Cmn),
                 ..Default::default()
             },
+            Token {
+                // It would be "yudǔyàběnrèn" without the kvariant normalization.
+                lemma: Owned("àoqìyàběnrènwàn".to_string()),
+                char_end: 5,
+                byte_end: 15,
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+                ..Default::default()
+            },
         ]
     }
 
@@ -99,6 +131,15 @@ mod test {
                 char_end: 4,
                 byte_end: 12,
                 char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("àoqìyàběnrènwàn".to_string()),
+                char_end: 5,
+                byte_end: 15,
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
