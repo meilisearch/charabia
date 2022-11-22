@@ -1,7 +1,6 @@
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::fs;
 
 #[derive(Debug, PartialEq)]
 pub enum KVariantClass {
@@ -34,9 +33,9 @@ pub static KVARIANTS: Lazy<HashMap<char, KVariant>> = Lazy::new(|| {
     //   㓻 (U+34FB)	sem	    剛 (U+525B)
     //   ...
     //
-    let file = fs::File::open("dictionaries/txt/chinese/kVariants.tsv").unwrap();
+    let tsv = include_str!("../../../dictionaries/txt/chinese/kVariants.tsv");
     let mut reader =
-        csv::ReaderBuilder::new().delimiter(b'\t').has_headers(false).from_reader(file);
+        csv::ReaderBuilder::new().delimiter(b'\t').has_headers(false).from_reader(tsv.as_bytes());
 
     let mut map: HashMap<char, KVariant> = HashMap::new();
     for result in reader.deserialize() {
