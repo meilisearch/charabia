@@ -112,7 +112,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("أب".to_string()),
+                lemma: Owned("اب".to_string()),
                 char_end: "أَب".chars().count(),
                 byte_end: "أَب".len(),
                 char_map: Some(vec![(2, 2), (2, 0), (2, 2)]),

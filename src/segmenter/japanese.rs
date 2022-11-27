@@ -51,9 +51,9 @@ mod test {
         "限定",
         // Use "とうとばっぐ" instead when feature "japanese-transliteration" is enabled or become default
         #[cfg(feature = "japanese-transliteration")]
-        "とうとばっぐ",
+        "とうとは\u{3099}っく\u{3099}",
         #[cfg(not(feature = "japanese-transliteration"))]
-        "トートバッグ",
+        "トートハ\u{3099}ック\u{3099}",
         " ",
         "すもも",
         "も",
