@@ -4,6 +4,7 @@ use once_cell::sync::Lazy;
 
 #[cfg(feature = "chinese")]
 pub use self::chinese::ChineseNormalizer;
+pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
 pub use self::control_char::ControlCharNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
@@ -14,6 +15,7 @@ use crate::Token;
 
 #[cfg(feature = "chinese")]
 mod chinese;
+mod compatibility_decomposition;
 mod control_char;
 #[cfg(feature = "japanese-transliteration")]
 mod japanese;
@@ -24,6 +26,7 @@ mod nonspacing_mark;
 /// List of [`Normalizer`]s used by [`Normalize::normalize`].
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
+        Box::new(CompatibilityDecompositionNormalizer),
         Box::new(LowercaseNormalizer),
         #[cfg(feature = "chinese")]
         Box::new(ChineseNormalizer),
