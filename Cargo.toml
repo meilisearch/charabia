@@ -27,6 +27,7 @@ pinyin = { version = "0.9", default-features = false, features = [
   "with_tone",
 ], optional = true }
 wana_kana = { version = "2.1.0", optional = true }
+unicode-normalization = "0.1.22"
 
 [features]
 default = ["chinese", "hebrew", "japanese", "thai", "korean"]
