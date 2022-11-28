@@ -1,5 +1,6 @@
-pub use script_language::{Language, Script};
 use std::collections::HashMap;
+
+pub use script_language::{Language, Script};
 use whatlang::Detector;
 
 // file copy pasted from whatlang.
@@ -11,11 +12,11 @@ pub struct StrDetection<'o, 'al> {
     inner: &'o str,
     pub script: Option<Script>,
     pub language: Option<Language>,
-    allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
 impl<'o, 'al> StrDetection<'o, 'al> {
-    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Self {
+    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script, Vec<Language>>>) -> Self {
         Self { inner, script: None, language: None, allow_list }
     }
 
@@ -54,12 +55,17 @@ impl<'o, 'al> StrDetection<'o, 'al> {
 }
 
 pub trait Detect<'o, 'al> {
-    fn detect(&'o self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'o, 'al>;
+    fn detect(
+        &'o self,
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> StrDetection<'o, 'al>;
 }
 
 impl<'o, 'al> Detect<'o, 'al> for &str {
-    fn detect(&'o self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'o, 'al> 
-    {
-        StrDetection::new(self,allow_list)
+    fn detect(
+        &'o self,
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> StrDetection<'o, 'al> {
+        StrDetection::new(self, allow_list)
     }
 }

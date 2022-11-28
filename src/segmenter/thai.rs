@@ -2,8 +2,8 @@
 use fst::raw::Fst;
 use once_cell::sync::Lazy;
 
-use crate::segmenter::Segmenter;
 use crate::segmenter::utils::FstSegmenter;
+use crate::segmenter::Segmenter;
 
 /// Thai specialized [`Segmenter`].
 ///

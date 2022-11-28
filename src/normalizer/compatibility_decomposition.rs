@@ -1,8 +1,9 @@
 use std::iter::once;
 
+use unicode_normalization::{is_nfkd_quick, UnicodeNormalization};
+
 use super::{CharNormalizer, CharOrStr};
 use crate::Token;
-use unicode_normalization::{is_nfkd_quick, UnicodeNormalization};
 
 /// A global [`Normalizer`] normalizing to the Unicode Normalization Form KD.
 ///
@@ -44,8 +45,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
-    use crate::normalizer::Normalizer;
-    use crate::normalizer::NormalizerOption;
+    use crate::normalizer::{Normalizer, NormalizerOption};
     use crate::Language;
 
     // base tokens to normalize.

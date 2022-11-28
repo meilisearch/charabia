@@ -256,7 +256,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 Global normalization pipeline didn't normalize tokens as expected.
 
 help: The `global_result` provided to `test_normalizer!` does not corresponds to the output of the normalizer pipeline, it's probably because the normalizer is missing from `NORMALIZERS` list or because an other normalizer has alterated the token.
-Check if the `NORMALIZERS` list in `src/normalizer/mod.rs` contains the tested Normalizer. 
+Check if the `NORMALIZERS` list in `src/normalizer/mod.rs` contains the tested Normalizer.
 Make sure that normalized tokens are valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
 "#
                 );

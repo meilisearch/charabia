@@ -1,5 +1,5 @@
 use lindera::mode::{Mode, Penalty};
-use lindera::tokenizer::{Tokenizer, TokenizerConfig, DictionaryConfig, DictionaryKind};
+use lindera::tokenizer::{DictionaryConfig, DictionaryKind, Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
@@ -10,8 +10,11 @@ use crate::segmenter::Segmenter;
 pub struct KoreanSegmenter;
 
 static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
-    let config =
-        TokenizerConfig { dictionary: DictionaryConfig { kind: DictionaryKind::KoDic, path: None }, mode: Mode::Decompose(Penalty::default()), ..TokenizerConfig::default() };
+    let config = TokenizerConfig {
+        dictionary: DictionaryConfig { kind: DictionaryKind::KoDic, path: None },
+        mode: Mode::Decompose(Penalty::default()),
+        ..TokenizerConfig::default()
+    };
     Tokenizer::with_config(config).unwrap()
 });
 

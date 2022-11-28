@@ -1,10 +1,10 @@
+use kvariants::KVARIANTS;
 use pinyin::ToPinyin;
 
 use super::CharNormalizer;
 use crate::detection::{Language, Script};
 use crate::normalizer::CharOrStr;
 use crate::Token;
-use kvariants::KVARIANTS;
 
 mod kvariants;
 

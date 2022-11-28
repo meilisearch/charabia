@@ -2,7 +2,7 @@ use fst::raw::{Fst, Output};
 
 /// Final-state-transducer (FST) Segmenter
 pub(crate) struct FstSegmenter<'fst> {
-    words_fst: &'fst Fst<&'fst [u8]>
+    words_fst: &'fst Fst<&'fst [u8]>,
 }
 
 impl<'fst> FstSegmenter<'fst> {
@@ -12,10 +12,11 @@ impl<'fst> FstSegmenter<'fst> {
 
     pub fn segment_str<'o>(
         &'fst self,
-        mut to_segment: &'o str
+        mut to_segment: &'o str,
     ) -> Box<dyn Iterator<Item = &'o str> + 'o>
-        where
-            'fst: 'o {
+    where
+        'fst: 'o,
+    {
         let iter = std::iter::from_fn(move || {
             // if we reach the end of the text, we return None.
             if to_segment.is_empty() {
