@@ -8,7 +8,6 @@ pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
 pub use self::control_char::ControlCharNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
-pub use self::latin::LatinNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
 use crate::Token;
@@ -19,7 +18,6 @@ mod compatibility_decomposition;
 mod control_char;
 #[cfg(feature = "japanese-transliteration")]
 mod japanese;
-mod latin;
 mod lowercase;
 mod nonspacing_mark;
 
@@ -32,7 +30,6 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
-        Box::new(LatinNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(NonspacingMarkNormalizer),
     ]
