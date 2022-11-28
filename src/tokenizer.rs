@@ -197,8 +197,12 @@ impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build<'o>(&self) -> Tokenizer<'sw, 'al, A> {
-        Tokenizer { stop_words: self.stop_words, normalizer_option: self.normalizer_option, allow_list: self.allow_list }
+    pub fn build(&self) -> Tokenizer<'sw, 'al, A> {
+        Tokenizer {
+            stop_words: self.stop_words,
+            normalizer_option: self.normalizer_option,
+            allow_list: self.allow_list,
+        }
     }
 }
 
