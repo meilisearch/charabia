@@ -74,6 +74,8 @@ pub trait Normalizer: Sync + Send {
     fn should_normalize(&self, token: &Token) -> bool;
 }
 
+// Allow taking &Cow as argument to spare the allocation if it is already borrowed (and thus ~Copy)
+#[allow(clippy::ptr_arg)]
 fn shrink_cow<'o>(s: &Cow<'o, str>, new_size: usize) -> Cow<'o, str> {
     match s {
         Cow::Borrowed(s) => Cow::Borrowed(&s[..new_size]),
