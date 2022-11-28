@@ -56,15 +56,9 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
 }
 
 /// Structure for providing options to a normalizer.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct NormalizerOption {
     pub create_char_map: bool,
-}
-
-impl Default for NormalizerOption {
-    fn default() -> Self {
-        NormalizerOption { create_char_map: false }
-    }
 }
 
 /// Trait defining a normalizer.

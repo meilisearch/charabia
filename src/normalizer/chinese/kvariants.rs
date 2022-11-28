@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum KVariantClass {
     Wrong,
     SementicVariant,
@@ -11,7 +11,7 @@ pub enum KVariantClass {
     Equal,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct KVariant {
     pub source_ideograph: char,
     pub classification: KVariantClass,
