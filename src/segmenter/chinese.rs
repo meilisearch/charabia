@@ -67,7 +67,7 @@ mod test {
     const TOKENIZED: &[&str] = &[
         "rénrén",
         "shēngérzìyóu",
-        "﹐",
+        ",",
         "zài",
         "zūn",
         "yán",
@@ -84,7 +84,7 @@ mod test {
         "lǐxìng",
         "hé",
         "liángxīn",
-        "﹐",
+        ",",
         "bìng",
         "yīng",
         "yǐ",

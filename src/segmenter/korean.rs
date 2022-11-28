@@ -28,21 +28,11 @@ mod test {
 
     const TEXT: &str = "한국어의형태해석을실시할수있습니다.";
 
-    const SEGMENTED: &[&str] = &[
-        "한국어",
-        "의",
-        "형태",
-        "해석",
-        "을",
-        "실시",
-        "할",
-        "수",
-        "있",
-        "습니다",
-        ".",
-    ];
+    const SEGMENTED: &[&str] =
+        &["한국어", "의", "형태", "해석", "을", "실시", "할", "수", "있", "습니다", "."];
 
-    const TOKENIZED: &[&str] = SEGMENTED;
+    const TOKENIZED: &[&str] =
+        &["한국어", "의", "형태", "해석", "을", "실시", "할", "수", "있", "습니다", "."];
 
     // Macro that run several tests on the Segmenter.
     test_segmenter!(KoreanSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Hangul, Language::Kor);
