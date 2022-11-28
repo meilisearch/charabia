@@ -138,10 +138,10 @@ fn segmenter<'a, 'b>(detector: &'a mut StrDetection) -> &'b impl Segmenter {
         // we have to detect the language to get the good one.
         _ => {
             let detected_language = detector.language();
-            &*SEGMENTERS
+            SEGMENTERS
                 .get(&(detected_script, detected_language))
                 .or_else(|| SEGMENTERS.get(&(detected_script, Language::Other)))
-                .unwrap_or_else(|| &DEFAULT_SEGMENTER)
+                .unwrap_or(&DEFAULT_SEGMENTER)
         }
     }
 }

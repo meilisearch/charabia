@@ -38,14 +38,18 @@ impl<'o, 'al> StrDetection<'o, 'al> {
 
     /// detect lang with whatlang
     /// if no language is detected, return Language::Other
-    fn detect_lang(text: &str, script: Script, allow_list : Option<&HashMap<Script,Vec<Language>>>) -> Language {
-            let detector = allow_list
-                .and_then(|allow_list| allow_list.get(&script))
-                .and_then(|allow_list| Some(allow_list.iter().map(|lang|(*lang).into()).collect()))
-                .and_then(|allow_list| Some(Detector::with_allowlist(allow_list)))
-                .unwrap_or_default();
-                
-            detector.detect_lang(text).map(Language::from).unwrap_or_default()
+    fn detect_lang(
+        text: &str,
+        script: Script,
+        allow_list: Option<&HashMap<Script, Vec<Language>>>,
+    ) -> Language {
+        let detector = allow_list
+            .and_then(|allow_list| allow_list.get(&script))
+            .map(|allow_list| allow_list.iter().map(|lang| (*lang).into()).collect())
+            .map(Detector::with_allowlist)
+            .unwrap_or_default();
+
+        detector.detect_lang(text).map(Language::from).unwrap_or_default()
     }
 }
 
