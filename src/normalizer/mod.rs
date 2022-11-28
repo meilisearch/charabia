@@ -38,7 +38,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 /// Iterator over Normalized [`Token`]s.
 pub struct NormalizedTokenIter<'o> {
     token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
-    normalizer: &'static Box<dyn Normalizer>,
+    normalizer: &'static dyn Normalizer,
     options: NormalizerOption,
 }
 
@@ -199,15 +199,13 @@ where
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
     fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
-        let first = NormalizedTokenIter {
-            token_iter: Box::new(self),
-            normalizer: NORMALIZERS.first().unwrap(),
-            options,
-        };
+        let first = NORMALIZERS.first().unwrap();
+        let first =
+            NormalizedTokenIter { token_iter: Box::new(self), normalizer: &**first, options };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
-            normalizer,
+            normalizer: &**normalizer,
             options,
         })
     }
