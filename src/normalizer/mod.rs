@@ -208,13 +208,13 @@ where
         let first = NormalizedTokenIter {
             token_iter: Box::new(self),
             normalizer: NORMALIZERS.first().unwrap(),
-            options: options,
+            options,
         };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
             normalizer,
-            options: options,
+            options,
         })
     }
 }

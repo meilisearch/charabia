@@ -111,7 +111,7 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A>
     }
 
     pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
-        ReconstructedTokenIter { original: original, token_iter: self.tokenize(original) }
+        ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     pub fn segment(&self, original: &'o str) -> SegmentedTokenIter<'o> {
