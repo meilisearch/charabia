@@ -168,123 +168,123 @@ mod tests {
 
     #[test]
     fn test_is_latin() {
-        assert_eq!(is_latin('z'), true);
-        assert_eq!(is_latin('A'), true);
-        assert_eq!(is_latin('č'), true);
-        assert_eq!(is_latin('š'), true);
-        assert_eq!(is_latin('Ĵ'), true);
+        assert!(is_latin('z'));
+        assert!(is_latin('A'));
+        assert!(is_latin('č'));
+        assert!(is_latin('š'));
+        assert!(is_latin('Ĵ'));
 
-        assert_eq!(is_latin('ж'), false);
+        assert!(!is_latin('ж'));
     }
 
     #[test]
     fn test_is_cyrillic() {
-        assert_eq!(is_cyrillic('а'), true);
-        assert_eq!(is_cyrillic('Я'), true);
-        assert_eq!(is_cyrillic('Ґ'), true);
-        assert_eq!(is_cyrillic('ї'), true);
-        assert_eq!(is_cyrillic('Ꙕ'), true);
+        assert!(is_cyrillic('а'));
+        assert!(is_cyrillic('Я'));
+        assert!(is_cyrillic('Ґ'));
+        assert!(is_cyrillic('ї'));
+        assert!(is_cyrillic('Ꙕ'));
 
-        assert_eq!(is_cyrillic('L'), false);
+        assert!(!is_cyrillic('L'));
     }
 
     #[test]
     fn test_is_ethiopic() {
-        assert_eq!(is_ethiopic('ፚ'), true);
-        assert_eq!(is_ethiopic('ᎀ'), true);
+        assert!(is_ethiopic('ፚ'));
+        assert!(is_ethiopic('ᎀ'));
 
-        assert_eq!(is_ethiopic('а'), false);
-        assert_eq!(is_ethiopic('L'), false);
+        assert!(!is_ethiopic('а'));
+        assert!(!is_ethiopic('L'));
     }
 
     #[test]
     fn test_is_georgian() {
-        assert_eq!(is_georgian('რ'), true);
-        assert_eq!(is_georgian('ж'), false);
+        assert!(is_georgian('რ'));
+        assert!(!is_georgian('ж'));
     }
 
     #[test]
     fn test_is_bengali() {
-        assert_eq!(is_bengali('ই'), true);
-        assert_eq!(is_bengali('z'), false);
+        assert!(is_bengali('ই'));
+        assert!(!is_bengali('z'));
     }
 
     #[test]
     fn test_is_katakana() {
-        assert_eq!(is_katakana('カ'), true);
-        assert_eq!(is_katakana('f'), false);
+        assert!(is_katakana('カ'));
+        assert!(!is_katakana('f'));
     }
 
     #[test]
     fn test_is_hiragana() {
-        assert_eq!(is_hiragana('ひ'), true);
-        assert_eq!(is_hiragana('a'), false);
+        assert!(is_hiragana('ひ'));
+        assert!(!is_hiragana('a'));
     }
 
     #[test]
     fn test_is_hangul() {
-        assert_eq!(is_hangul('ᄁ'), true);
-        assert_eq!(is_hangul('t'), false);
+        assert!(is_hangul('ᄁ'));
+        assert!(!is_hangul('t'));
     }
 
     #[test]
     fn test_is_greek() {
-        assert_eq!(is_greek('φ'), true);
-        assert_eq!(is_greek('ф'), false);
+        assert!(is_greek('φ'));
+        assert!(!is_greek('ф'));
     }
 
     #[test]
     fn test_is_kannada() {
-        assert_eq!(is_kannada('ಡ'), true);
-        assert_eq!(is_kannada('S'), false);
+        assert!(is_kannada('ಡ'));
+        assert!(!is_kannada('S'));
     }
 
     #[test]
     fn test_is_tamil() {
-        assert_eq!(is_tamil('ஐ'), true);
-        assert_eq!(is_tamil('Ж'), false);
+        assert!(is_tamil('ஐ'));
+        assert!(!is_tamil('Ж'));
     }
 
     #[test]
     fn test_is_thai() {
-        assert_eq!(is_thai('ก'), true);
-        assert_eq!(is_thai('๛'), true);
-        assert_eq!(is_thai('Ж'), false);
+        assert!(is_thai('ก'));
+        assert!(is_thai('๛'));
+        assert!(!is_thai('Ж'));
     }
 
     #[test]
     fn test_is_gujarati() {
-        assert_eq!(is_gujarati('ઁ'), true);
-        assert_eq!(is_gujarati('૱'), true);
-        assert_eq!(is_gujarati('Ж'), false);
+        assert!(is_gujarati('ઁ'));
+        assert!(is_gujarati('૱'));
+        assert!(!is_gujarati('Ж'));
     }
 
     #[test]
     fn test_is_gurmukhi() {
-        assert_eq!(is_gurmukhi('ਁ'), true);
-        assert_eq!(is_gurmukhi('ੴ'), true);
-        assert_eq!(is_gurmukhi('Ж'), false);
+        assert!(is_gurmukhi('ਁ'));
+        assert!(is_gurmukhi('ੴ'));
+        assert!(!is_gurmukhi('Ж'));
     }
 
     #[test]
     fn test_is_telugu() {
-        assert_eq!(is_telugu('ఁ'), true);
-        assert_eq!(is_telugu('౿'), true);
-        assert_eq!(is_telugu('Ж'), false);
+        assert!(is_telugu('ఁ'));
+        assert!(is_telugu('౿'));
+        assert!(!is_telugu('Ж'));
     }
 
     #[test]
     fn test_is_oriya() {
-        assert_eq!(is_oriya('ଐ'), true);
-        assert_eq!(is_oriya('୷'), true);
-        assert_eq!(is_oriya('౿'), false);
+        assert!(is_oriya('ଐ'));
+        assert!(is_oriya('୷'));
+        assert!(!is_oriya('౿'));
     }
 
     #[test]
     fn test_is_hebrew() {
-        assert_eq!(is_hebrew('א'), true);
-        assert_eq!(is_hebrew('ת'), true);
-        assert_eq!(is_hebrew('ׇ'), true);
-        assert_eq!(is_hebrew('s'), false);
+        assert!(is_hebrew('א'));
+        assert!(is_hebrew('ת'));
+        assert!(is_hebrew('ׇ'));
+        assert!(!is_hebrew('s'));
     }
 }
