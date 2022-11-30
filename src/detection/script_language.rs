@@ -17,6 +17,15 @@ macro_rules! make_language {
             }
         }
 
+        impl From<Language> for whatlang::Lang {
+            fn from(other: Language) -> whatlang::Lang {
+                match other {
+                    $(Language::$language => whatlang::Lang::$language), +,
+                    _other => whatlang::Lang::Eng,
+                }
+            }
+        }
+
         impl Default for Language {
             fn default() -> Self {
                 Self::Other

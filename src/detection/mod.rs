@@ -1,19 +1,23 @@
+use std::collections::HashMap;
+
 pub use script_language::{Language, Script};
+use whatlang::Detector;
 
 // file copy pasted from whatlang.
 #[allow(dead_code)]
 mod chars;
 mod script_language;
 
-pub struct StrDetection<'a> {
-    inner: &'a str,
+pub struct StrDetection<'o, 'al> {
+    inner: &'o str,
     pub script: Option<Script>,
     pub language: Option<Language>,
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
-impl<'a> StrDetection<'a> {
-    pub fn new(inner: &'a str) -> Self {
-        Self { inner, script: None, language: None }
+impl<'o, 'al> StrDetection<'o, 'al> {
+    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script, Vec<Language>>>) -> Self {
+        Self { inner, script: None, language: None, allow_list }
     }
 
     pub fn script(&mut self) -> Script {
@@ -23,7 +27,8 @@ impl<'a> StrDetection<'a> {
 
     pub fn language(&mut self) -> Language {
         let inner = self.inner;
-        *self.language.get_or_insert_with(|| Self::detect_lang(inner))
+        let script = self.script();
+        *self.language.get_or_insert_with(|| Self::detect_lang(inner, script, self.allow_list))
     }
 
     /// detect script with whatlang,
@@ -34,17 +39,33 @@ impl<'a> StrDetection<'a> {
 
     /// detect lang with whatlang
     /// if no language is detected, return Language::Other
-    fn detect_lang(text: &str) -> Language {
-        whatlang::detect_lang(text).map(Language::from).unwrap_or_default()
+    fn detect_lang(
+        text: &str,
+        script: Script,
+        allow_list: Option<&HashMap<Script, Vec<Language>>>,
+    ) -> Language {
+        let detector = allow_list
+            .and_then(|allow_list| allow_list.get(&script))
+            .map(|allow_list| allow_list.iter().map(|lang| (*lang).into()).collect())
+            .map(Detector::with_allowlist)
+            .unwrap_or_default();
+
+        detector.detect_lang(text).map(Language::from).unwrap_or_default()
     }
 }
 
-pub trait Detect {
-    fn detect(&self) -> StrDetection;
+pub trait Detect<'o, 'al> {
+    fn detect(
+        &'o self,
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> StrDetection<'o, 'al>;
 }
 
-impl Detect for &str {
-    fn detect(&self) -> StrDetection {
-        StrDetection::new(self)
+impl<'o, 'al> Detect<'o, 'al> for &str {
+    fn detect(
+        &'o self,
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> StrDetection<'o, 'al> {
+        StrDetection::new(self, allow_list)
     }
 }

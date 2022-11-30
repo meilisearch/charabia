@@ -44,7 +44,25 @@ mod test {
         "うち",
     ];
 
-    const TOKENIZED: &[&str] = SEGMENTED;
+    const TOKENIZED: &[&str] = &[
+        "関西",
+        "国際",
+        "空港",
+        "限定",
+        // Use "とうとばっぐ" instead when feature "japanese-transliteration" is enabled or become default
+        #[cfg(feature = "japanese-transliteration")]
+        "とうとは\u{3099}っく\u{3099}",
+        #[cfg(not(feature = "japanese-transliteration"))]
+        "トートハ\u{3099}ック\u{3099}",
+        " ",
+        "すもも",
+        "も",
+        "もも",
+        "も",
+        "もも",
+        "の",
+        "うち",
+    ];
 
     // Macro that run several tests on the Segmenter.
     test_segmenter!(JapaneseSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Cj, Language::Jpn);

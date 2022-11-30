@@ -6,12 +6,12 @@ use crate::segmenter::Segmenter;
 /// Chinese Script specialized [`Segmenter`].
 ///
 /// This Segmenter uses [`Jieba`] internally to segment the provided text
-/// using HMM feature.
+/// without HMM feature.
 pub struct ChineseSegmenter;
 
 impl Segmenter for ChineseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let segmented = JIEBA.cut(to_segment, true); // Use Hidden Markov Models.
+        let segmented = JIEBA.cut(to_segment, false); // disable Hidden Markov Models.
 
         Box::new(segmented.into_iter())
     }
@@ -33,18 +33,24 @@ mod test {
         "生而自由",
         "﹐",
         "在",
-        "尊嚴",
+        "尊",
+        "嚴",
         "和",
-        "權利上",
+        "權",
+        "利",
+        "上",
         "一律平等",
         "。",
-        "他們",
-        "賦有",
+        "他",
+        "們",
+        "賦",
+        "有",
         "理性",
         "和",
         "良心",
         "﹐",
-        "並應",
+        "並",
+        "應",
         "以",
         "兄弟",
         "關",
@@ -52,7 +58,8 @@ mod test {
         "的",
         "精神",
         "互相",
-        "對待",
+        "對",
+        "待",
         "。",
     ];
 
@@ -60,20 +67,26 @@ mod test {
     const TOKENIZED: &[&str] = &[
         "rénrén",
         "shēngérzìyóu",
-        "﹐",
+        ",",
         "zài",
-        "zūnyán",
+        "zūn",
+        "yán",
         "hé",
-        "quánlìshàng",
+        "quán",
+        "lì",
+        "shàng",
         "yīlǜpíngděng",
         "。",
-        "tāmen",
-        "fùyǒu",
+        "tā",
+        "men",
+        "fù",
+        "yǒu",
         "lǐxìng",
         "hé",
         "liángxīn",
-        "﹐",
-        "bìngyīng",
+        ",",
+        "bìng",
+        "yīng",
         "yǐ",
         "xiōngdì",
         "guān",
@@ -81,7 +94,8 @@ mod test {
         "de",
         "jīngshén",
         "hùxiāng",
-        "duìdài",
+        "duì",
+        "dài",
         "。",
     ];
 

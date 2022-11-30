@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use fst::Set;
 
 use crate::classifier::{ClassifiedTokenIter, Classify};
+use crate::detection::{Language, Script};
 use crate::normalizer::{Normalize, NormalizerOption};
 use crate::segmenter::{Segment, SegmentedTokenIter};
 use crate::Token;
@@ -93,29 +96,30 @@ impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
 /// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
-pub struct Tokenizer<'sw, A> {
+pub struct Tokenizer<'sw, 'al, A> {
     stop_words: Option<&'sw Set<A>>,
     normalizer_option: NormalizerOption,
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
-impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
+impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A> {
     pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
         original
-            .segment()
+            .segment_with_allowlist(self.allow_list)
             .normalize(self.normalizer_option)
             .classify_with_stop_words(self.stop_words)
     }
 
     pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
-        ReconstructedTokenIter { original: original, token_iter: self.tokenize(original) }
+        ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     pub fn segment(&self, original: &'o str) -> SegmentedTokenIter<'o> {
-        original.segment()
+        original.segment_with_allowlist(self.allow_list)
     }
 
     pub fn segment_str(&self, original: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        original.segment_str()
+        original.segment_str_with_allowlist(self.allow_list)
     }
 }
 
@@ -146,21 +150,22 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, A> {
 /// let tokenizer = builder.build();
 /// ```
 ///
-pub struct TokenizerBuilder<'sw, A> {
+pub struct TokenizerBuilder<'sw, 'al, A> {
     stop_words: Option<&'sw Set<A>>,
     normalizer_option: NormalizerOption,
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
-impl<'sw, A> TokenizerBuilder<'sw, A> {
+impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     /// Create a `TokenizerBuilder` with default settings,
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
-    pub fn new() -> TokenizerBuilder<'sw, A> {
-        Self { stop_words: None, normalizer_option: NormalizerOption::default() }
+    pub fn new() -> TokenizerBuilder<'sw, 'al, A> {
+        Self { stop_words: None, normalizer_option: NormalizerOption::default(), allow_list: None }
     }
 }
 
-impl<'sw, A> TokenizerBuilder<'sw, A> {
+impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments
@@ -175,19 +180,33 @@ impl<'sw, A> TokenizerBuilder<'sw, A> {
     ///
     /// # Arguments
     ///
-    /// * `create_char_map` - a `bool` that indicates whether a `char_map` should be created.   
+    /// * `create_char_map` - a `bool` that indicates whether a `char_map` should be created.
     pub fn create_char_map(&mut self, create_char_map: bool) -> &mut Self {
         self.normalizer_option.create_char_map = create_char_map;
         self
     }
 
+    /// Configure which languages can be used for which script
+    ///
+    /// # Arguments
+    ///
+    /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.
+    pub fn allow_list(&mut self, allow_list: &'al HashMap<Script, Vec<Language>>) -> &mut Self {
+        self.allow_list = Some(allow_list);
+        self
+    }
+
     /// Build the configurated `Tokenizer`.
-    pub fn build<'o>(&self) -> Tokenizer<'sw, A> {
-        Tokenizer { stop_words: self.stop_words, normalizer_option: self.normalizer_option }
+    pub fn build(&self) -> Tokenizer<'sw, 'al, A> {
+        Tokenizer {
+            stop_words: self.stop_words,
+            normalizer_option: self.normalizer_option,
+            allow_list: self.allow_list,
+        }
     }
 }
 
-impl<'sw> Default for TokenizerBuilder<'sw, Vec<u8>> {
+impl<'sw, 'al> Default for TokenizerBuilder<'sw, 'al, Vec<u8>> {
     fn default() -> Self {
         Self::new()
     }

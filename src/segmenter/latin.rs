@@ -9,7 +9,7 @@ pub struct LatinSegmenter;
 
 impl Segmenter for LatinSegmenter {
     fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        Box::new(s.split_word_bounds().map(|lemma| lemma.split_inclusive('\'')).flatten())
+        Box::new(s.split_word_bounds().flat_map(|lemma| lemma.split_inclusive('\'')))
     }
 }
 
@@ -26,7 +26,7 @@ mod test {
     const TOKENIZED: &[&str] = &[
         "the", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can'", "t", " ",
         "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "brr", ",", " ", "it'", "s",
-        " ", "29.3", "deg", "f", "!",
+        " ", "29.3", "°", "f", "!",
     ];
 
     test_segmenter!(LatinSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);

@@ -1,10 +1,10 @@
-use std::borrow::Cow;
 use std::collections::HashSet;
 
 use once_cell::sync::Lazy;
 
-use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
+use super::CharNormalizer;
+use crate::detection::Script;
+use crate::normalizer::CharOrStr;
 use crate::Token;
 
 static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
@@ -20,37 +20,14 @@ static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
 /// This normalizer uses built-in `HashSet` internally to check over the marks set
 pub struct NonspacingMarkNormalizer;
 
-impl Normalizer for NonspacingMarkNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if token.lemma().chars().any(is_nonspacing_mark) {
-            let mut lemma = String::new();
-            let mut char_map = options.create_char_map.then(Vec::new);
-
-            for c in token.lemma().chars() {
-                if is_nonspacing_mark(c) {
-                    char_map.as_mut().map(|char_map| char_map.push((c.len_utf8() as u8, 0)));
-                } else {
-                    char_map
-                        .as_mut()
-                        .map(|char_map| char_map.push((c.len_utf8() as u8, c.len_utf8() as u8)));
-
-                    lemma.push(c);
-                }
-            }
-
-            token.lemma = Cow::Owned(lemma);
-            token.char_map = char_map;
-        }
-
-        Box::new(Some(token).into_iter())
+impl CharNormalizer for NonspacingMarkNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        (!is_nonspacing_mark(c)).then(|| c.into())
     }
 
-    fn should_normalize(&self, script: Script, _language: Option<Language>) -> bool {
-        matches!(script, Script::Hebrew | Script::Thai | Script::Arabic)
+    fn should_normalize(&self, token: &Token) -> bool {
+        matches!(token.script, Script::Hebrew | Script::Thai | Script::Arabic | Script::Latin)
+            && token.lemma().chars().any(is_nonspacing_mark)
     }
 }
 
@@ -64,6 +41,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -134,7 +112,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("أب".to_string()),
+                lemma: Owned("اب".to_string()),
                 char_end: "أَب".chars().count(),
                 byte_end: "أَب".len(),
                 char_map: Some(vec![(2, 2), (2, 0), (2, 2)]),

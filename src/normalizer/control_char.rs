@@ -1,66 +1,18 @@
-use std::borrow::Cow;
-
-use super::{Normalizer, NormalizerOption};
-use crate::detection::{Language, Script};
+use super::CharNormalizer;
+use crate::normalizer::CharOrStr;
 use crate::Token;
 
 /// A global [`Normalizer`] removing control characters.
 ///
 pub struct ControlCharNormalizer;
 
-impl Normalizer for ControlCharNormalizer {
-    fn normalize<'o>(
-        &self,
-        mut token: Token<'o>,
-        _options: NormalizerOption,
-    ) -> Box<dyn Iterator<Item = Token<'o>> + 'o> {
-        if token.lemma().chars().any(is_control) {
-            let mut lemma = String::new();
-            let char_map = match token.char_map.take() {
-                // modify the current char map
-                Some(mut char_map) => {
-                    let mut byte_index = 0;
-                    for (_, normalized_char_length) in char_map.iter_mut() {
-                        let subset: String = token.lemma
-                            [byte_index as usize..(byte_index + *normalized_char_length) as usize]
-                            .chars()
-                            .filter(|c| !is_control(*c))
-                            .collect();
-                        byte_index += *normalized_char_length;
-                        *normalized_char_length = subset.len() as u8;
-                        lemma.push_str(&subset);
-                    }
-
-                    char_map
-                }
-                // create and compute a new char map
-                None => {
-                    let mut char_map = Vec::new();
-                    for c in token.lemma().chars() {
-                        let char_len = c.len_utf8() as u8;
-                        if is_control(c) {
-                            // skip character
-                            char_map.push((char_len, 0));
-                        } else {
-                            char_map.push((char_len, char_len));
-                            lemma.push(c);
-                        }
-                    }
-
-                    char_map
-                }
-            };
-
-            token.lemma = Cow::Owned(lemma);
-            token.char_map = Some(char_map);
-        }
-
-        // Create an iterator over the normalized token.
-        Box::new(Some(token).into_iter())
+impl CharNormalizer for ControlCharNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        (!is_control(c)).then(|| c.into())
     }
 
-    fn should_normalize(&self, _script: Script, _language: Option<Language>) -> bool {
-        true
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.lemma().chars().any(is_control)
     }
 }
 
@@ -73,6 +25,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::{Normalizer, NormalizerOption};
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
