@@ -38,7 +38,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 /// Iterator over Normalized [`Token`]s.
 pub struct NormalizedTokenIter<'o> {
     token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
-    normalizer: &'static Box<dyn Normalizer>,
+    normalizer: &'static dyn Normalizer,
     options: NormalizerOption,
 }
 
@@ -56,15 +56,9 @@ impl<'o> Iterator for NormalizedTokenIter<'o> {
 }
 
 /// Structure for providing options to a normalizer.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct NormalizerOption {
     pub create_char_map: bool,
-}
-
-impl Default for NormalizerOption {
-    fn default() -> Self {
-        NormalizerOption { create_char_map: false }
-    }
 }
 
 /// Trait defining a normalizer.
@@ -80,6 +74,8 @@ pub trait Normalizer: Sync + Send {
     fn should_normalize(&self, token: &Token) -> bool;
 }
 
+// Allow taking &Cow as argument to spare the allocation if it is already borrowed (and thus ~Copy)
+#[allow(clippy::ptr_arg)]
 fn shrink_cow<'o>(s: &Cow<'o, str>, new_size: usize) -> Cow<'o, str> {
     match s {
         Cow::Borrowed(s) => Cow::Borrowed(&s[..new_size]),
@@ -205,16 +201,14 @@ where
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
     fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
-        let first = NormalizedTokenIter {
-            token_iter: Box::new(self),
-            normalizer: NORMALIZERS.first().unwrap(),
-            options: options,
-        };
+        let first = NORMALIZERS.first().unwrap();
+        let first =
+            NormalizedTokenIter { token_iter: Box::new(self), normalizer: &**first, options };
 
         NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
             token_iter: Box::new(token_iter),
-            normalizer,
-            options: options,
+            normalizer: &**normalizer,
+            options,
         })
     }
 }
@@ -262,7 +256,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 Global normalization pipeline didn't normalize tokens as expected.
 
 help: The `global_result` provided to `test_normalizer!` does not corresponds to the output of the normalizer pipeline, it's probably because the normalizer is missing from `NORMALIZERS` list or because an other normalizer has alterated the token.
-Check if the `NORMALIZERS` list in `src/normalizer/mod.rs` contains the tested Normalizer. 
+Check if the `NORMALIZERS` list in `src/normalizer/mod.rs` contains the tested Normalizer.
 Make sure that normalized tokens are valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
 "#
                 );

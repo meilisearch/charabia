@@ -1,5 +1,6 @@
-pub use script_language::{Language, Script};
 use std::collections::HashMap;
+
+pub use script_language::{Language, Script};
 use whatlang::Detector;
 
 // file copy pasted from whatlang.
@@ -11,12 +12,12 @@ pub struct StrDetection<'o, 'al> {
     inner: &'o str,
     pub script: Option<Script>,
     pub language: Option<Language>,
-    allow_list : Option<&'al HashMap<Script,Vec<Language>>>,
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
 impl<'o, 'al> StrDetection<'o, 'al> {
-    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> Self {
-        Self { inner, script: None, language: None, allow_list: allow_list }
+    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script, Vec<Language>>>) -> Self {
+        Self { inner, script: None, language: None, allow_list }
     }
 
     pub fn script(&mut self) -> Script {
@@ -38,24 +39,33 @@ impl<'o, 'al> StrDetection<'o, 'al> {
 
     /// detect lang with whatlang
     /// if no language is detected, return Language::Other
-    fn detect_lang(text: &str, script: Script, allow_list : Option<&HashMap<Script,Vec<Language>>>) -> Language {
-            let detector = allow_list
-                .and_then(|allow_list| allow_list.get(&script))
-                .and_then(|allow_list| Some(allow_list.iter().map(|lang|(*lang).into()).collect()))
-                .and_then(|allow_list| Some(Detector::with_allowlist(allow_list)))
-                .unwrap_or_default();
-                
-            detector.detect_lang(text).map(Language::from).unwrap_or_default()
+    fn detect_lang(
+        text: &str,
+        script: Script,
+        allow_list: Option<&HashMap<Script, Vec<Language>>>,
+    ) -> Language {
+        let detector = allow_list
+            .and_then(|allow_list| allow_list.get(&script))
+            .map(|allow_list| allow_list.iter().map(|lang| (*lang).into()).collect())
+            .map(Detector::with_allowlist)
+            .unwrap_or_default();
+
+        detector.detect_lang(text).map(Language::from).unwrap_or_default()
     }
 }
 
 pub trait Detect<'o, 'al> {
-    fn detect(&'o self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'o, 'al>;
+    fn detect(
+        &'o self,
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> StrDetection<'o, 'al>;
 }
 
 impl<'o, 'al> Detect<'o, 'al> for &str {
-    fn detect(&'o self, allow_list: Option<&'al HashMap<Script,Vec<Language>>>) -> StrDetection<'o, 'al> 
-    {
-        StrDetection::new(self,allow_list)
+    fn detect(
+        &'o self,
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> StrDetection<'o, 'al> {
+        StrDetection::new(self, allow_list)
     }
 }
