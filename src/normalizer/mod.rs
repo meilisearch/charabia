@@ -9,6 +9,7 @@ pub use self::control_char::ControlCharNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
+use crate::classifier::ClassifiedTokenIter;
 use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
 use crate::Token;
 
@@ -36,22 +37,16 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 });
 
 /// Iterator over Normalized [`Token`]s.
-pub struct NormalizedTokenIter<'o> {
-    token_iter: Box<dyn Iterator<Item = Token<'o>> + 'o>,
-    normalizer: &'static dyn Normalizer,
+pub struct NormalizedTokenIter<'o, 'al, 'sw, A> {
+    token_iter: ClassifiedTokenIter<'o, 'al, 'sw, A>,
     options: NormalizerOption,
 }
 
-impl<'o> Iterator for NormalizedTokenIter<'o> {
+impl<'o, A: AsRef<[u8]>> Iterator for NormalizedTokenIter<'o, '_, '_, A> {
     type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let token = self.token_iter.next()?;
-        if self.normalizer.should_normalize(&token) {
-            Some(self.normalizer.normalize(token, self.options))
-        } else {
-            Some(token)
-        }
+        Some(self.token_iter.next()?.normalize(self.options))
     }
 }
 
@@ -191,36 +186,35 @@ impl From<String> for CharOrStr {
     }
 }
 
-/// Trait defining methods to normalize [`Token`]s.
-pub trait Normalize<'o>: Iterator
-where
-    Self: Sized,
-    Self: Iterator<Item = Token<'o>> + 'o,
-{
+impl<'o, 'al, 'sw, A> ClassifiedTokenIter<'o, 'al, 'sw, A> {
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o> {
-        let first = NORMALIZERS.first().unwrap();
-        let first =
-            NormalizedTokenIter { token_iter: Box::new(self), normalizer: &**first, options };
-
-        NORMALIZERS.iter().skip(1).fold(first, |token_iter, normalizer| NormalizedTokenIter {
-            token_iter: Box::new(token_iter),
-            normalizer: &**normalizer,
-            options,
-        })
+    pub fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o, 'al, 'sw, A> {
+        NormalizedTokenIter { token_iter: self, options }
     }
 }
 
-impl<'o, T> Normalize<'o> for T where T: Iterator<Item = Token<'o>> + 'o {}
+impl Token<'_> {
+    /// Normalize [`Token`] using all the compatible Normalizers.
+    ///
+    /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
+    pub fn normalize(mut self, options: NormalizerOption) -> Self {
+        for normalizer in NORMALIZERS.iter() {
+            if normalizer.should_normalize(&self) {
+                self = normalizer.normalize(self, options);
+            }
+        }
+
+        self
+    }
+}
 
 #[cfg(test)]
 mod test {
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
-            use crate::normalizer::Normalize;
             use crate::{Script, Token};
 
             #[test]
@@ -248,7 +242,8 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 
             #[test]
             fn global_normalize() {
-                let normalized_tokens: Vec<_> = $tokens.into_iter().normalize(NormalizerOption { create_char_map: true }).collect();
+                let options = NormalizerOption { create_char_map: true };
+                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(options)).collect();
                 assert_eq!(
                     &normalized_tokens[..],
                     $global_result,

@@ -70,50 +70,87 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
 pub static DEFAULT_SEGMENTER: Lazy<Box<dyn Segmenter>> = Lazy::new(|| Box::new(LatinSegmenter));
 
 /// Iterator over segmented [`Token`]s.
-pub struct SegmentedTokenIter<'a> {
-    inner: Box<dyn Iterator<Item = Token<'a>> + 'a>,
+pub struct SegmentedTokenIter<'o, 'al> {
+    inner: SegmentedStrIter<'o, 'al>,
     char_index: usize,
     byte_index: usize,
 }
 
-impl<'a> Iterator for SegmentedTokenIter<'a> {
-    type Item = Token<'a>;
+impl<'o> Iterator for SegmentedTokenIter<'o, '_> {
+    type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut token = self.inner.next()?;
-        let char_index = self.char_index;
-        let byte_index = self.byte_index;
+        let lemma = self.inner.next()?;
+        let char_start = self.char_index;
+        let byte_start = self.byte_index;
 
-        self.char_index += token.lemma().chars().count();
-        self.byte_index += token.lemma().len();
+        self.char_index += lemma.chars().count();
+        self.byte_index += lemma.len();
 
-        token.char_start = char_index;
-        token.char_end = self.char_index;
-        token.byte_start = byte_index;
-        token.byte_end = self.byte_index;
-
-        Some(token)
+        Some(Token {
+            lemma: Cow::Borrowed(lemma),
+            script: self.inner.script,
+            language: self.inner.language,
+            char_start,
+            char_end: self.char_index,
+            byte_start,
+            byte_end: self.byte_index,
+            ..Default::default()
+        })
     }
 }
 
-struct InnerSegmentedTokenIter<'a> {
-    inner: Box<dyn Iterator<Item = &'a str> + 'a>,
+impl<'o, 'al> From<SegmentedStrIter<'o, 'al>> for SegmentedTokenIter<'o, 'al> {
+    fn from(segmented_str_iter: SegmentedStrIter<'o, 'al>) -> Self {
+        Self { inner: segmented_str_iter, char_index: 0, byte_index: 0 }
+    }
+}
+
+pub struct SegmentedStrIter<'o, 'al> {
+    inner: Box<dyn Iterator<Item = &'o str> + 'o>,
+    current: Box<dyn Iterator<Item = &'o str> + 'o>,
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
     script: Script,
     language: Option<Language>,
 }
 
-impl<'a> Iterator for InnerSegmentedTokenIter<'a> {
-    type Item = Token<'a>;
+impl<'o, 'al> SegmentedStrIter<'o, 'al> {
+    pub fn new(original: &'o str, allow_list: Option<&'al HashMap<Script, Vec<Language>>>) -> Self {
+        let mut current_script = Script::Other;
+        let inner = original.linear_group_by_key(move |c| {
+            let script = Script::from(c);
+            if script != Script::Other && script != current_script {
+                current_script = script
+            }
+            current_script
+        });
+
+        Self {
+            inner: Box::new(inner),
+            current: Box::new(None.into_iter()),
+            allow_list,
+            script: Script::Other,
+            language: None,
+        }
+    }
+}
+
+impl<'o, 'al> Iterator for SegmentedStrIter<'o, 'al> {
+    type Item = &'o str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let lemma = self.inner.next()?;
+        match self.current.next() {
+            Some(s) => Some(s),
+            None => {
+                let text = self.inner.next()?;
+                let mut detector = text.detect(self.allow_list);
+                self.current = segmenter(&mut detector).segment_str(text);
+                self.script = detector.script();
+                self.language = detector.language;
 
-        Some(Token {
-            lemma: Cow::Borrowed(lemma),
-            script: self.script,
-            language: self.language,
-            ..Default::default()
-        })
+                self.next()
+            }
+        }
     }
 }
 
@@ -191,13 +228,17 @@ pub trait Segment<'o> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Unknown);
     /// ```
-    fn segment(&self) -> SegmentedTokenIter<'o>;
+    fn segment(&self) -> SegmentedTokenIter<'o, 'o> {
+        self.segment_with_allowlist(None)
+    }
 
     /// Segments the provided text creating an Iterator over Tokens where you can specify an allowed list of languages to be used with a script.
-    fn segment_with_allowlist(
+    fn segment_with_allowlist<'al>(
         &self,
-        allow_list: Option<&'o HashMap<Script, Vec<Language>>>,
-    ) -> SegmentedTokenIter<'o>;
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> SegmentedTokenIter<'o, 'al> {
+        self.segment_str_with_allowlist(allow_list).into()
+    }
 
     /// Segments the provided text creating an Iterator over `&str`.
     ///
@@ -214,7 +255,9 @@ pub trait Segment<'o> {
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
-    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o>;
+    fn segment_str(&self) -> SegmentedStrIter<'o, 'o> {
+        self.segment_str_with_allowlist(None)
+    }
 
     /// Segments the provided text creating an Iterator over `&str` where you can specify an allowed list of languages to be used with a script.
     ///
@@ -237,53 +280,18 @@ pub trait Segment<'o> {
     /// assert_eq!(segments.next(), Some(" "));
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
-    fn segment_str_with_allowlist(
+    fn segment_str_with_allowlist<'al>(
         &self,
-        allow_list: Option<&'o HashMap<Script, Vec<Language>>>,
-    ) -> Box<dyn Iterator<Item = &'o str> + 'o>;
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> SegmentedStrIter<'o, 'al>;
 }
 
 impl<'o> Segment<'o> for &'o str {
-    fn segment(&self) -> SegmentedTokenIter<'o> {
-        self.segment_with_allowlist(None)
-    }
-
-    fn segment_str(&self) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        self.segment_str_with_allowlist(None)
-    }
-
-    fn segment_with_allowlist(
+    fn segment_str_with_allowlist<'al>(
         &self,
-        allow_list: Option<&'o HashMap<Script, Vec<Language>>>,
-    ) -> SegmentedTokenIter<'o> {
-        let mut current_script = Script::Other;
-        let inner = self
-            .linear_group_by_key(move |c| {
-                let script = Script::from(c);
-                if script != Script::Other && script != current_script {
-                    current_script = script
-                }
-                current_script
-            })
-            .flat_map(move |s| {
-                let mut detector = s.detect(allow_list);
-                let segmenter = segmenter(&mut detector);
-                let script = detector.script();
-                let language = detector.language;
-                InnerSegmentedTokenIter { inner: segmenter.segment_str(s), script, language }
-            });
-
-        SegmentedTokenIter::<'o> { inner: Box::new(inner), char_index: 0, byte_index: 0 }
-    }
-
-    fn segment_str_with_allowlist(
-        &self,
-        allow_list: Option<&'o HashMap<Script, Vec<Language>>>,
-    ) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let mut detector = self.detect(allow_list);
-        let segmenter = segmenter(&mut detector);
-
-        segmenter.segment_str(self)
+        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    ) -> SegmentedStrIter<'o, 'al> {
+        SegmentedStrIter::new(self, allow_list)
     }
 }
 
