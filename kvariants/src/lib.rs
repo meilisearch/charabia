@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum KVariantClass {
     Wrong,
     SementicVariant,
@@ -11,7 +11,7 @@ pub enum KVariantClass {
     Equal,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct KVariant {
     pub source_ideograph: char,
     pub classification: KVariantClass,
@@ -40,8 +40,8 @@ pub static KVARIANTS: Lazy<HashMap<char, KVariant>> = Lazy::new(|| {
     let mut map: HashMap<char, KVariant> = HashMap::new();
     for result in reader.deserialize() {
         let line: TsvRow = result.unwrap();
-        let rhs = line.rhs.chars().nth(0).unwrap();
-        let lhs = line.lhs.chars().nth(0).unwrap();
+        let rhs = line.rhs.chars().next().unwrap();
+        let lhs = line.lhs.chars().next().unwrap();
 
         if let Some(classification) = match line.relation.as_str() {
             "wrong!" => Some(KVariantClass::Wrong),

@@ -43,8 +43,8 @@ fn compress_kvariant_txt() -> Result<(), Box<dyn Error>> {
         let line: TsvRow = result?;
 
         // Extract "㨲" from "㨲 (U+3A32)"
-        let rhs = line.rhs.chars().nth(0).unwrap();
-        let lhs = line.lhs.chars().nth(0).unwrap();
+        let rhs = line.rhs.chars().next().unwrap();
+        let lhs = line.lhs.chars().next().unwrap();
 
         writer.write_record(&[lhs.to_string(), line.relation, rhs.to_string()])?;
     }
