@@ -1,0 +1,7 @@
+set -ex
+
+bin/clean
+
+curl https://raw.githubusercontent.com/hfhchan/irg/master/kVariants.txt \
+  > ./dictionaries/source/kVariants.txt
+

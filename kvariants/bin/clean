@@ -1,0 +1,7 @@
+set +ex
+
+rm -rf ./dictionaries/*
+mkdir dictionaries/source
+touch dictionaries/source/keep
+mkdir dictionaries/compressed
+touch dictionaries/compressed/keep

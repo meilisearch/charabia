@@ -1,4 +1,4 @@
-/target
+kvariants/target
 charabia/target
 **/*.csv
 **/*.json_lines

@@ -1,5 +1,5 @@
 [workspace]
 resolver = "2"
-members = ["charabia"]
+members = ["charabia", "kvariants"]
 default-members = ["charabia"]
 
