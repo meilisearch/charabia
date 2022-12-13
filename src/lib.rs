@@ -50,9 +50,7 @@ mod detection;
 mod token;
 mod tokenizer;
 
-pub use classifier::Classify;
 pub use detection::{Language, Script};
-pub use normalizer::Normalize;
 pub use segmenter::Segment;
 pub use token::{SeparatorKind, Token, TokenKind};
 

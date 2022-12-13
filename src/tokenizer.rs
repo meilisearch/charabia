@@ -2,19 +2,18 @@ use std::collections::HashMap;
 
 use fst::Set;
 
-use crate::classifier::{ClassifiedTokenIter, Classify};
 use crate::detection::{Language, Script};
-use crate::normalizer::{Normalize, NormalizerOption};
-use crate::segmenter::{Segment, SegmentedTokenIter};
+use crate::normalizer::{NormalizedTokenIter, NormalizerOption};
+use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter};
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o, 'sw, A: AsRef<[u8]>> {
-    token_iter: ClassifiedTokenIter<'o, 'sw, A>,
+pub struct ReconstructedTokenIter<'o, 'al, 'sw, A> {
+    token_iter: NormalizedTokenIter<'o, 'al, 'sw, A>,
     original: &'o str,
 }
 
-impl<'o, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o, '_, A> {
+impl<'o, A: AsRef<[u8]>> Iterator for ReconstructedTokenIter<'o, '_, '_, A> {
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -52,9 +51,9 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, A>;
+    fn tokenize(&self) -> NormalizedTokenIter<A>;
 
-    /// Attaches each [`Token`] to its corresponding portion of the original text.
+    /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
     ///
     /// # Example
     ///
@@ -80,45 +79,52 @@ pub trait Tokenize<'o, A: AsRef<[u8]>> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, A>;
+    fn reconstruct(&self) -> ReconstructedTokenIter<A>;
 }
 
-impl<'o> Tokenize<'o, Vec<u8>> for &'o str {
-    fn tokenize(&self) -> ClassifiedTokenIter<'o, '_, Vec<u8>> {
-        self.segment().normalize(NormalizerOption::default()).classify()
+impl Tokenize<'_, Vec<u8>> for &str {
+    fn tokenize(&self) -> NormalizedTokenIter<Vec<u8>> {
+        self.segment().classify().normalize(NormalizerOption::default())
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter<'o, '_, Vec<u8>> {
-        ReconstructedTokenIter { token_iter: self.tokenize(), original: self }
+    fn reconstruct(&self) -> ReconstructedTokenIter<Vec<u8>> {
+        ReconstructedTokenIter { original: self, token_iter: self.tokenize() }
     }
 }
 
 /// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
-pub struct Tokenizer<'sw, 'al, A> {
+pub struct Tokenizer<'al, 'sw, A> {
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
     stop_words: Option<&'sw Set<A>>,
     normalizer_option: NormalizerOption,
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
-impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A> {
-    pub fn tokenize(&self, original: &'o str) -> ClassifiedTokenIter<'o, '_, A> {
+impl<'al, 'sw, A: AsRef<[u8]>> Tokenizer<'al, 'sw, A> {
+    /// Creates an Iterator over [`Token`]s.
+    ///
+    /// The provided text is segmented creating tokens,
+    /// then tokens are normalized and classified.
+    pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'al, 'sw, A> {
         original
             .segment_with_allowlist(self.allow_list)
-            .normalize(self.normalizer_option)
             .classify_with_stop_words(self.stop_words)
+            .normalize(self.normalizer_option)
     }
 
-    pub fn reconstruct(&self, original: &'o str) -> ReconstructedTokenIter<'o, '_, A> {
+    /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
+    pub fn reconstruct<'o>(&self, original: &'o str) -> ReconstructedTokenIter<'o, 'al, 'sw, A> {
         ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
-    pub fn segment(&self, original: &'o str) -> SegmentedTokenIter<'o> {
+    /// Segments the provided text creating an Iterator over [`Token`].
+    pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'al> {
         original.segment_with_allowlist(self.allow_list)
     }
 
-    pub fn segment_str(&self, original: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+    /// Segments the provided text creating an Iterator over `&str`.
+    pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'al> {
         original.segment_str_with_allowlist(self.allow_list)
     }
 }
@@ -150,22 +156,22 @@ impl<'o, A: AsRef<[u8]>> Tokenizer<'_, 'o, A> {
 /// let tokenizer = builder.build();
 /// ```
 ///
-pub struct TokenizerBuilder<'sw, 'al, A> {
+pub struct TokenizerBuilder<'al, 'sw, A> {
+    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
     stop_words: Option<&'sw Set<A>>,
     normalizer_option: NormalizerOption,
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
 }
 
-impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
+impl<'al, 'sw, A> TokenizerBuilder<'al, 'sw, A> {
     /// Create a `TokenizerBuilder` with default settings,
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
-    pub fn new() -> TokenizerBuilder<'sw, 'al, A> {
+    pub fn new() -> TokenizerBuilder<'al, 'sw, A> {
         Self { stop_words: None, normalizer_option: NormalizerOption::default(), allow_list: None }
     }
 }
 
-impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
+impl<'al, 'sw, A> TokenizerBuilder<'al, 'sw, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments
@@ -197,7 +203,7 @@ impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build(&self) -> Tokenizer<'sw, 'al, A> {
+    pub fn build(&self) -> Tokenizer<'al, 'sw, A> {
         Tokenizer {
             stop_words: self.stop_words,
             normalizer_option: self.normalizer_option,
@@ -206,7 +212,7 @@ impl<'sw, 'al, A> TokenizerBuilder<'sw, 'al, A> {
     }
 }
 
-impl<'sw, 'al> Default for TokenizerBuilder<'sw, 'al, Vec<u8>> {
+impl Default for TokenizerBuilder<'_, '_, Vec<u8>> {
     fn default() -> Self {
         Self::new()
     }
