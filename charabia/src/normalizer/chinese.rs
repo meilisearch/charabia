@@ -15,7 +15,7 @@ pub struct ChineseNormalizer;
 impl CharNormalizer for ChineseNormalizer {
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
         // Normalize Z, Simplified, Semantic, Old, and Wrong variants
-        let kvariant = match kvariants::kvariants::KVARIANTS.get(&c) {
+        let kvariant = match kvariants::KVARIANTS.get(&c) {
             Some(kvariant) => kvariant.destination_ideograph,
             None => c,
         };
