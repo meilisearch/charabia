@@ -1,22 +1,6 @@
 use serde::Deserialize;
 use std::error::Error;
 
-#[derive(Debug, PartialEq)]
-pub enum KVariantClass {
-    Wrong,
-    SementicVariant,
-    Simplified,
-    Old,
-    Equal,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct KVariant {
-    pub source_ideograph: char,
-    pub classification: KVariantClass,
-    pub destination_ideograph: char,
-}
-
 #[derive(Deserialize)]
 pub struct TsvRow {
     lhs: String,
