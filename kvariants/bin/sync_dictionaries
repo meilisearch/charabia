@@ -1,7 +1,7 @@
 set -ex
 
-bin/clean
+./bin/clean
 
 curl https://raw.githubusercontent.com/hfhchan/irg/master/kVariants.txt \
-  > ./dictionaries/source/kVariants.txt
+  > ./dictionaries/source/kVariants.tsv
 

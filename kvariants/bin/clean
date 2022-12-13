@@ -1,6 +1,6 @@
 set +ex
 
-rm -rf ./dictionaries/*
+rm ./dictionaries/*
 mkdir dictionaries/source
 touch dictionaries/source/keep
 mkdir dictionaries/compressed

@@ -26,7 +26,7 @@ pub struct TsvRow {
 
 fn main() {
     // Tell Cargo that if the given file changes, to rerun this build script.
-    println!("cargo:rerun-if-changed=dictionaries/kVariants.txt");
+    println!("cargo:rerun-if-changed=dictionaries/source/kVariants.tsv");
 
     compress_kvariant_txt().unwrap();
 }
@@ -35,7 +35,7 @@ fn compress_kvariant_txt() -> Result<(), Box<dyn Error>> {
     let reader = csv::ReaderBuilder::new()
         .delimiter(b'\t')
         .has_headers(false)
-        .from_path("dictionaries/source/kVariants.txt");
+        .from_path("dictionaries/source/kVariants.tsv");
 
     let mut writer = csv::Writer::from_path("dictionaries/compressed/kVariants.csv")?;
 

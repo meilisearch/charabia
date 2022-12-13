@@ -28,6 +28,7 @@ pinyin = { version = "0.9", default-features = false, features = [
 ], optional = true }
 wana_kana = { version = "2.1.0", optional = true }
 unicode-normalization = "0.1.22"
+kvariants = { path = "../kvariants" }
 
 [features]
 default = ["chinese", "hebrew", "japanese", "thai", "korean"]

@@ -26,6 +26,8 @@ jobs:
       run: cargo test --verbose
     - name: Run tests with japanese-transliteration on
       run: cargo test --verbose --features japanese-transliteration
+    - name: Run kvariants tests
+      run: cargo test -p kvariants --verbose
 
   clippy:
     name: Run Clippy
