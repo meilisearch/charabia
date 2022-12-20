@@ -332,7 +332,7 @@ Check if the expected Script/Language corresponds to the detected Script/Languag
 Segmenter chosen by global segment() function, didn't segment the text as expected.
 
 help: The selected segmenter is probably the wrong one.
-Check if the tested segmenter is assigned to the good Script/Language in `SEGMENTERS` global in `src/segmenter/mod.rs`.
+Check if the tested segmenter is assigned to the good Script/Language in `SEGMENTERS` global in `charabia/src/segmenter/mod.rs`.
 "#);
             }
 

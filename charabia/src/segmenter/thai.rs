@@ -11,8 +11,9 @@ use crate::segmenter::Segmenter;
 /// Dictionary source: PyThaiNLP project on https://github.com/PyThaiNLP/nlpo3
 pub struct ThaiSegmenter;
 
-static WORDS_FST: Lazy<Fst<&[u8]>> =
-    Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap());
+static WORDS_FST: Lazy<Fst<&[u8]>> = Lazy::new(|| {
+    Fst::new(&include_bytes!("../../../dictionaries/fst/thai/words.fst")[..]).unwrap()
+});
 
 static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST));
 
