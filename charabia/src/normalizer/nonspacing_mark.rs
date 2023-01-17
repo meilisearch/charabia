@@ -8,7 +8,7 @@ use crate::normalizer::CharOrStr;
 use crate::Token;
 
 static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
-    let bytes = include_bytes!("../../dictionaries/bin/nonspacing_mark/marks.bin");
+    let bytes = include_bytes!("../../../dictionaries/bin/nonspacing_mark/marks.bin");
 
     HashSet::from_iter(
         bytes.chunks_exact(4).map(|chunk| u32::from_ne_bytes(chunk.try_into().unwrap())),

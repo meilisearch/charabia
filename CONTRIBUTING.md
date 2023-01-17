@@ -45,10 +45,10 @@ cargo bench
 ### Implement a `Segmenter`
 A `Segmenter` is a Script or Language specialized struct that segment a text in several [lemmas](https://en.wikipedia.org/wiki/Lemma_(morphology)) that will be classified as a separator or a word later in the tokenization pipeline.
 A Segmenter will never change, add, or skip a lemma, that means that concatenating all lemmas must be equal to the original text.
-All Segmenters implementation are stored in `src/segmenter`.
+All Segmenters implementation are stored in `charabia/src/segmenter`.
 
 #### Start the implementation
-We highly recommend to start the implementation by copy-pasting the dummy example (`src/segmenter/dummy_example.rs`) and follow the instructions in comments.
+We highly recommend to start the implementation by copy-pasting the dummy example (`charabia/src/segmenter/dummy_example.rs`) and follow the instructions in comments.
 
 #### Add a Benchmark
 The only thing needed is 2 texts detected as the `Segmenter`'s Script or Language by the tokenizer.
@@ -70,7 +70,7 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
 A `Normalizer` is a struct used to alterate the lemma contained in a Token in order to remove features that doesn't sygnificantly impact the sens like lowecasing, removing accents, or converting Traditionnal Chinese characteres into Simplified Chinese characteres.
 
 #### Start the implementation
-We highly recommend to start the implementation by copy-pasting the dummy example (`src/normalizer/dummy_example.rs`) and follow the instructions in comments.
+We highly recommend to start the implementation by copy-pasting the dummy example (`charabia/src/normalizer/dummy_example.rs`) and follow the instructions in comments.
 
 ## Git Guidelines
 

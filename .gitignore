@@ -1,5 +1,5 @@
 /target
-meilisearch-core/target
+charabia/target
 **/*.csv
 **/*.json_lines
 **/*.rs.bk

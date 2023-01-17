@@ -34,7 +34,7 @@ pub static KVARIANTS: Lazy<HashMap<char, KVariant>> = Lazy::new(|| {
     //   㓻 (U+34FB)	sem	    剛 (U+525B)
     //   ...
     //
-    let tsv = include_str!("../../../dictionaries/txt/chinese/kVariants.tsv");
+    let tsv = include_str!("../../../../dictionaries/txt/chinese/kVariants.tsv");
     let mut reader =
         csv::ReaderBuilder::new().delimiter(b'\t').has_headers(false).from_reader(tsv.as_bytes());
 
