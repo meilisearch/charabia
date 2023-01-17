@@ -22,3 +22,7 @@ let kvariant = match KVARIANTS.get(&c) {
 
 assert_eq!(kvariant, '澳');
 ```
+
+## Fetch latest dictionary from upstream
+
+The dictionary file is vendored into `dictionaries/source/` and can be updated with `bin/sync_dictionaries`.
