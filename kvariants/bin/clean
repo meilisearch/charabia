@@ -1,7 +1,7 @@
-set +ex
+set -ex
 
-rm ./dictionaries/*
-mkdir dictionaries/source
-touch dictionaries/source/keep
-mkdir dictionaries/compressed
-touch dictionaries/compressed/keep
+dir="$(dirname "$0")"
+dictionaries="$dir/../dictionaries"
+
+rm -f $dictionaries/source/*.tsv
+rm -f $dictionaries/compressed/*.csv

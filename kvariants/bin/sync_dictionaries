@@ -1,7 +1,9 @@
 set -ex
 
-./bin/clean
+dir="$(dirname "$0")"
+dictionaries="$dir/../dictionaries"
 
-curl https://raw.githubusercontent.com/hfhchan/irg/master/kVariants.txt \
-  > ./dictionaries/source/kVariants.tsv
+. $dir/clean
+
+curl https://raw.githubusercontent.com/hfhchan/irg/master/kVariants.txt > $dictionaries/source/kVariants.tsv
 
