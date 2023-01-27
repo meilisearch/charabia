@@ -1,4 +1,4 @@
-set -ex
+#!/bin/sh
 
 dir="$(dirname "$0")"
 dictionaries="$dir/../dictionaries"
