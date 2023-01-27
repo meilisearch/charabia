@@ -11,6 +11,8 @@ pub struct TsvRow {
 fn main() {
     // Tell Cargo that if the given file changes, to rerun this build script.
     println!("cargo:rerun-if-changed=dictionaries/source/kVariants.tsv");
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=Cargo.toml");
 
     compress_kvariant_txt().unwrap();
 }
