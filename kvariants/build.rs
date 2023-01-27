@@ -23,8 +23,9 @@ fn compress_kvariant_txt() -> Result<(), Box<dyn Error>> {
     let mut reader =
         csv::ReaderBuilder::new().delimiter(b'\t').has_headers(false).from_path(src_path)?;
 
-    let dest_path = Path::new(&manifest_dir).join("dictionaries/compressed/kVariants.csv");
-    let mut writer = csv::Writer::from_path(dest_path)?;
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let dst_path = Path::new(&out_dir).join("kVariants.min.csv");
+    let mut writer = csv::Writer::from_path(dst_path)?;
 
     for result in reader.deserialize() {
         let line: TsvRow = result?;

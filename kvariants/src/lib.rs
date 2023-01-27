@@ -33,7 +33,7 @@ pub static KVARIANTS: Lazy<HashMap<char, KVariant>> = Lazy::new(|| {
     //   㓻 (U+34FB)	sem	    剛 (U+525B)
     //   ...
     //
-    let dictionary = include_str!("../dictionaries/compressed/kVariants.csv");
+    let dictionary = include_str!(concat!(env!("OUT_DIR"), "/kVariants.min.csv"));
     let mut reader =
         csv::ReaderBuilder::new().has_headers(false).from_reader(dictionary.as_bytes());
 
