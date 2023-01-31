@@ -1,12 +1,9 @@
-use kvariants::KVARIANTS;
 use pinyin::ToPinyin;
 
 use super::CharNormalizer;
 use crate::detection::{Language, Script};
 use crate::normalizer::CharOrStr;
 use crate::Token;
-
-mod kvariants;
 
 /// Normalize Chinese characters by:
 /// 1. convert Z, Simplified, Semantic, Old, and Wrong variants
@@ -18,7 +15,7 @@ pub struct ChineseNormalizer;
 impl CharNormalizer for ChineseNormalizer {
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
         // Normalize Z, Simplified, Semantic, Old, and Wrong variants
-        let kvariant = match KVARIANTS.get(&c) {
+        let kvariant = match kvariants::KVARIANTS.get(&c) {
             Some(kvariant) => kvariant.destination_ideograph,
             None => c,
         };
