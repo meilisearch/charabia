@@ -51,8 +51,7 @@ pub static KVARIANTS: Lazy<HashMap<char, KVariant>> = Lazy::new(|| {
             unexpected_classification => {
                 debug_assert!(
                     false,
-                    "Unexpected classification {:?} encountered. Consider handling or ignore explicaitly.",
-                    unexpected_classification,
+                    "Unexpected classification {unexpected_classification:?} encountered. Consider handling or ignore explicaitly.",
                 );
                 None
             }
