@@ -144,6 +144,7 @@ macro_rules! make_script {
             pub fn name(&self) -> &'static str {
                 match self {
                     $(Script::$script => whatlang::Script::$script.name()), +,
+                    Script::Cj => whatlang::Script::Mandarin.name(),
                     _other => "other",
                 }
             }
@@ -238,5 +239,28 @@ impl From<char> for Script {
 impl Default for Script {
     fn default() -> Self {
         Self::Other
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{Language, Script};
+
+    #[test]
+    fn from_into_language() {
+        assert_eq!(Language::Eng.name(), "eng");
+        assert_eq!(Language::from_name("eng"), Language::Eng);
+        assert_eq!(Language::Jpn.name(), "jpn");
+        assert_eq!(Language::from_name("jpn"), Language::Jpn);
+        assert_eq!(Language::Cmn.name(), "cmn");
+        assert_eq!(Language::from_name("cmn"), Language::Cmn);
+    }
+
+    #[test]
+    fn from_into_script() {
+        assert_eq!(Script::Latin.name(), "Latin");
+        assert_eq!(Script::from_name("Latin"), Script::Latin);
+        assert_eq!(Script::Cj.name(), "Mandarin");
+        assert_eq!(Script::from_name("Mandarin"), Script::Cj);
     }
 }
