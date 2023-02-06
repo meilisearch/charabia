@@ -11,6 +11,7 @@ pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use crate::classifier::ClassifiedTokenIter;
 use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
+use crate::normalizer::greek::GreekNormalizer;
 use crate::Token;
 
 #[cfg(feature = "chinese")]
@@ -19,6 +20,8 @@ mod compatibility_decomposition;
 mod control_char;
 #[cfg(feature = "japanese-transliteration")]
 mod japanese;
+#[cfg(feature = "greek")]
+mod greek;
 mod lowercase;
 mod nonspacing_mark;
 
@@ -31,6 +34,8 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
+        #[cfg(feature = "greek")]
+        Box::new(GreekNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(NonspacingMarkNormalizer),
     ]

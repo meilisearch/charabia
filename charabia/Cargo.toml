@@ -31,7 +31,7 @@ unicode-normalization = "0.1.22"
 kvariants = { path = "../kvariants" }
 
 [features]
-default = ["chinese", "hebrew", "japanese", "thai", "korean"]
+default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek"]
 
 # allow chinese specialized tokenization
 chinese = ["dep:pinyin", "dep:jieba-rs"]
@@ -48,6 +48,9 @@ korean = ["lindera/ko-dic"]
 
 # allow thai specialized tokenization
 thai = []
+
+# allow greek specialized tokenization
+greek = []
 
 [dev-dependencies]
 criterion = "0.3"
