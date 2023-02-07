@@ -36,6 +36,15 @@ impl<'t> Iterator for CamelCaseParts<'t> {
         match self.state {
             State::Exhausted => None,
             State::InProgress { remainder } => {
+                // CamelCase boundary consists of 2 code-points. Avoid expensive regex evaluation on shorter strings.
+                // Note that using `remainder.chars().count() == 1` may catch more cases (non-ASCII strings)
+                // but the main focus here is on " ", "-" and similar that are abundantly produced
+                // by `split_word_bounds()` in the Latin segmenter and mere `len()` performs better at that.
+                if remainder.len() == 1 {
+                    self.state = State::Exhausted;
+                    return Some(remainder);
+                }
+
                 match CAMEL_CASE_BOUNDARY_REGEX.captures(remainder) {
                     Some(captures) => {
                         // By the nature of the regex, this group is always present and this should never panic.
