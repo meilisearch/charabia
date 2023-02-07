@@ -24,10 +24,7 @@ impl CamelCaseSegmentation for str {
     }
 }
 
-/// Matches a lower-case letter followed by an upper-case one and captures
-/// the boundary between them with a group named "boundary".
-static CAMEL_CASE_BOUNDARY_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\p{Ll}(?P<boundary>)\p{Lu}").unwrap());
+static CAMEL_CASE_BOUNDARY_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\p{Ll}\p{Lu}").unwrap());
 
 impl<'t> Iterator for CamelCaseParts<'t> {
     type Item = &'t str;
@@ -45,10 +42,13 @@ impl<'t> Iterator for CamelCaseParts<'t> {
                     return Some(remainder);
                 }
 
-                match CAMEL_CASE_BOUNDARY_REGEX.captures(remainder) {
-                    Some(captures) => {
-                        // By the nature of the regex, this group is always present and this should never panic.
-                        let boundary = captures.name("boundary").unwrap().start();
+                match CAMEL_CASE_BOUNDARY_REGEX.find(remainder) {
+                    Some(mat) => {
+                        // By the nature of the regex, the match must contain exactly two chars and this should never panic.
+                        let lowercase_letter_length =
+                            mat.as_str().chars().next().unwrap().len_utf8();
+                        let boundary = mat.start() + lowercase_letter_length;
+
                         self.state = State::InProgress { remainder: &remainder[boundary..] };
                         Some(&remainder[..boundary])
                     }

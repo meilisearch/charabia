@@ -23,18 +23,18 @@ impl Segmenter for LatinSegmenter {
 mod test {
     use crate::segmenter::test::test_segmenter;
 
-    const TEXT: &str = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F! camelCase PascalCase IJsland CASE";
+    const TEXT: &str = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F! camelCase PascalCase IJsland CASE resuméWriter";
     const SEGMENTED: &[&str] = &[
         "The", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can'", "t", " ",
         "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "Brr", ",", " ", "it'", "s",
         " ", "29.3", "°", "F", "!", " ", "camel", "Case", " ", "Pascal", "Case", " ", "IJsland",
-        " ", "CASE",
+        " ", "CASE", " ", "resumé", "Writer",
     ];
     const TOKENIZED: &[&str] = &[
         "the", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can'", "t", " ",
         "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "brr", ",", " ", "it'", "s",
         " ", "29.3", "°", "f", "!", " ", "camel", "case", " ", "pascal", "case", " ", "ijsland",
-        " ", "case",
+        " ", "case", " ", "resume", "writer",
     ];
 
     test_segmenter!(LatinSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);
