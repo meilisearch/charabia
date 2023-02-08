@@ -1,4 +1,6 @@
-use super::{CharNormalizer, CharOrStr};
+use std::borrow::Cow;
+
+use super::{Normalizer, NormalizerOption};
 use crate::{Script, Token};
 
 /// Normalize Greek characters by:
@@ -6,12 +8,15 @@ use crate::{Script, Token};
 ///
 pub struct GreekNormalizer;
 
-impl CharNormalizer for GreekNormalizer {
-    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
-        if c == 'ς' {
-            return Some(CharOrStr::Char('σ'));
+impl Normalizer for GreekNormalizer {
+    // converting  "ς" to "σ" doesn't change the characters length,
+    // so the `normalize` method is overloaded to skip the useless char_map computing.
+    fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
+        if token.lemma.ends_with("ς") {
+            token.lemma = Cow::Owned(token.lemma.replace("ς", "σ"))
         }
-        Some(CharOrStr::Char(c))
+
+        token
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -43,16 +48,7 @@ mod test {
             lemma: Owned("Αγαπητόσ".to_string()),
             char_end: 10,
             byte_end: 10,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-            ]),
+            char_map: None,
             script: Script::Greek,
             ..Default::default()
         }]
@@ -64,16 +60,7 @@ mod test {
             lemma: Owned("αγαπητοσ".to_string()),
             char_end: 10,
             byte_end: 10,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-            ]),
+            char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
             script: Script::Greek,
             ..Default::default()
         }]
