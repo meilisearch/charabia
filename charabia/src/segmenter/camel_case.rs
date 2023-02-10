@@ -24,7 +24,9 @@ impl CamelCaseSegmentation for str {
     }
 }
 
-static CAMEL_CASE_BOUNDARY_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\p{Ll}\p{Lu}").unwrap());
+/// Matches a lowercase letter followed by an uppercase one with any number of optional non-spacing marks in between.
+static CAMEL_CASE_BOUNDARY_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\p{Ll}\p{Mn}*?\p{Lu}").unwrap());
 
 impl<'t> Iterator for CamelCaseParts<'t> {
     type Item = &'t str;
@@ -33,7 +35,7 @@ impl<'t> Iterator for CamelCaseParts<'t> {
         match self.state {
             State::Exhausted => None,
             State::InProgress { remainder } => {
-                // CamelCase boundary consists of 2 code-points. Avoid expensive regex evaluation on shorter strings.
+                // CamelCase boundary consists of at least 2 code-points. Avoid expensive regex evaluation on shorter strings.
                 // Note that using `remainder.chars().count() == 1` may catch more cases (non-ASCII strings)
                 // but the main focus here is on " ", "-" and similar that are abundantly produced
                 // by `split_word_bounds()` in the Latin segmenter and mere `len()` performs better at that.
@@ -44,10 +46,10 @@ impl<'t> Iterator for CamelCaseParts<'t> {
 
                 match CAMEL_CASE_BOUNDARY_REGEX.find(remainder) {
                     Some(mat) => {
-                        // By the nature of the regex, the match must contain exactly two chars and this should never panic.
-                        let lowercase_letter_length =
-                            mat.as_str().chars().next().unwrap().len_utf8();
-                        let boundary = mat.start() + lowercase_letter_length;
+                        // By the nature of the regex, the match must contain at least two chars and this should never panic.
+                        let uppercase_letter_length =
+                            mat.as_str().chars().last().unwrap().len_utf8();
+                        let boundary = mat.end() - uppercase_letter_length;
 
                         self.state = State::InProgress { remainder: &remainder[boundary..] };
                         Some(&remainder[..boundary])
@@ -82,4 +84,9 @@ mod test {
     test_segmentation!("SCREAMING", ["SCREAMING"], all_caps_is_not_split);
     test_segmentation!("resuméWriter", ["resumé", "Writer"], non_ascii_boundary_on_left);
     test_segmentation!("KarelČapek", ["Karel", "Čapek"], non_ascii_boundary_on_right);
+    test_segmentation!(
+        "resume\u{0301}Writer",
+        ["resume\u{0301}", "Writer"],
+        non_spacing_marks_are_respected
+    );
 }
