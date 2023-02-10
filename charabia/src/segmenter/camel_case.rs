@@ -63,3 +63,23 @@ impl<'t> Iterator for CamelCaseParts<'t> {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::CamelCaseSegmentation;
+
+    macro_rules! test_segmentation {
+        ($text:expr, $segmented:expr, $name:ident) => {
+            #[test]
+            fn $name() {
+                let segmented_text: Vec<_> = $text.split_camel_case_bounds().collect();
+                assert_eq!(segmented_text, $segmented);
+            }
+        };
+    }
+
+    test_segmentation!("camelCase", ["camel", "Case"], camel_case_is_split);
+    test_segmentation!("SCREAMING", ["SCREAMING"], all_caps_is_not_split);
+    test_segmentation!("resuméWriter", ["resumé", "Writer"], non_ascii_boundary_on_left);
+    test_segmentation!("KarelČapek", ["Karel", "Čapek"], non_ascii_boundary_on_right);
+}
