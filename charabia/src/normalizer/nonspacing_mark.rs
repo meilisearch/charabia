@@ -26,8 +26,10 @@ impl CharNormalizer for NonspacingMarkNormalizer {
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
-        matches!(token.script, Script::Hebrew | Script::Thai | Script::Arabic | Script::Latin | Script::Greek)
-            && token.lemma().chars().any(is_nonspacing_mark)
+        matches!(
+            token.script,
+            Script::Hebrew | Script::Thai | Script::Arabic | Script::Latin | Script::Greek
+        ) && token.lemma().chars().any(is_nonspacing_mark)
     }
 }
 

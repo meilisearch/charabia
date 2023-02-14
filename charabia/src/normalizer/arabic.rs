@@ -1,5 +1,5 @@
 use super::{CharNormalizer, CharOrStr};
-use crate::{Token, Script};
+use crate::{Script, Token};
 
 /// A global [`Normalizer`] removing the arabic Tatweel ('ـ') characters.
 /// https://www.compart.com/en/unicode/U+0640
@@ -12,8 +12,7 @@ impl CharNormalizer for ArabicNormalizer {
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Arabic && 
-                        token.lemma().chars().any(is_tatweel)
+        token.script == Script::Arabic && token.lemma().chars().any(is_tatweel)
     }
 }
 
@@ -30,118 +29,124 @@ mod test {
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
-        vec![Token {
-            lemma: Owned("الحمــــــد".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Arabic,
-            ..Default::default()
-        },
-        Token {
-            lemma: Owned("رحــــــيم".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Arabic,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2)
-            ]),
-            ..Default::default()
-        }]
+        vec![
+            Token {
+                lemma: Owned("الحمــــــد".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("رحــــــيم".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Arabic,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                ..Default::default()
+            },
+        ]
     }
 
     // expected result of the current Normalizer.
     fn normalizer_result() -> Vec<Token<'static>> {
-        vec![Token {
-            lemma: Owned("الحمد".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Arabic,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0), 
-                (2, 2)
-            ]),
-            ..Default::default()
-        },
-        Token {
-            lemma: Owned("رحيم".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Arabic,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 2),
-                (2, 2)
-            ]),
-            ..Default::default()
-        }]
+        vec![
+            Token {
+                lemma: Owned("الحمد".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Arabic,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 2),
+                ]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("رحيم".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Arabic,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                ..Default::default()
+            },
+        ]
     }
 
     // expected result of the complete Normalizer pieline.
     fn normalized_tokens() -> Vec<Token<'static>> {
-        vec![Token {
-            lemma: Owned("الحمد".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 2),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 2)
-            ]),
-            script: Script::Arabic,
-            ..Default::default()
-        },
-        Token {
-            lemma: Owned("رحيم".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Arabic,
-            char_map: Some(vec![
-                (2, 2),
-                (2, 2),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 0),
-                (2, 2),
-                (2, 2)
-            ]),
-            ..Default::default()
-        }]
+        vec![
+            Token {
+                lemma: Owned("الحمد".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 2),
+                ]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("رحيم".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Arabic,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 0),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                ..Default::default()
+            },
+        ]
     }
 
     test_normalizer!(ArabicNormalizer, tokens(), normalizer_result(), normalized_tokens());
