@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use once_cell::sync::Lazy;
 
+pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese")]
 pub use self::chinese::ChineseNormalizer;
 pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
@@ -10,22 +11,21 @@ pub use self::control_char::ControlCharNormalizer;
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use crate::classifier::ClassifiedTokenIter;
-use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
 use crate::normalizer::greek::GreekNormalizer;
+use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
 use crate::Token;
-pub use self::arabic::ArabicNormalizer;
 
+mod arabic;
 #[cfg(feature = "chinese")]
 mod chinese;
 mod compatibility_decomposition;
 mod control_char;
-#[cfg(feature = "japanese-transliteration")]
-mod japanese;
 #[cfg(feature = "greek")]
 mod greek;
+#[cfg(feature = "japanese-transliteration")]
+mod japanese;
 mod lowercase;
 mod nonspacing_mark;
-mod arabic;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`].
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
@@ -40,7 +40,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(GreekNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(NonspacingMarkNormalizer),
-        Box::new(ArabicNormalizer)
+        Box::new(ArabicNormalizer),
     ]
 });
 
