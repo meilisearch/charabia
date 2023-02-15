@@ -1,0 +1,29 @@
+name: Check for kVariants updates
+
+on:
+  # Run this at 10:00 every monday.
+  schedule:
+    - cron:  '0 10 * * 1'
+  # Also allow triggering manually.
+  workflow_dispatch:
+
+env:
+  # Use a token that has write access to repo.
+  GH_TOKEN: ${{ secrets.MEILI_BOT_GH_PAT }}
+
+jobs:
+  check-for-kvariants-updates:
+    name: Check for kVariants updates
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Fetch latest version
+        run: ./kvariants/bin/sync_dictionaries.sh
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: Update kVariants dictionary
+          branch: update-kvariants
+          title: Update kVariants dictionary
+          body: Automatically created by [scheduled action](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
