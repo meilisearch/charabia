@@ -1,6 +1,6 @@
 # kvariants
 
-A Rust crate wrapping https://github.com/hfhchan/irg/blob/master/kVariants.md made by hfhchan,
+A Rust crate wrapping https://github.com/hfhchan/irg/blob/master/kVariants.md made by @hfhchan.
 If you want to participate in improving this dictionnary,
 don't hesitate to create an issue or submit a PR directly on the dictionary repository. 
 
