@@ -16,8 +16,8 @@ jobs:
       - name: Check release validity
         run: sh .github/scripts/check-release.sh
       - name: Build
-        run: cargo build --release
+        run: cargo build --release -p charabia
       - name: Login
         run: cargo login ${{ secrets.CRATES_TOKEN }}
       - name: Publish to crates.io
-        run: cargo publish
+        run: cargo publish -p charabia
