@@ -1,7 +1,10 @@
 [package]
-name = "kvariants"
+name = "irg-kvariants"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "A simple wrapper around kvariant from hfhchan/irg"
+repository = "https://github.com/meilisearch/charabia"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

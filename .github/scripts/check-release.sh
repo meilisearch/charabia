@@ -2,7 +2,7 @@
 
 # Checking if current tag matches the package version
 current_tag=$(echo $GITHUB_REF | tr -d 'refs/tags/v')
-file1='Cargo.toml'
+file1='charabia/Cargo.toml'
 
 file_tag1=$(grep '^version = ' $file1 | cut -d '=' -f 2 | tr -d '"' | tr -d ' ')
 if [ "$current_tag" != "$file_tag1" ]; then
