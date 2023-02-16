@@ -9,7 +9,7 @@ documentation = "https://docs.rs/charabia"
 repository = "https://github.com/meilisearch/charabia"
 keywords = ["segmenter", "tokenizer", "normalize", "language"]
 categories = ["text-processing"]
-exclude = ["../dictionaries/txt/thai/words.txt"]
+exclude = ["dictionaries/txt/thai/words.txt"]
 
 [dependencies]
 cow-utils = "0.1"
