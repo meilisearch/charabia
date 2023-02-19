@@ -23,7 +23,7 @@ impl Segmenter for JapaneseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let segment_iterator = LINDERA.tokenize(to_segment).unwrap();
         Box::new(
-            segment_iterator.into_iter().map(|token| &to_segment[token.byte_start..token.byte_end]),
+            segment_iterator.into_iter().map(|token| token.text),
         )
     }
 }
