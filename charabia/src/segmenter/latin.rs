@@ -1,5 +1,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
+#[cfg(feature = "latin-camelcase")]
 use super::camel_case::CamelCaseSegmentation;
 use super::Segmenter;
 
@@ -9,6 +10,13 @@ use super::Segmenter;
 pub struct LatinSegmenter;
 
 impl Segmenter for LatinSegmenter {
+    #[cfg(not(feature = "latin-camelcase"))]
+    fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+        let lemmas = s.split_word_bounds().flat_map(|lemma| lemma.split_inclusive('\''));
+        Box::new(lemmas)
+    }
+
+    #[cfg(feature = "latin-camelcase")]
     fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let lemmas = s
             .split_word_bounds()
