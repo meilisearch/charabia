@@ -22,7 +22,7 @@ serde = "1.0"
 slice-group-by = "0.3.0"
 unicode-segmentation = "1.6.0"
 whatlang = "0.16.1"
-lindera = { version = "=0.22.1", default-features = false, optional = true }
+lindera = { version = "=0.23.0", default-features = false, optional = true }
 pinyin = { version = "0.9", default-features = false, features = [
   "with_tone",
 ], optional = true }
