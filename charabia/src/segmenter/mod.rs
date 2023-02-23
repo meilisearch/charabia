@@ -18,6 +18,8 @@ pub use thai::ThaiSegmenter;
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::Token;
 
+#[cfg(feature = "latin-camelcase")]
+mod camel_case;
 #[cfg(feature = "chinese")]
 mod chinese;
 #[cfg(feature = "hebrew")]
