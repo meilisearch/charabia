@@ -1,5 +1,6 @@
+use lindera::dictionary::DictionaryConfig;
 use lindera::mode::{Mode, Penalty};
-use lindera::tokenizer::{DictionaryConfig, Tokenizer, TokenizerConfig};
+use lindera::tokenizer::{Tokenizer, TokenizerConfig};
 use lindera::DictionaryKind;
 use once_cell::sync::Lazy;
 
@@ -22,9 +23,7 @@ static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
 impl Segmenter for JapaneseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let segment_iterator = LINDERA.tokenize(to_segment).unwrap();
-        Box::new(
-            segment_iterator.into_iter().map(|token| &to_segment[token.byte_start..token.byte_end]),
-        )
+        Box::new(segment_iterator.into_iter().map(|token| token.text))
     }
 }
 
