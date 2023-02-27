@@ -52,7 +52,7 @@ fn find_camel_case_boundary(str: &str) -> Option<usize> {
     // Note that using `remainder.chars().count() == 1` may catch more cases (non-ASCII strings)
     // but the main focus here is on " ", "-" and similar that are abundantly produced
     // by `split_word_bounds()` in the Latin segmenter and mere `len()` performs better at that.
-    if str.len() == 1 {
+    if str.len() < 2 {
         return None;
     }
 
@@ -86,6 +86,7 @@ mod test {
         };
     }
 
+    test_segmentation!("", [""], empty_string_is_preserved);
     test_segmentation!("camelCase", ["camel", "Case"], camel_case_is_split);
     test_segmentation!("SCREAMING", ["SCREAMING"], all_caps_is_not_split);
     test_segmentation!("resuméWriter", ["resumé", "Writer"], non_ascii_boundary_on_left);
