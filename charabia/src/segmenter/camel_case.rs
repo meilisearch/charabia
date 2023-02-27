@@ -1,5 +1,4 @@
-use once_cell::sync::Lazy;
-use regex::Regex;
+use finl_unicode::categories::CharacterCategories;
 
 pub(crate) trait CamelCaseSegmentation {
     /// Returns an iterator over substrings of `self` separated on camelCase boundaries.
@@ -24,10 +23,6 @@ impl CamelCaseSegmentation for str {
     }
 }
 
-/// Matches a lowercase letter followed by an uppercase one with any number of optional non-spacing marks in between.
-static CAMEL_CASE_BOUNDARY_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\p{Ll}\p{Mn}*?\p{Lu}").unwrap());
-
 impl<'t> Iterator for CamelCaseParts<'t> {
     type Item = &'t str;
 
@@ -35,22 +30,8 @@ impl<'t> Iterator for CamelCaseParts<'t> {
         match self.state {
             State::Exhausted => None,
             State::InProgress { remainder } => {
-                // CamelCase boundary consists of at least 2 code-points. Avoid expensive regex evaluation on shorter strings.
-                // Note that using `remainder.chars().count() == 1` may catch more cases (non-ASCII strings)
-                // but the main focus here is on " ", "-" and similar that are abundantly produced
-                // by `split_word_bounds()` in the Latin segmenter and mere `len()` performs better at that.
-                if remainder.len() == 1 {
-                    self.state = State::Exhausted;
-                    return Some(remainder);
-                }
-
-                match CAMEL_CASE_BOUNDARY_REGEX.find(remainder) {
-                    Some(mat) => {
-                        // By the nature of the regex, the match must contain at least two chars and this should never panic.
-                        let uppercase_letter_length =
-                            mat.as_str().chars().last().unwrap().len_utf8();
-                        let boundary = mat.end() - uppercase_letter_length;
-
+                match find_camel_case_boundary(remainder) {
+                    Some(boundary) => {
                         self.state = State::InProgress { remainder: &remainder[boundary..] };
                         Some(&remainder[..boundary])
                     }
@@ -64,6 +45,31 @@ impl<'t> Iterator for CamelCaseParts<'t> {
             }
         }
     }
+}
+
+fn find_camel_case_boundary(str: &str) -> Option<usize> {
+    // CamelCase boundary consists of at least 2 code-points. Avoid iterating over shorter strings.
+    // Note that using `remainder.chars().count() == 1` may catch more cases (non-ASCII strings)
+    // but the main focus here is on " ", "-" and similar that are abundantly produced
+    // by `split_word_bounds()` in the Latin segmenter and mere `len()` performs better at that.
+    if str.len() == 1 {
+        return None;
+    }
+
+    let mut last_char_was_lowercase = false;
+
+    str.find(|c: char| {
+        if c.is_mark_nonspacing() {
+            return false;
+        }
+
+        if last_char_was_lowercase && c.is_letter_uppercase() {
+            return true;
+        }
+
+        last_char_was_lowercase = c.is_letter_lowercase();
+        false
+    })
 }
 
 #[cfg(test)]
