@@ -1,7 +1,7 @@
 use unicode_segmentation::UnicodeSegmentation;
 
 #[cfg(feature = "latin-camelcase")]
-use super::camel_case::CamelCaseSegmentation;
+use super::camel_case::split_camel_case_bounds;
 use super::Segmenter;
 
 /// Latin specialized [`Segmenter`].
@@ -21,7 +21,7 @@ impl Segmenter for LatinSegmenter {
         let lemmas = s
             .split_word_bounds()
             .flat_map(|lemma| lemma.split_inclusive('\''))
-            .flat_map(|lemma| lemma.split_camel_case_bounds());
+            .flat_map(split_camel_case_bounds);
 
         Box::new(lemmas)
     }
