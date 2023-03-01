@@ -1,4 +1,8 @@
-name: Check for kVariants updates
+name: Update kVariants dictionary
+
+# This workflow regularly looks for updates of the kVariants dictionary
+# in https://github.com/hfhchan/irg and if there are any, it creates
+# a PR with the changes.
 
 on:
   # Run this at 10:00 every monday.
@@ -12,8 +16,8 @@ env:
   GH_TOKEN: ${{ secrets.MEILI_BOT_GH_PAT }}
 
 jobs:
-  check-for-kvariants-updates:
-    name: Check for kVariants updates
+  update-kvariants-dictionary:
+    name: Update kVariants dictionary
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
