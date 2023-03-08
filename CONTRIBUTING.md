@@ -67,7 +67,7 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
 ```
 
 ### Implement a `Normalizer`
-A `Normalizer` is a struct used to alterate the lemma contained in a Token in order to remove features that doesn't sygnificantly impact the sens like lowecasing, removing accents, or converting Traditionnal Chinese characteres into Simplified Chinese characteres.
+A `Normalizer` is a struct used to alterate the lemma contained in a Token in order to remove features that doesn't sygnificantly impact the sense like lowecasing, removing accents, or converting Traditionnal Chinese characteres into Simplified Chinese characteres.
 
 #### Start the implementation
 We highly recommend to start the implementation by copy-pasting the dummy example (`charabia/src/normalizer/dummy_example.rs`) and follow the instructions in comments.
