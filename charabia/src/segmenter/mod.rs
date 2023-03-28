@@ -15,6 +15,9 @@ use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
 
+#[cfg(feature = "khmer")]
+pub use khmer::KhmerSegmenter;
+
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::Token;
 
@@ -32,6 +35,8 @@ mod latin;
 #[cfg(feature = "thai")]
 mod thai;
 mod utils;
+#[cfg(feature = "khmer")]
+mod khmer;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
 ///
