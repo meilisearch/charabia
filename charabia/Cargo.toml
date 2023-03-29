@@ -30,6 +30,11 @@ pinyin = { version = "0.9", default-features = false, features = [
 wana_kana = { version = "2.1.0", optional = true }
 unicode-normalization = "0.1.22"
 irg-kvariants = "0.1.0"
+icu = { version = "1.1.0", features = ["icu_segmenter", "serde"] }
+litemap = "0.6.1"
+zerovec = "0.9.3"
+icu_provider_blob = "1.1.0"
+icu_provider = { version = "1.1.0", features = ["sync"] }
 
 [features]
 default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase"]
@@ -55,6 +60,8 @@ greek = []
 
 # allow splitting camelCase latin words
 latin-camelcase = ["dep:finl_unicode"]
+
+khmer = []
 
 [dev-dependencies]
 criterion = "0.3"
