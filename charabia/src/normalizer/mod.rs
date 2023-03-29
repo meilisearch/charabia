@@ -11,6 +11,7 @@ pub use self::control_char::ControlCharNormalizer;
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use crate::classifier::ClassifiedTokenIter;
+#[cfg(feature = "greek")]
 use crate::normalizer::greek::GreekNormalizer;
 use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
 use crate::Token;
