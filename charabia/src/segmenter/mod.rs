@@ -68,6 +68,8 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // thai segmenter
         #[cfg(feature = "thai")]
         ((Script::Thai, Language::Tha), Box::new(ThaiSegmenter) as Box<dyn Segmenter>),
+        #[cfg(feature = "khmer")]
+        ((Script::Khmer, Language::Khm), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
