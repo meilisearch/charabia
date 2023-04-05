@@ -1,23 +1,48 @@
 use super::{CharNormalizer, CharOrStr};
 use crate::{Script, Token};
 
-/// A global [`Normalizer`] removing the arabic Tatweel ('ـ') characters.
-/// https://www.compart.com/en/unicode/U+0640
+/// A global [`Normalizer`] for Arabic language.
+/// Arabic alphabet:ا,ب,ت,ث,ج,ح,خ,د,ذ,ر,ز,س,ش,ص,ض,ط,ظ,ع,غ,ف,ق,ك,ل,م,ن,ه,و,ي,ء
+/// Arabic text should be normalized by:
+/// - removing the arabic Tatweel ('ـ') characters.
+/// - normalizing the arabic Alef 'أ','إ','آ','ٱ' to 'ا'
+/// - normalizing the arabic Yeh 'ى' to 'ي'
+/// - removing the arabic diacritics: 'Fatḥah', 'Damma', 'Kasrah', 'Alif Khanjariyah', 'Maddah', 'Sukun', 'Tanwin', 'Shaddah'
+/// - Arabic diacritics: 'َ', 'ُ', 'ِ', 'ٰ', 'ٓ', 'ْ', 'ۡ', 'ً', 'ٍ', 'ٌ', 'ّ',
+/// https://en.wikipedia.org/wiki/Arabic_alphabet
+/// https://en.wikipedia.org/wiki/Arabic_diacritics
 /// https://en.wikipedia.org/wiki/Kashida
+
 pub struct ArabicNormalizer;
 
+// All normalizers only need to implement the method `normalize_char` and the method `should_normalize` of the `CharNormalizer` trait.
 impl CharNormalizer for ArabicNormalizer {
+    // Creates the normalized version of the provided char.
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
-        (!is_tatweel(c)).then(|| c.into())
+        normalize_arabic_char(c)
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Arabic && token.lemma().chars().any(is_tatweel)
+        token.script == Script::Arabic && token.lemma.chars().any(is_shoud_normalize)
     }
 }
 
-fn is_tatweel(c: char) -> bool {
-    c == 'ـ'
+fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
+    match c {
+        'ـ' => None,
+        'أ' | 'إ' | 'آ' | 'ٱ' => Some('ا'.into()),
+        'ى' => Some('ي'.into()),
+        'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ' | 'ّ' => None,
+        _ => Some(c.into()),
+    }
+}
+
+fn is_shoud_normalize(c: char) -> bool {
+    match c {
+        'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ'
+        | 'ّ' => true,
+        _ => false,
+    }
 }
 
 #[cfg(test)]
