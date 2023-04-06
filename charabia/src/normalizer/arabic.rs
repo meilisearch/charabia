@@ -57,6 +57,7 @@ mod test {
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
         vec![
+            // Tatweel
             Token {
                 lemma: Owned("الحمــــــد".to_string()),
                 char_end: 10,
@@ -81,6 +82,45 @@ mod test {
                     (2, 2),
                     (2, 2),
                 ]),
+                ..Default::default()
+            },
+            // Alef
+            Token {
+                lemma: Owned("آليس".to_string()),
+                char_end: 4,
+                byte_end: 8,
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("إبرأهيم".to_string()),
+                char_end: 7,
+                byte_end: 14,
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            // Yeh
+            Token {
+                lemma: Owned("يومى".to_string()),
+                char_end: 4,
+                byte_end: 8,
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            // Taa Marbuta
+            Token {
+                lemma: Owned("النهاردة".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            // Diacritics
+            Token {
+                lemma: Owned("الْعَرَبِيَّةُ".to_string()),
+                char_end: 14,
+                byte_end: 28,
+                script: Script::Arabic,
                 ..Default::default()
             },
         ]
@@ -128,6 +168,70 @@ mod test {
                 ]),
                 ..Default::default()
             },
+            Token {
+                lemma: Owned("اليس".to_string()),
+                char_end: 4,
+                byte_end: 8,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("ابراهيم".to_string()),
+                char_end: 7,
+                byte_end: 14,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("يومي".to_string()),
+                char_end: 4,
+                byte_end: 8,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("النهارده".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("العربيه".to_string()),
+                char_end: 14,
+                byte_end: 28,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                ]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
         ]
     }
 
@@ -171,6 +275,70 @@ mod test {
                     (2, 2),
                     (2, 2),
                 ]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("اليس".to_string()),
+                char_end: 4,
+                byte_end: 8,
+                script: Script::Arabic,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("ابراهيم".to_string()),
+                char_end: 7,
+                byte_end: 14,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("يومي".to_string()),
+                char_end: 4,
+                byte_end: 8,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("النهارده".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                script: Script::Arabic,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("العربيه".to_string()),
+                char_end: 14,
+                byte_end: 28,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                    (2, 0),
+                    (2, 2),
+                    (2, 0),
+                ]),
+                script: Script::Arabic,
                 ..Default::default()
             },
         ]
