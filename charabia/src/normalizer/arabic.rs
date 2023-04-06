@@ -7,6 +7,7 @@ use crate::{Script, Token};
 /// - removing the arabic Tatweel ('ـ') characters.
 /// - normalizing the arabic Alef 'أ','إ','آ','ٱ' to 'ا'
 /// - normalizing the arabic Yeh 'ى' to 'ي'
+/// - Normalizing the arabic Taa Marbuta 'ة' to 'ه'
 /// - removing the arabic diacritics: 'Fatḥah', 'Damma', 'Kasrah', 'Alif Khanjariyah', 'Maddah', 'Sukun', 'Tanwin', 'Shaddah'
 /// - Arabic diacritics: 'َ', 'ُ', 'ِ', 'ٰ', 'ٓ', 'ْ', 'ۡ', 'ً', 'ٍ', 'ٌ', 'ّ',
 /// https://en.wikipedia.org/wiki/Arabic_alphabet
@@ -32,6 +33,7 @@ fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
         'ـ' => None,
         'أ' | 'إ' | 'آ' | 'ٱ' => Some('ا'.into()),
         'ى' => Some('ي'.into()),
+        'ة' => Some('ه'.into()),
         'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ' | 'ّ' => None,
         _ => Some(c.into()),
     }
@@ -39,7 +41,7 @@ fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
 
 fn is_shoud_normalize(c: char) -> bool {
     match c {
-        'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ'
+        'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'ة' | 'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ'
         | 'ّ' => true,
         _ => false,
     }
