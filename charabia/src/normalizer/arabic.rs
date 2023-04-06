@@ -8,10 +8,7 @@ use crate::{Script, Token};
 /// - normalizing the arabic Alef 'أ','إ','آ','ٱ' to 'ا'
 /// - normalizing the arabic Yeh 'ى' to 'ي'
 /// - Normalizing the arabic Taa Marbuta 'ة' to 'ه'
-/// - removing the arabic diacritics: 'Fatḥah', 'Damma', 'Kasrah', 'Alif Khanjariyah', 'Maddah', 'Sukun', 'Tanwin', 'Shaddah'
-/// - Arabic diacritics: 'َ', 'ُ', 'ِ', 'ٰ', 'ٓ', 'ْ', 'ۡ', 'ً', 'ٍ', 'ٌ', 'ّ',
 /// https://en.wikipedia.org/wiki/Arabic_alphabet
-/// https://en.wikipedia.org/wiki/Arabic_diacritics
 /// https://en.wikipedia.org/wiki/Kashida
 
 pub struct ArabicNormalizer;
@@ -34,15 +31,13 @@ fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
         'أ' | 'إ' | 'آ' | 'ٱ' => Some('ا'.into()),
         'ى' => Some('ي'.into()),
         'ة' => Some('ه'.into()),
-        'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ' | 'ّ' => None,
         _ => Some(c.into()),
     }
 }
 
 fn is_shoud_normalize(c: char) -> bool {
     match c {
-        'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'ة' | 'َ' | 'ُ' | 'ِ' | 'ٰ' | 'ٓ' | 'ْ' | 'ۡ' | 'ً' | 'ٍ' | 'ٌ'
-        | 'ّ' => true,
+        'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'ة' => true,
         _ => false,
     }
 }
@@ -112,14 +107,6 @@ mod test {
                 lemma: Owned("النهاردة".to_string()),
                 char_end: 8,
                 byte_end: 16,
-                script: Script::Arabic,
-                ..Default::default()
-            },
-            // Diacritics
-            Token {
-                lemma: Owned("الْعَرَبِيَّةُ".to_string()),
-                char_end: 14,
-                byte_end: 28,
                 script: Script::Arabic,
                 ..Default::default()
             },
@@ -209,29 +196,6 @@ mod test {
                 script: Script::Arabic,
                 ..Default::default()
             },
-            Token {
-                lemma: Owned("العربيه".to_string()),
-                char_end: 14,
-                byte_end: 28,
-                char_map: Some(vec![
-                    (2, 2),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                ]),
-                script: Script::Arabic,
-                ..Default::default()
-            },
         ]
     }
 
@@ -314,29 +278,6 @@ mod test {
                     (2, 2),
                     (2, 2),
                     (2, 2),
-                ]),
-                script: Script::Arabic,
-                ..Default::default()
-            },
-            Token {
-                lemma: Owned("العربيه".to_string()),
-                char_end: 14,
-                byte_end: 28,
-                char_map: Some(vec![
-                    (2, 2),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
-                    (2, 0),
-                    (2, 2),
-                    (2, 0),
                 ]),
                 script: Script::Arabic,
                 ..Default::default()
