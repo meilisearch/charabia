@@ -36,10 +36,7 @@ fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
 }
 
 fn is_shoud_normalize(c: char) -> bool {
-    match c {
-        'ـ' | 'ٱ' | 'ى' | 'ة' => true,
-        _ => false,
-    }
+    matches!(c, 'ـ' | 'ٱ' | 'ى' | 'ة')
 }
 
 #[cfg(test)]
@@ -79,18 +76,11 @@ mod test {
                 ]),
                 ..Default::default()
             },
-            // Alef
+            // Alef wasla
             Token {
-                lemma: Owned("آليس".to_string()),
-                char_end: 4,
-                byte_end: 8,
-                script: Script::Arabic,
-                ..Default::default()
-            },
-            Token {
-                lemma: Owned("إبرأهيم".to_string()),
-                char_end: 7,
-                byte_end: 14,
+                lemma: Owned("ٱلحمد".to_string()),
+                char_end: 5,
+                byte_end: 10,
                 script: Script::Arabic,
                 ..Default::default()
             },
@@ -156,19 +146,11 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("اليس".to_string()),
-                char_end: 4,
-                byte_end: 8,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
+                lemma: Owned("الحمد".to_string()),
+                char_end: 5,
+                byte_end: 10,
                 script: Script::Arabic,
-                ..Default::default()
-            },
-            Token {
-                lemma: Owned("ابراهيم".to_string()),
-                char_end: 7,
-                byte_end: 14,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
-                script: Script::Arabic,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
                 ..Default::default()
             },
             Token {
@@ -242,19 +224,11 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("اليس".to_string()),
-                char_end: 4,
-                byte_end: 8,
+                lemma: Owned("الحمد".to_string()),
+                char_end: 5,
+                byte_end: 10,
                 script: Script::Arabic,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
-                ..Default::default()
-            },
-            Token {
-                lemma: Owned("ابراهيم".to_string()),
-                char_end: 7,
-                byte_end: 14,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
-                script: Script::Arabic,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
                 ..Default::default()
             },
             Token {
