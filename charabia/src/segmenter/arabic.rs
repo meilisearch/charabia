@@ -24,9 +24,15 @@ impl Segmenter for ArabicSegmenter {
             .flat_map(|lemma| lemma.split_inclusive(|c: char| c.is_ascii_punctuation()))
             // Check if the lemma starts with `ال` and if so, split it into two lemmas.
             .flat_map(|lemma| {
-                if let Some(lemma_without_the) = lemma.strip_prefix("ال") {
-                    // split the lemma into two lemmas. The `ال` and the rest of the word.
-                    vec!["ال", lemma_without_the]
+                // check if lemma starts with 'ال', 'أل', 'إل', 'آل' or 'ٱل'
+                if lemma.len() > 2
+                    && (lemma.starts_with("ال")
+                        || lemma.starts_with("أل")
+                        || lemma.starts_with("إل")
+                        || lemma.starts_with("آل")
+                        || lemma.starts_with("ٱل"))
+                {
+                    vec![&lemma[..4], &lemma[4..]]
                 } else {
                     vec![lemma]
                 }
@@ -43,7 +49,7 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     // Original version of the text.
-    const TEXT: &str = "السلام عليكم، كيف حالكم؟ (أتمنى أن تكونوا بأفضل الأحوال)";
+    const TEXT: &str = "السلام عليكم، كيف حالكم؟ (أتمنى أن تكونوا بأفضل ٱلأحوال)";
 
     // Segmented version of the text.
     const SEGMENTED: &[&str] = &[
@@ -67,7 +73,7 @@ mod test {
         " ",
         "بأفضل",
         " ",
-        "ال",
+        "ٱل",
         "أحوال",
         ")",
     ];
