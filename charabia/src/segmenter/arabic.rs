@@ -20,8 +20,6 @@ impl Segmenter for ArabicSegmenter {
         let segment_iterator = to_segment
             // Split the text by word boundaries.
             .split_word_bounds()
-            // Split the text by punctuation.
-            .flat_map(|lemma| lemma.split_inclusive(|c: char| c.is_ascii_punctuation()))
             // Check if the lemma starts with `ال` and if so, split it into two lemmas.
             .flat_map(|lemma| {
                 // check if lemma starts with 'ال', 'أل', 'إل', 'آل' or 'ٱل'
