@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
+pub use arabic::ArabicSegmenter;
 #[cfg(feature = "chinese")]
 pub use chinese::ChineseSegmenter;
 #[cfg(feature = "hebrew")]
@@ -18,6 +19,7 @@ pub use thai::ThaiSegmenter;
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::Token;
 
+mod arabic;
 #[cfg(feature = "latin-camelcase")]
 mod camel_case;
 #[cfg(feature = "chinese")]
@@ -63,6 +65,8 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // thai segmenter
         #[cfg(feature = "thai")]
         ((Script::Thai, Language::Tha), Box::new(ThaiSegmenter) as Box<dyn Segmenter>),
+        // arabic segmenter
+        ((Script::Arabic, Language::Ara), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
