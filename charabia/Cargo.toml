@@ -23,11 +23,11 @@ serde = "1.0"
 slice-group-by = "0.3.0"
 unicode-segmentation = "1.10.1"
 whatlang = "0.16.2"
-lindera = { version = "=0.23.0", default-features = false, optional = true }
+lindera = { version = "=0.23.1", default-features = false, optional = true }
 pinyin = { version = "0.9", default-features = false, features = [
   "with_tone",
 ], optional = true }
-wana_kana = { version = "2.1.0", optional = true }
+wana_kana = { version = "3.0.0", optional = true }
 unicode-normalization = "0.1.22"
 irg-kvariants = "0.1.0"
 

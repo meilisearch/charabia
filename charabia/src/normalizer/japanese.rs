@@ -1,8 +1,6 @@
 use std::borrow::Cow;
 
-use wana_kana::is_hiragana::*;
-use wana_kana::to_hiragana::to_hiragana_with_opt;
-use wana_kana::Options;
+use wana_kana::{ConvertJapanese, IsJapaneseStr, Options};
 
 use super::{Normalizer, NormalizerOption};
 use crate::detection::{Language, Script};
@@ -25,13 +23,10 @@ impl Normalizer for JapaneseNormalizer {
     // so the `normalize` method is overloaded to skip the useless char_map computing.
     fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
         // Convert Katakana to Hiragana
-        let dst = to_hiragana_with_opt(
-            token.lemma(),
-            Options {
-                pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
-                ..Default::default()
-            },
-        );
+        let dst = token.lemma().to_hiragana_with_opt(Options {
+            pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
+            ..Default::default()
+        });
 
         token.lemma = Cow::Owned(dst);
         token
@@ -40,7 +35,7 @@ impl Normalizer for JapaneseNormalizer {
     fn should_normalize(&self, token: &Token) -> bool {
         token.script == Script::Cj
             && matches!(token.language, None | Some(Language::Jpn))
-            && !is_hiragana(token.lemma())
+            && !token.lemma().is_hiragana()
     }
 }
 
