@@ -20,7 +20,7 @@ impl Segmenter for LatinSegmenter {
     fn segment_str<'o>(&self, s: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let lemmas = s
             .split_word_bounds()
-            .flat_map(|lemma| lemma.split_inclusive('\''))
+            .flat_map(|lemma| lemma.split_inclusive(['\'', '’', '‘', '‛']))
             .flat_map(split_camel_case_bounds);
 
         Box::new(lemmas)
@@ -32,9 +32,9 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     const TEXT: &str =
-        "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F! camelCase";
+        "The quick (\"brown\") fox can’t jump 32.3 feet, right? Brr, it's 29.3°F! camelCase";
     const SEGMENTED: &[&str] = &[
-        "The", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can'", "t", " ",
+        "The", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can’", "t", " ",
         "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "Brr", ",", " ", "it'", "s",
         " ", "29.3", "°", "F", "!", " ", "camel", "Case",
     ];
