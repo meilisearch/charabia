@@ -14,6 +14,7 @@ use crate::classifier::ClassifiedTokenIter;
 #[cfg(feature = "greek")]
 use crate::normalizer::greek::GreekNormalizer;
 use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
+use crate::normalizer::quote::QuoteNormalizer;
 use crate::Token;
 
 mod arabic;
@@ -27,6 +28,7 @@ mod greek;
 mod japanese;
 mod lowercase;
 mod nonspacing_mark;
+mod quote;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`].
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
@@ -40,6 +42,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         #[cfg(feature = "greek")]
         Box::new(GreekNormalizer),
         Box::new(ControlCharNormalizer),
+        Box::new(QuoteNormalizer),
         Box::new(NonspacingMarkNormalizer),
         Box::new(ArabicNormalizer),
     ]
