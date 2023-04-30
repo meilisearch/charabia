@@ -1,7 +1,6 @@
-use lindera::dictionary::DictionaryConfig;
-use lindera::mode::{Mode, Penalty};
-use lindera::tokenizer::{Tokenizer, TokenizerConfig};
-use lindera::DictionaryKind;
+use lindera_core::mode::{Mode, Penalty};
+use lindera_dictionary::{DictionaryConfig, DictionaryKind};
+use lindera_tokenizer::tokenizer::{Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
