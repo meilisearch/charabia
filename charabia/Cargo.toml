@@ -23,7 +23,9 @@ serde = "1.0"
 slice-group-by = "0.3.0"
 unicode-segmentation = "1.10.1"
 whatlang = "0.16.2"
-lindera = { version = "=0.23.1", default-features = false, optional = true }
+lindera-core = "=0.24.0"
+lindera-dictionary = "=0.24.0"
+lindera-tokenizer = { version = "=0.24.0", default-features = false, optional = true }
 pinyin = { version = "0.9", default-features = false, features = [
   "with_tone",
 ], optional = true }
@@ -41,11 +43,11 @@ chinese = ["dep:pinyin", "dep:jieba-rs"]
 hebrew = []
 
 # allow japanese specialized tokenization
-japanese = ["lindera/ipadic", "lindera/ipadic-compress"]
+japanese = ["lindera-tokenizer/ipadic", "lindera-tokenizer/ipadic-compress"]
 japanese-transliteration = ["dep:wana_kana"]
 
 # allow korean specialized tokenization
-korean = ["lindera/ko-dic", "lindera/ko-dic-compress"]
+korean = ["lindera-tokenizer/ko-dic", "lindera-tokenizer/ko-dic-compress"]
 
 # allow thai specialized tokenization
 thai = []
