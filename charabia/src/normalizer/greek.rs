@@ -30,6 +30,7 @@ mod test {
 
     use crate::normalizer::test::test_normalizer;
     use crate::normalizer::{Normalizer, NormalizerOption};
+    use crate::token::TokenKind;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -62,6 +63,7 @@ mod test {
             byte_end: 10,
             char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
             script: Script::Greek,
+            kind: TokenKind::Word,
             ..Default::default()
         }]
     }

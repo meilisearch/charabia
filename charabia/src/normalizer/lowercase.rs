@@ -29,10 +29,21 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::token::TokenKind;
 
     fn tokens() -> Vec<Token<'static>> {
         vec![Token {
             lemma: Owned("PascalCase".to_string()),
+            char_end: 10,
+            byte_end: 10,
+            script: Script::Latin,
+            ..Default::default()
+        }]
+    }
+
+    fn normalizer_result() -> Vec<Token<'static>> {
+        vec![Token {
+            lemma: Owned("pascalcase".to_string()),
             char_end: 10,
             byte_end: 10,
             script: Script::Latin,
@@ -46,9 +57,10 @@ mod test {
             char_end: 10,
             byte_end: 10,
             script: Script::Latin,
+            kind: TokenKind::Word,
             ..Default::default()
         }]
     }
 
-    test_normalizer!(LowercaseNormalizer, tokens(), normalized_tokens(), normalized_tokens());
+    test_normalizer!(LowercaseNormalizer, tokens(), normalizer_result(), normalized_tokens());
 }

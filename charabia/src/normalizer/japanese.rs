@@ -44,6 +44,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::token::TokenKind;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -117,6 +118,7 @@ mod test {
                 char_map: Some(vec![(3, 6), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -126,6 +128,7 @@ mod test {
                 char_map: Some(vec![(3, 6), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -144,6 +147,7 @@ mod test {
                 ]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
         ]
