@@ -55,7 +55,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 /// Iterator over Normalized [`Token`]s.
 pub struct NormalizedTokenIter<'o, 'al, 'no> {
     token_iter: SegmentedTokenIter<'o, 'al>,
-    options: NormalizerOption<'no>,
+    options: &'no NormalizerOption<'no>,
 }
 
 impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_> {
@@ -67,10 +67,10 @@ impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_> {
 }
 
 /// Structure for providing options to a normalizer.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Default)]
 pub struct NormalizerOption<'no> {
     pub create_char_map: bool,
-    pub stop_words: Option<&'no Set<&'no [u8]>>,
+    pub stop_words: Option<Set<&'no [u8]>>,
 }
 
 /// Trait defining a normalizer.
@@ -78,7 +78,7 @@ pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
     /// Options can be set using the provided [`NormalizerOption`].
     ///
-    fn normalize<'o>(&self, token: Token<'o>, options: NormalizerOption) -> Token<'o>;
+    fn normalize<'o>(&self, token: Token<'o>, options: &NormalizerOption) -> Token<'o>;
 
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
@@ -142,7 +142,7 @@ impl<T> Normalizer for T
 where
     T: CharNormalizer,
 {
-    fn normalize<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Token<'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
         if options.create_char_map {
             match token.char_map.take() {
                 Some(mut char_map) => {
@@ -207,7 +207,10 @@ impl<'o, 'al, 'no> SegmentedTokenIter<'o, 'al> {
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    pub fn normalize(self, options: NormalizerOption<'no>) -> NormalizedTokenIter<'o, 'al, 'no> {
+    pub fn normalize(
+        self,
+        options: &'no NormalizerOption<'no>,
+    ) -> NormalizedTokenIter<'o, 'al, 'no> {
         NormalizedTokenIter { token_iter: self, options }
     }
 }
@@ -216,7 +219,7 @@ impl Token<'_> {
     /// Normalize [`Token`] using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    pub fn normalize(mut self, options: NormalizerOption) -> Self {
+    pub fn normalize(mut self, options: &NormalizerOption) -> Self {
         for normalizer in NORMALIZERS.iter() {
             if normalizer.should_normalize(&self) {
                 self = normalizer.normalize(self, options);
@@ -236,10 +239,11 @@ mod test {
 
             #[test]
             fn normalizer_normalize() {
+                let no = NormalizerOption { create_char_map: true, stop_words: None };
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
                     .map(|token| if Normalizer::should_normalize(&$normalizer, &token) {
-                        $normalizer.normalize(token, NormalizerOption { create_char_map: true, stop_words: None })
+                        $normalizer.normalize(token, &no)
                     } else {
                         token
                     })
@@ -260,7 +264,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
             #[test]
             fn global_normalize() {
                 let options = NormalizerOption { create_char_map: true, stop_words: None };
-                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(options)).collect();
+                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(&options)).collect();
                 assert_eq!(
                     &normalized_tokens[..],
                     $global_result,

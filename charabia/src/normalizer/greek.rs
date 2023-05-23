@@ -11,7 +11,7 @@ pub struct GreekNormalizer;
 impl Normalizer for GreekNormalizer {
     // converting  "ς" to "σ" doesn't change the characters length,
     // so the `normalize` method is overloaded to skip the useless char_map computing.
-    fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, _options: &NormalizerOption) -> Token<'o> {
         if let Some(prefix) = token.lemma.strip_suffix('ς') {
             token.lemma = Cow::Owned([prefix, "σ"].concat())
         }

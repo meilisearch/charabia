@@ -15,10 +15,11 @@ use crate::{SeparatorKind, Token, TokenKind};
 pub struct Classifier;
 
 impl Normalizer for Classifier {
-    fn normalize<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Token<'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
         let lemma = token.lemma();
         let mut is_hard_separator = false;
-        if options.stop_words.map(|stop_words| stop_words.contains(lemma)).unwrap_or(false) {
+        if options.stop_words.as_ref().map(|stop_words| stop_words.contains(lemma)).unwrap_or(false)
+        {
             token.kind = TokenKind::StopWord;
         } else if lemma.chars().all(|c| match classify_separator(c) {
             Some(SeparatorKind::Hard) => {
@@ -166,18 +167,18 @@ mod test {
         let stop_words = Set::from_iter(["the"].iter()).unwrap();
         let stop_words = stop_words.as_fst().as_bytes();
         let stop_words = Set::new(stop_words).unwrap();
-        let options = NormalizerOption { create_char_map: true, stop_words: Some(&stop_words) };
+        let options = NormalizerOption { create_char_map: true, stop_words: Some(stop_words) };
 
         let token = Classifier
-            .normalize(Token { lemma: Cow::Borrowed("the"), ..Default::default() }, options);
+            .normalize(Token { lemma: Cow::Borrowed("the"), ..Default::default() }, &options);
         assert!(token.is_stopword());
 
         let token = Classifier
-            .normalize(Token { lemma: Cow::Borrowed("The"), ..Default::default() }, options);
+            .normalize(Token { lemma: Cow::Borrowed("The"), ..Default::default() }, &options);
         assert!(token.is_word());
 
         let token = Classifier
-            .normalize(Token { lemma: Cow::Borrowed("foobar"), ..Default::default() }, options);
+            .normalize(Token { lemma: Cow::Borrowed("foobar"), ..Default::default() }, &options);
         assert!(token.is_word());
     }
 }

@@ -84,7 +84,8 @@ pub trait Tokenize<'o> {
 
 impl Tokenize<'_> for &str {
     fn tokenize(&self) -> NormalizedTokenIter {
-        self.segment().normalize(NormalizerOption::default())
+        const NO: NormalizerOption = NormalizerOption { create_char_map: false, stop_words: None };
+        self.segment().normalize(&NO)
     }
 
     fn reconstruct(&self) -> ReconstructedTokenIter {
@@ -97,7 +98,7 @@ impl Tokenize<'_> for &str {
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 pub struct Tokenizer<'al, 'no> {
     allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
-    normalizer_option: NormalizerOption<'no>,
+    normalizer_option: &'no NormalizerOption<'no>,
 }
 
 impl<'al, 'no> Tokenizer<'al, 'no> {
@@ -144,8 +145,6 @@ impl<'al, 'no> Tokenizer<'al, 'no> {
 ///
 /// // create a set of stop words.
 /// let stop_words: Set<Vec<u8>> = Set::from_iter(["the"].iter()).unwrap();
-/// let stop_words = stop_words.as_fst().as_bytes();
-/// let stop_words = Set::new(stop_words).unwrap();
 ///
 /// // configurate stop words.
 /// builder.stop_words(&stop_words);
@@ -154,28 +153,33 @@ impl<'al, 'no> Tokenizer<'al, 'no> {
 /// let tokenizer = builder.build();
 /// ```
 ///
-pub struct TokenizerBuilder<'al, 'no> {
+pub struct TokenizerBuilder<'al, 'no, A> {
     allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    stop_words: Option<&'no Set<A>>,
     normalizer_option: NormalizerOption<'no>,
 }
 
-impl<'al, 'no> TokenizerBuilder<'al, 'no> {
+impl<'al, 'no, A> TokenizerBuilder<'al, 'no, A> {
     /// Create a `TokenizerBuilder` with default settings,
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
-    pub fn new() -> TokenizerBuilder<'al, 'no> {
-        Self { normalizer_option: NormalizerOption::default(), allow_list: None }
+    pub fn new() -> TokenizerBuilder<'al, 'no, A> {
+        Self { normalizer_option: NormalizerOption::default(), allow_list: None, stop_words: None }
     }
 }
 
-impl<'al, 'no> TokenizerBuilder<'al, 'no> {
+impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments
     ///
     /// * `stop_words` - a `Set` of the words to classify as stop words.
-    pub fn stop_words(&mut self, stop_words: &'no Set<&'no [u8]>) -> &mut Self {
-        self.normalizer_option.stop_words = Some(stop_words);
+    pub fn stop_words(&mut self, stop_words: &'no Set<A>) -> &mut Self {
+        self.stop_words = Some(stop_words);
+        self.normalizer_option.stop_words = self.stop_words.map(|sw| {
+            let sw = sw.as_fst().as_bytes();
+            Set::new(sw).unwrap()
+        });
         self
     }
 
@@ -200,12 +204,12 @@ impl<'al, 'no> TokenizerBuilder<'al, 'no> {
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build(&self) -> Tokenizer<'al, 'no> {
-        Tokenizer { normalizer_option: self.normalizer_option, allow_list: self.allow_list }
+    pub fn build(&'no self) -> Tokenizer<'al, 'no> {
+        Tokenizer { normalizer_option: &self.normalizer_option, allow_list: self.allow_list }
     }
 }
 
-impl Default for TokenizerBuilder<'_, '_> {
+impl Default for TokenizerBuilder<'_, '_, Vec<u8>> {
     fn default() -> Self {
         Self::new()
     }
@@ -236,8 +240,6 @@ mod test {
 
         let tokens: Vec<_> = {
             let stop_words: Set<Vec<u8>> = Set::from_iter(["to"].iter()).unwrap();
-            let stop_words = stop_words.as_fst().as_bytes();
-            let stop_words = Set::new(stop_words).unwrap();
             let mut builder = TokenizerBuilder::new();
             let builder = builder.stop_words(&stop_words);
             let tokens = {
