@@ -33,22 +33,28 @@ mod lowercase;
 mod nonspacing_mark;
 mod quote;
 
-/// List of [`Normalizer`]s used by [`Normalize::normalize`].
+/// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
         Box::new(CompatibilityDecompositionNormalizer),
         Box::new(LowercaseNormalizer),
+        Box::new(ControlCharNormalizer),
         Box::new(Classifier),
+    ]
+});
+
+/// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
+pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
+    vec![
+        Box::new(QuoteNormalizer),
         #[cfg(feature = "chinese")]
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
         #[cfg(feature = "greek")]
         Box::new(GreekNormalizer),
-        Box::new(ControlCharNormalizer),
-        Box::new(QuoteNormalizer),
-        Box::new(NonspacingMarkNormalizer),
         Box::new(ArabicNormalizer),
+        Box::new(NonspacingMarkNormalizer),
     ]
 });
 
@@ -71,6 +77,7 @@ impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_> {
 pub struct NormalizerOption<'no> {
     pub create_char_map: bool,
     pub stop_words: Option<Set<&'no [u8]>>,
+    pub lossy: bool,
 }
 
 /// Trait defining a normalizer.
@@ -226,6 +233,14 @@ impl Token<'_> {
             }
         }
 
+        if options.lossy {
+            for normalizer in LOSSY_NORMALIZERS.iter() {
+                if normalizer.should_normalize(&self) {
+                    self = normalizer.normalize(self, options);
+                }
+            }
+        }
+
         self
     }
 }
@@ -239,7 +254,7 @@ mod test {
 
             #[test]
             fn normalizer_normalize() {
-                let no = NormalizerOption { create_char_map: true, stop_words: None };
+                let no = NormalizerOption { create_char_map: true, stop_words: None, lossy: true };
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
                     .map(|token| if Normalizer::should_normalize(&$normalizer, &token) {
@@ -263,7 +278,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 
             #[test]
             fn global_normalize() {
-                let options = NormalizerOption { create_char_map: true, stop_words: None };
+                let options = NormalizerOption { create_char_map: true, stop_words: None, lossy: true };
                 let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(&options)).collect();
                 assert_eq!(
                     &normalized_tokens[..],

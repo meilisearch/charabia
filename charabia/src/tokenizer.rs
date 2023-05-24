@@ -84,7 +84,8 @@ pub trait Tokenize<'o> {
 
 impl Tokenize<'_> for &str {
     fn tokenize(&self) -> NormalizedTokenIter {
-        const NO: NormalizerOption = NormalizerOption { create_char_map: false, stop_words: None };
+        const NO: NormalizerOption =
+            NormalizerOption { create_char_map: false, stop_words: None, lossy: true };
         self.segment().normalize(&NO)
     }
 
@@ -190,6 +191,19 @@ impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// * `create_char_map` - a `bool` that indicates whether a `char_map` should be created.
     pub fn create_char_map(&mut self, create_char_map: bool) -> &mut Self {
         self.normalizer_option.create_char_map = create_char_map;
+        self
+    }
+
+    /// Enable or disable the lossy normalization.
+    ///
+    /// A lossy normalization is a kind of normalization that could change the meaning in some way.
+    /// Removing diacritics is considered lossy, for instance, in French the word `maïs` (`corn`) will be normalized as `mais` (`but`) which change the meaning.
+    ///
+    /// # Arguments
+    ///
+    /// * `lossy` - a `bool` that enable or disable the lossy normalization.
+    pub fn lossy_normalization(&mut self, lossy: bool) -> &mut Self {
+        self.normalizer_option.lossy = lossy;
         self
     }
 

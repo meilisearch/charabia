@@ -167,7 +167,8 @@ mod test {
         let stop_words = Set::from_iter(["the"].iter()).unwrap();
         let stop_words = stop_words.as_fst().as_bytes();
         let stop_words = Set::new(stop_words).unwrap();
-        let options = NormalizerOption { create_char_map: true, stop_words: Some(stop_words) };
+        let options =
+            NormalizerOption { create_char_map: true, stop_words: Some(stop_words), lossy: false };
 
         let token = Classifier
             .normalize(Token { lemma: Cow::Borrowed("the"), ..Default::default() }, &options);
