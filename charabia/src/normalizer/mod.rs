@@ -37,7 +37,6 @@ mod quote;
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
         Box::new(CompatibilityDecompositionNormalizer),
-        Box::new(LowercaseNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(Classifier),
     ]
@@ -46,6 +45,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
 pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
+        Box::new(LowercaseNormalizer),
         Box::new(QuoteNormalizer),
         #[cfg(feature = "chinese")]
         Box::new(ChineseNormalizer),
