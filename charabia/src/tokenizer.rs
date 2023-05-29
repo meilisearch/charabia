@@ -106,7 +106,7 @@ impl<'al, 'no> Tokenizer<'al, 'no> {
     /// Creates an Iterator over [`Token`]s.
     ///
     /// The provided text is segmented creating tokens,
-    /// then tokens are normalized and classified.
+    /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
     pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'al, 'no> {
         original.segment_with_allowlist(self.allow_list).normalize(self.normalizer_option)
     }
