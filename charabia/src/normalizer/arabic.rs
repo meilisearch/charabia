@@ -45,6 +45,7 @@ mod test {
 
     use crate::normalizer::test::test_normalizer;
     use crate::normalizer::{Normalizer, NormalizerOption};
+    use crate::token::TokenKind;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -202,6 +203,7 @@ mod test {
                     (2, 2),
                 ]),
                 script: Script::Arabic,
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -221,6 +223,7 @@ mod test {
                     (2, 2),
                     (2, 2),
                 ]),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -229,6 +232,7 @@ mod test {
                 byte_end: 10,
                 script: Script::Arabic,
                 char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -237,6 +241,7 @@ mod test {
                 byte_end: 8,
                 char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
                 script: Script::Arabic,
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -254,6 +259,7 @@ mod test {
                     (2, 2),
                 ]),
                 script: Script::Arabic,
+                kind: TokenKind::Word,
                 ..Default::default()
             },
         ]

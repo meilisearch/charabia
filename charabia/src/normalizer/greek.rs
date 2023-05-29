@@ -11,7 +11,7 @@ pub struct GreekNormalizer;
 impl Normalizer for GreekNormalizer {
     // converting  "ς" to "σ" doesn't change the characters length,
     // so the `normalize` method is overloaded to skip the useless char_map computing.
-    fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, _options: &NormalizerOption) -> Token<'o> {
         if let Some(prefix) = token.lemma.strip_suffix('ς') {
             token.lemma = Cow::Owned([prefix, "σ"].concat())
         }
@@ -30,6 +30,7 @@ mod test {
 
     use crate::normalizer::test::test_normalizer;
     use crate::normalizer::{Normalizer, NormalizerOption};
+    use crate::token::TokenKind;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -62,6 +63,7 @@ mod test {
             byte_end: 10,
             char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
             script: Script::Greek,
+            kind: TokenKind::Word,
             ..Default::default()
         }]
     }

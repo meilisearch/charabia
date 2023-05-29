@@ -21,7 +21,7 @@ pub struct JapaneseNormalizer;
 impl Normalizer for JapaneseNormalizer {
     // converting katakana to hiragana doesn't change the characters length,
     // so the `normalize` method is overloaded to skip the useless char_map computing.
-    fn normalize<'o>(&self, mut token: Token<'o>, _options: NormalizerOption) -> Token<'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, _options: &NormalizerOption) -> Token<'o> {
         // Convert Katakana to Hiragana
         let dst = token.lemma().to_hiragana_with_opt(Options {
             pass_romaji: true, // Otherwise 'ダメ駄目だめHi' would become 'だめ駄目だめひ'
@@ -44,6 +44,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::token::TokenKind;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -117,6 +118,7 @@ mod test {
                 char_map: Some(vec![(3, 6), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -126,6 +128,7 @@ mod test {
                 char_map: Some(vec![(3, 6), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
@@ -144,6 +147,7 @@ mod test {
                 ]),
                 script: Script::Cj,
                 language: Some(Language::Jpn),
+                kind: TokenKind::Word,
                 ..Default::default()
             },
         ]
