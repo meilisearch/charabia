@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use fst::Set;
 
 use crate::detection::{Language, Script};
-use crate::normalizer::{NormalizedTokenIter, NormalizerOption};
+use crate::normalizer::{ClassifierOption, NormalizedTokenIter, NormalizerOption};
 use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter};
 use crate::Token;
 
@@ -84,9 +84,7 @@ pub trait Tokenize<'o> {
 
 impl Tokenize<'_> for &str {
     fn tokenize(&self) -> NormalizedTokenIter {
-        const NO: NormalizerOption =
-            NormalizerOption { create_char_map: false, stop_words: None, lossy: true };
-        self.segment().normalize(&NO)
+        self.segment().normalize(&crate::normalizer::DEFAULT_NORMALIZER_OPTION)
     }
 
     fn reconstruct(&self) -> ReconstructedTokenIter {
@@ -177,10 +175,19 @@ impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// * `stop_words` - a `Set` of the words to classify as stop words.
     pub fn stop_words(&mut self, stop_words: &'no Set<A>) -> &mut Self {
         self.stop_words = Some(stop_words);
-        self.normalizer_option.stop_words = self.stop_words.map(|sw| {
+        self.normalizer_option.classifier.stop_words = self.stop_words.map(|sw| {
             let sw = sw.as_fst().as_bytes();
             Set::new(sw).unwrap()
         });
+        self
+    }
+    /// Configure the words that will be classified as `TokenKind::Separator`.
+    ///
+    /// # Arguments
+    ///
+    /// * `separators` - a slice of str to classify as separator.
+    pub fn separators(&mut self, separators: &'no [&'no str]) -> &mut Self {
+        self.normalizer_option.classifier.separators = Some(separators);
         self
     }
 

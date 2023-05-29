@@ -12,6 +12,7 @@ categories = ["text-processing"]
 exclude = ["dictionaries/txt/thai/words.txt"]
 
 [dependencies]
+aho-corasick = "1.0.1"
 cow-utils = "0.1"
 csv = "1.2.1"
 deunicode = "1.3.3"

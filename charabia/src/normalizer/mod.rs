@@ -1,21 +1,20 @@
 use std::borrow::Cow;
 
-use fst::Set;
 use once_cell::sync::Lazy;
 
 pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese")]
 pub use self::chinese::ChineseNormalizer;
-pub use self::classify::Classifier;
+pub use self::classify::{Classifier, ClassifierOption};
 pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
 pub use self::control_char::ControlCharNormalizer;
+#[cfg(feature = "greek")]
+use self::greek::GreekNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
-#[cfg(feature = "greek")]
-use crate::normalizer::greek::GreekNormalizer;
-use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
-use crate::normalizer::quote::QuoteNormalizer;
+use self::nonspacing_mark::NonspacingMarkNormalizer;
+use self::quote::QuoteNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
@@ -58,6 +57,12 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     ]
 });
 
+pub(crate) const DEFAULT_NORMALIZER_OPTION: NormalizerOption = NormalizerOption {
+    create_char_map: false,
+    lossy: true,
+    classifier: ClassifierOption { stop_words: None, separators: None },
+};
+
 /// Iterator over Normalized [`Token`]s.
 pub struct NormalizedTokenIter<'o, 'al, 'no> {
     token_iter: SegmentedTokenIter<'o, 'al>,
@@ -76,7 +81,7 @@ impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_> {
 #[derive(Clone, Default)]
 pub struct NormalizerOption<'no> {
     pub create_char_map: bool,
-    pub stop_words: Option<Set<&'no [u8]>>,
+    pub classifier: ClassifierOption<'no>,
     pub lossy: bool,
 }
 
@@ -252,13 +257,18 @@ mod test {
             use super::*;
             use crate::Token;
 
+            const TEST_NORMALIZER_OPTIONS: NormalizerOption = NormalizerOption {
+                create_char_map: true,
+                lossy: true,
+                classifier: crate::normalizer::ClassifierOption { stop_words: None, separators: None },
+            };
+
             #[test]
             fn normalizer_normalize() {
-                let no = NormalizerOption { create_char_map: true, stop_words: None, lossy: true };
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
                     .map(|token| if Normalizer::should_normalize(&$normalizer, &token) {
-                        $normalizer.normalize(token, &no)
+                        $normalizer.normalize(token, &TEST_NORMALIZER_OPTIONS)
                     } else {
                         token
                     })
@@ -278,8 +288,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 
             #[test]
             fn global_normalize() {
-                let options = NormalizerOption { create_char_map: true, stop_words: None, lossy: true };
-                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(&options)).collect();
+                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(&TEST_NORMALIZER_OPTIONS)).collect();
                 assert_eq!(
                     &normalized_tokens[..],
                     $global_result,

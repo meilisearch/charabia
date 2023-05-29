@@ -1,4 +1,5 @@
 use deunicode::deunicode_char;
+use fst::Set;
 
 use super::{Normalizer, NormalizerOption};
 use crate::{SeparatorKind, Token, TokenKind};
@@ -18,7 +19,12 @@ impl Normalizer for Classifier {
     fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
         let lemma = token.lemma();
         let mut is_hard_separator = false;
-        if options.stop_words.as_ref().map(|stop_words| stop_words.contains(lemma)).unwrap_or(false)
+        if options
+            .classifier
+            .stop_words
+            .as_ref()
+            .map(|stop_words| stop_words.contains(lemma))
+            .unwrap_or(false)
         {
             token.kind = TokenKind::StopWord;
         } else if lemma.chars().all(|c| match classify_separator(c) {
@@ -60,6 +66,13 @@ fn classify_separator(c: char) -> Option<SeparatorKind> {
         }
         _ => None,
     }
+}
+
+/// Structure for providing options to the classfier.
+#[derive(Clone, Default)]
+pub struct ClassifierOption<'no> {
+    pub stop_words: Option<Set<&'no [u8]>>,
+    pub separators: Option<&'no [&'no str]>,
 }
 
 #[cfg(test)]
@@ -167,8 +180,11 @@ mod test {
         let stop_words = Set::from_iter(["the"].iter()).unwrap();
         let stop_words = stop_words.as_fst().as_bytes();
         let stop_words = Set::new(stop_words).unwrap();
-        let options =
-            NormalizerOption { create_char_map: true, stop_words: Some(stop_words), lossy: false };
+        let options = NormalizerOption {
+            create_char_map: true,
+            classifier: ClassifierOption { stop_words: Some(stop_words), separators: None },
+            lossy: false,
+        };
 
         let token = Classifier
             .normalize(Token { lemma: Cow::Borrowed("the"), ..Default::default() }, &options);
