@@ -197,7 +197,7 @@ impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// Enable or disable the lossy normalization.
     ///
     /// A lossy normalization is a kind of normalization that could change the meaning in some way.
-    /// Removing diacritics is considered lossy, for instance, in French the word `maïs` (`corn`) will be normalized as `mais` (`but`) which change the meaning.
+    /// Removing diacritics is considered lossy; for instance, in French the word `maïs` (`corn`) will be normalized as `mais` (`but`) which changes the meaning.
     ///
     /// # Arguments
     ///
