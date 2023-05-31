@@ -34,7 +34,7 @@ unicode-normalization = "0.1.22"
 irg-kvariants = "0.1.0"
 
 [features]
-default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase"]
+default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase"]
 
 # allow chinese specialized tokenization
 chinese = ["dep:pinyin", "dep:jieba-rs"]
@@ -57,6 +57,9 @@ greek = []
 
 # allow splitting camelCase latin words
 latin-camelcase = ["dep:finl_unicode"]
+
+# allow splitting snake_case latin words
+latin-snakecase = ["dep:finl_unicode"]
 
 [dev-dependencies]
 criterion = "0.3"
