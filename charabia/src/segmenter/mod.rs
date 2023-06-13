@@ -20,8 +20,6 @@ use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::token::Token;
 
 mod arabic;
-#[cfg(feature = "latin-camelcase")]
-mod camel_case;
 #[cfg(feature = "chinese")]
 mod chinese;
 #[cfg(feature = "hebrew")]

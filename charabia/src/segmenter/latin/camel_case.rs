@@ -6,10 +6,7 @@ use slice_group_by::StrGroupBy;
 /// A camelCase boundary constitutes a lowercase letter directly followed by an uppercase letter
 /// optionally with any number of non-spacing marks in between.
 pub(crate) fn split_camel_case_bounds(str: &str) -> impl Iterator<Item = &str> {
-    let mut last_char_was_lowercase = match str.chars().next() {
-        None => false,
-        Some(c) => c.is_letter_lowercase(),
-    };
+    let mut last_char_was_lowercase = str.chars().next().map_or(false, |c| c.is_lowercase());
 
     str.linear_group_by(move |_, char| {
         if char.is_mark_nonspacing() {
