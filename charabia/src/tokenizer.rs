@@ -8,12 +8,12 @@ use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter};
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o, 'al, 'no> {
-    token_iter: NormalizedTokenIter<'o, 'al, 'no>,
+pub struct ReconstructedTokenIter<'o, 'tb> {
+    token_iter: NormalizedTokenIter<'o, 'tb>,
     original: &'o str,
 }
 
-impl<'o> Iterator for ReconstructedTokenIter<'o, '_, '_> {
+impl<'o> Iterator for ReconstructedTokenIter<'o, '_> {
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -95,32 +95,32 @@ impl Tokenize<'_> for &str {
 /// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
-pub struct Tokenizer<'al, 'no> {
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
-    normalizer_option: &'no NormalizerOption<'no>,
+pub struct Tokenizer<'tb> {
+    allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+    normalizer_option: &'tb NormalizerOption<'tb>,
 }
 
-impl<'al, 'no> Tokenizer<'al, 'no> {
+impl<'tb> Tokenizer<'tb> {
     /// Creates an Iterator over [`Token`]s.
     ///
     /// The provided text is segmented creating tokens,
     /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
-    pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'al, 'no> {
+    pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'tb> {
         original.segment_with_allowlist(self.allow_list).normalize(self.normalizer_option)
     }
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
-    pub fn reconstruct<'o>(&self, original: &'o str) -> ReconstructedTokenIter<'o, 'al, 'no> {
+    pub fn reconstruct<'o>(&self, original: &'o str) -> ReconstructedTokenIter<'o, 'tb> {
         ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     /// Segments the provided text creating an Iterator over [`Token`].
-    pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'al> {
+    pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'tb> {
         original.segment_with_allowlist(self.allow_list)
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
-    pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'al> {
+    pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'tb> {
         original.segment_str_with_allowlist(self.allow_list)
     }
 }
@@ -152,28 +152,28 @@ impl<'al, 'no> Tokenizer<'al, 'no> {
 /// let tokenizer = builder.build();
 /// ```
 ///
-pub struct TokenizerBuilder<'al, 'no, A> {
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
-    stop_words: Option<&'no Set<A>>,
-    normalizer_option: NormalizerOption<'no>,
+pub struct TokenizerBuilder<'tb, A> {
+    allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+    stop_words: Option<&'tb Set<A>>,
+    normalizer_option: NormalizerOption<'tb>,
 }
 
-impl<'al, 'no, A> TokenizerBuilder<'al, 'no, A> {
+impl<'tb, A> TokenizerBuilder<'tb, A> {
     /// Create a `TokenizerBuilder` with default settings,
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
-    pub fn new() -> TokenizerBuilder<'al, 'no, A> {
+    pub fn new() -> TokenizerBuilder<'tb, A> {
         Self { normalizer_option: NormalizerOption::default(), allow_list: None, stop_words: None }
     }
 }
 
-impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
+impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments
     ///
     /// * `stop_words` - a `Set` of the words to classify as stop words.
-    pub fn stop_words(&mut self, stop_words: &'no Set<A>) -> &mut Self {
+    pub fn stop_words(&mut self, stop_words: &'tb Set<A>) -> &mut Self {
         self.stop_words = Some(stop_words);
         self.normalizer_option.classifier.stop_words = self.stop_words.map(|sw| {
             let sw = sw.as_fst().as_bytes();
@@ -186,7 +186,7 @@ impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// # Arguments
     ///
     /// * `separators` - a slice of str to classify as separator.
-    pub fn separators(&mut self, separators: &'no [&'no str]) -> &mut Self {
+    pub fn separators(&mut self, separators: &'tb [&'tb str]) -> &mut Self {
         self.normalizer_option.classifier.separators = Some(separators);
         self
     }
@@ -219,18 +219,18 @@ impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// # Arguments
     ///
     /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.
-    pub fn allow_list(&mut self, allow_list: &'al HashMap<Script, Vec<Language>>) -> &mut Self {
+    pub fn allow_list(&mut self, allow_list: &'tb HashMap<Script, Vec<Language>>) -> &mut Self {
         self.allow_list = Some(allow_list);
         self
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build(&'no self) -> Tokenizer<'al, 'no> {
+    pub fn build(&'tb self) -> Tokenizer<'tb> {
         Tokenizer { normalizer_option: &self.normalizer_option, allow_list: self.allow_list }
     }
 }
 
-impl Default for TokenizerBuilder<'_, '_, Vec<u8>> {
+impl Default for TokenizerBuilder<'_, Vec<u8>> {
     fn default() -> Self {
         Self::new()
     }

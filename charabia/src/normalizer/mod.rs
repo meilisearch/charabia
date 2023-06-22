@@ -64,12 +64,12 @@ pub(crate) const DEFAULT_NORMALIZER_OPTION: NormalizerOption = NormalizerOption 
 };
 
 /// Iterator over Normalized [`Token`]s.
-pub struct NormalizedTokenIter<'o, 'al, 'no> {
-    token_iter: SegmentedTokenIter<'o, 'al>,
-    options: &'no NormalizerOption<'no>,
+pub struct NormalizedTokenIter<'o, 'tb> {
+    token_iter: SegmentedTokenIter<'o, 'tb>,
+    options: &'tb NormalizerOption<'tb>,
 }
 
-impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_> {
+impl<'o> Iterator for NormalizedTokenIter<'o, '_> {
     type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -79,9 +79,9 @@ impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_> {
 
 /// Structure for providing options to a normalizer.
 #[derive(Clone, Default)]
-pub struct NormalizerOption<'no> {
+pub struct NormalizerOption<'tb> {
     pub create_char_map: bool,
-    pub classifier: ClassifierOption<'no>,
+    pub classifier: ClassifierOption<'tb>,
     pub lossy: bool,
 }
 
@@ -215,14 +215,11 @@ impl From<String> for CharOrStr {
     }
 }
 
-impl<'o, 'al, 'no> SegmentedTokenIter<'o, 'al> {
+impl<'o, 'tb> SegmentedTokenIter<'o, 'tb> {
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    pub fn normalize(
-        self,
-        options: &'no NormalizerOption<'no>,
-    ) -> NormalizedTokenIter<'o, 'al, 'no> {
+    pub fn normalize(self, options: &'tb NormalizerOption<'tb>) -> NormalizedTokenIter<'o, 'tb> {
         NormalizedTokenIter { token_iter: self, options }
     }
 }
