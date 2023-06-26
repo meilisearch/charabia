@@ -197,7 +197,8 @@ impl<'o, 'tb> Iterator for SegmentedStrIter<'o, 'tb> {
         match self.current.next() {
             Some(s) => Some(s),
             None => match self.aho_iter.as_mut().map(|aho_iter| aho_iter.next()).flatten() {
-                Some(s) => {
+                Some((s, MatchType::Match)) => Some(s),
+                Some((s, MatchType::Interleave)) => {
                     self.current = self.segmenter.segment_str(s);
 
                     self.next()
@@ -233,9 +234,10 @@ impl<'o, 'aho> AhoSegmentedStrIter<'o, 'aho> {
 }
 
 impl<'o, 'aho> Iterator for AhoSegmentedStrIter<'o, 'aho> {
-    type Item = &'o str;
+    type Item = (&'o str, MatchType);
 
     fn next(&mut self) -> Option<Self::Item> {
+        let mut match_type = MatchType::Interleave;
         let (start, end) = match self.prev {
             Either::Left(left) => match self.aho_iter.next() {
                 Some(m) => {
@@ -250,18 +252,24 @@ impl<'o, 'aho> Iterator for AhoSegmentedStrIter<'o, 'aho> {
             },
             Either::Right(m) => {
                 self.prev = Either::Left(m.end());
+                match_type = MatchType::Match;
                 (m.start(), m.end())
             }
         };
 
         if start < end {
-            Some(&self.text[start..end])
+            Some((&self.text[start..end], match_type))
         } else if end < self.text.len() {
             self.next()
         } else {
             None
         }
     }
+}
+
+enum MatchType {
+    Interleave,
+    Match,
 }
 
 /// Try to Detect Language and Script and return the corresponding segmenter,
@@ -398,14 +406,17 @@ mod test {
     macro_rules! test_segmenter {
     ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
             use crate::{Token, Language, Script};
-            use crate::segmenter::{Segment, AhoSegmentedStrIter, DEFAULT_SEPARATOR_AHO};
+            use crate::segmenter::{Segment, AhoSegmentedStrIter, MatchType, DEFAULT_SEPARATOR_AHO};
             use crate::tokenizer::Tokenize;
             use super::*;
 
             #[test]
             fn segmenter_segment_str() {
 
-                let segmented_text: Vec<_> = AhoSegmentedStrIter::new($text, &DEFAULT_SEPARATOR_AHO).flat_map(|text| $segmenter.segment_str(text)).collect();
+                let segmented_text: Vec<_> = AhoSegmentedStrIter::new($text, &DEFAULT_SEPARATOR_AHO).flat_map(|m| match m {
+                    (text, MatchType::Match) => Box::new(Some(text).into_iter()),
+                    (text, MatchType::Interleave) => $segmenter.segment_str(text),
+                }).collect();
                 assert_eq!(&segmented_text[..], $segmented, r#"
 Segmenter {} didn't segment the text as expected.
 
