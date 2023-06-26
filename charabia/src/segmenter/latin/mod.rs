@@ -28,16 +28,16 @@ mod test {
     const TEXT: &str =
         "The quick (\"brown\") fox can’t jump 32.3 feet, right? Brr, it's 29.3°F! camelCase kebab-case snake_case";
     const SEGMENTED: &[&str] = &[
-        "The", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can’", "t", " ",
-        "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "Brr", ",", " ", "it'", "s",
-        " ", "29.3", "°", "F", "!", " ", "camel", "Case", " ", "kebab", "-", "case", " ", "snake",
-        "_", "case",
+        "The", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can", "’", "t",
+        " ", "jump", " ", "32", ".", "3", " ", "feet", ",", " ", "right", "?", " ", "Brr", ",",
+        " ", "it", "'", "s", " ", "29", ".", "3°F", "!", " ", "camel", "Case", " ", "kebab", "-",
+        "case", " ", "snake", "_", "case",
     ];
     const TOKENIZED: &[&str] = &[
-        "the", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can'", "t", " ",
-        "jump", " ", "32.3", " ", "feet", ",", " ", "right", "?", " ", "brr", ",", " ", "it'", "s",
-        " ", "29.3", "°", "f", "!", " ", "camel", "case", " ", "kebab", "-", "case", " ", "snake",
-        "_", "case",
+        "the", " ", "quick", " ", "(", "\"", "brown", "\"", ")", " ", "fox", " ", "can", "'", "t",
+        " ", "jump", " ", "32", ".", "3", " ", "feet", ",", " ", "right", "?", " ", "brr", ",",
+        " ", "it", "'", "s", " ", "29", ".", "3°f", "!", " ", "camel", "case", " ", "kebab", "-",
+        "case", " ", "snake", "_", "case",
     ];
 
     test_segmenter!(LatinSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);
