@@ -1,9 +1,11 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 
+use aho_corasick::{AhoCorasick, FindIter, MatchKind};
 pub use arabic::ArabicSegmenter;
 #[cfg(feature = "chinese")]
 pub use chinese::ChineseSegmenter;
+use either::Either;
 #[cfg(feature = "hebrew")]
 pub use hebrew::HebrewSegmenter;
 #[cfg(feature = "japanese")]
@@ -70,8 +72,14 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
     .collect()
 });
 
+pub const DEFAULT_SEPARATORS: &[&str] = &[" ", ". ", ", "];
+
 /// Picked [`Segmenter`] when no segmenter is specialized to the detected [`Script`].
 pub static DEFAULT_SEGMENTER: Lazy<Box<dyn Segmenter>> = Lazy::new(|| Box::new(LatinSegmenter));
+
+pub static DEFAULT_SEPARATOR_AHO: Lazy<AhoCorasick> = Lazy::new(|| {
+    AhoCorasick::builder().match_kind(MatchKind::LeftmostFirst).build(DEFAULT_SEPARATORS).unwrap()
+});
 
 /// Iterator over segmented [`Token`]s.
 pub struct SegmentedTokenIter<'o, 'tb> {
@@ -113,13 +121,15 @@ impl<'o, 'tb> From<SegmentedStrIter<'o, 'tb>> for SegmentedTokenIter<'o, 'tb> {
 pub struct SegmentedStrIter<'o, 'tb> {
     inner: Box<dyn Iterator<Item = &'o str> + 'o>,
     current: Box<dyn Iterator<Item = &'o str> + 'o>,
-    allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+    aho_iter: Option<AhoSegmentedStrIter<'o, 'tb>>,
+    segmenter: &'static Box<dyn Segmenter>,
+    options: &'tb SegmenterOption<'tb>,
     script: Script,
     language: Option<Language>,
 }
 
 impl<'o, 'tb> SegmentedStrIter<'o, 'tb> {
-    pub fn new(original: &'o str, allow_list: Option<&'tb HashMap<Script, Vec<Language>>>) -> Self {
+    pub fn new(original: &'o str, options: &'tb SegmenterOption<'tb>) -> Self {
         let mut current_script = Script::Other;
         let inner = original.linear_group_by_key(move |c| {
             let script = Script::from(c);
@@ -132,7 +142,9 @@ impl<'o, 'tb> SegmentedStrIter<'o, 'tb> {
         Self {
             inner: Box::new(inner),
             current: Box::new(None.into_iter()),
-            allow_list,
+            aho_iter: None,
+            segmenter: &DEFAULT_SEGMENTER,
+            options,
             script: Script::Other,
             language: None,
         }
@@ -145,15 +157,70 @@ impl<'o, 'tb> Iterator for SegmentedStrIter<'o, 'tb> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.current.next() {
             Some(s) => Some(s),
-            None => {
-                let text = self.inner.next()?;
-                let mut detector = text.detect(self.allow_list);
-                self.current = segmenter(&mut detector).segment_str(text);
-                self.script = detector.script();
-                self.language = detector.language;
+            None => match self.aho_iter.as_mut().map(|aho_iter| aho_iter.next()).flatten() {
+                Some(s) => {
+                    self.current = self.segmenter.segment_str(s);
 
-                self.next()
+                    self.next()
+                }
+                None => {
+                    let text = self.inner.next()?;
+                    let mut detector = text.detect(self.options.allow_list);
+                    self.segmenter = segmenter(&mut detector);
+                    self.script = detector.script();
+                    self.language = detector.language;
+                    self.aho_iter = Some(AhoSegmentedStrIter::new(
+                        text,
+                        self.options.aho.as_ref().unwrap_or_else(|| &DEFAULT_SEPARATOR_AHO),
+                    ));
+
+                    self.next()
+                }
+            },
+        }
+    }
+}
+
+struct AhoSegmentedStrIter<'o, 'aho> {
+    aho_iter: FindIter<'aho, 'o>,
+    prev: Either<usize, aho_corasick::Match>,
+    text: &'o str,
+}
+
+impl<'o, 'aho> AhoSegmentedStrIter<'o, 'aho> {
+    fn new(text: &'o str, aho: &'aho AhoCorasick) -> Self {
+        Self { aho_iter: aho.find_iter(text), prev: Either::Left(0), text }
+    }
+}
+
+impl<'o, 'aho> Iterator for AhoSegmentedStrIter<'o, 'aho> {
+    type Item = &'o str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let (start, end) = match self.prev {
+            Either::Left(left) => match self.aho_iter.next() {
+                Some(m) => {
+                    let range = (left, m.start());
+                    self.prev = Either::Right(m);
+                    range
+                }
+                None => {
+                    self.prev = Either::Left(self.text.len());
+                    (left, self.text.len())
+                }
+            },
+            Either::Right(m) => {
+                self.prev = Either::Left(m.end());
+                (m.start(), m.end())
             }
+        };
+
+        if start < end {
+            Some(&self.text[start..end])
+        } else if end < self.text.len() {
+            self.next()
+        } else {
+            None
         }
     }
 }
@@ -164,7 +231,7 @@ impl<'o, 'tb> Iterator for SegmentedStrIter<'o, 'tb> {
 /// if no Script is detected or no segmenter corresponds to the Script,
 /// the function try to get the default segmenter in the map;
 /// if no default segmenter exists in the map return the library DEFAULT_SEGMENTER.
-fn segmenter<'b>(detector: &mut StrDetection) -> &'b impl Segmenter {
+fn segmenter<'b>(detector: &mut StrDetection) -> &'b Box<dyn Segmenter> {
     let detected_script = detector.script();
     let mut filtered_segmenters =
         SEGMENTERS.iter().filter(|((script, _), _)| *script == detected_script);
@@ -185,6 +252,13 @@ fn segmenter<'b>(detector: &mut StrDetection) -> &'b impl Segmenter {
                 .unwrap_or(&DEFAULT_SEGMENTER)
         }
     }
+}
+
+/// Structure for providing options to a normalizer.
+#[derive(Clone, Default)]
+pub struct SegmenterOption<'tb> {
+    pub aho: Option<AhoCorasick>,
+    pub allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
 }
 
 /// Trait defining a segmenter.
@@ -233,15 +307,15 @@ pub trait Segment<'o> {
     /// assert_eq!(kind, TokenKind::Unknown);
     /// ```
     fn segment(&self) -> SegmentedTokenIter<'o, 'o> {
-        self.segment_with_allowlist(None)
+        self.segment_str().into()
     }
 
     /// Segments the provided text creating an Iterator over Tokens where you can specify an allowed list of languages to be used with a script.
-    fn segment_with_allowlist<'tb>(
+    fn segment_with_option<'tb>(
         &self,
-        allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+        options: &'tb SegmenterOption<'tb>,
     ) -> SegmentedTokenIter<'o, 'tb> {
-        self.segment_str_with_allowlist(allow_list).into()
+        self.segment_str_with_option(options).into()
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
@@ -260,42 +334,23 @@ pub trait Segment<'o> {
     /// assert_eq!(segments.next(), Some("quick"));
     /// ```
     fn segment_str(&self) -> SegmentedStrIter<'o, 'o> {
-        self.segment_str_with_allowlist(None)
+        self.segment_str_with_option(&SegmenterOption { aho: None, allow_list: None })
     }
 
     /// Segments the provided text creating an Iterator over `&str` where you can specify an allowed list of languages to be used with a script.
     ///
-    /// # Example
-    ///
-    /// ```
-    /// use charabia::Segment;
-    /// use charabia::{Language, Script};
-    /// use std::collections::HashMap;
-    ///
-    /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
-    ///
-    /// let scrip_language_map = [
-    ///     (Script::Latin, vec![Language::Eng]),
-    ///     ].into_iter().collect();
-    /// let allow_list: Option<&HashMap<Script,Vec<Language>>> = Some(&scrip_language_map);
-    /// let mut segments = orig.segment_str_with_allowlist(allow_list);
-    ///
-    /// assert_eq!(segments.next(), Some("The"));
-    /// assert_eq!(segments.next(), Some(" "));
-    /// assert_eq!(segments.next(), Some("quick"));
-    /// ```
-    fn segment_str_with_allowlist<'tb>(
+    fn segment_str_with_option<'tb>(
         &self,
-        allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+        options: &'tb SegmenterOption<'tb>,
     ) -> SegmentedStrIter<'o, 'tb>;
 }
 
 impl<'o> Segment<'o> for &'o str {
-    fn segment_str_with_allowlist<'tb>(
+    fn segment_str_with_option<'tb>(
         &self,
-        allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+        options: &'tb SegmenterOption<'tb>,
     ) -> SegmentedStrIter<'o, 'tb> {
-        SegmentedStrIter::new(self, allow_list)
+        SegmentedStrIter::new(self, options)
     }
 }
 

@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
+use aho_corasick::{AhoCorasick, MatchKind};
 use fst::Set;
 
 use crate::detection::{Language, Script};
-use crate::normalizer::{ClassifierOption, NormalizedTokenIter, NormalizerOption};
-use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter};
+use crate::normalizer::{NormalizedTokenIter, NormalizerOption};
+use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter, SegmenterOption};
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
@@ -96,7 +97,7 @@ impl Tokenize<'_> for &str {
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 pub struct Tokenizer<'tb> {
-    allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+    segmenter_option: &'tb SegmenterOption<'tb>,
     normalizer_option: &'tb NormalizerOption<'tb>,
 }
 
@@ -106,7 +107,7 @@ impl<'tb> Tokenizer<'tb> {
     /// The provided text is segmented creating tokens,
     /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
     pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'tb> {
-        original.segment_with_allowlist(self.allow_list).normalize(self.normalizer_option)
+        original.segment_with_option(self.segmenter_option).normalize(self.normalizer_option)
     }
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
@@ -116,12 +117,12 @@ impl<'tb> Tokenizer<'tb> {
 
     /// Segments the provided text creating an Iterator over [`Token`].
     pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'tb> {
-        original.segment_with_allowlist(self.allow_list)
+        original.segment_with_option(self.segmenter_option)
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
     pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'tb> {
-        original.segment_str_with_allowlist(self.allow_list)
+        original.segment_str_with_option(self.segmenter_option)
     }
 }
 
@@ -153,9 +154,9 @@ impl<'tb> Tokenizer<'tb> {
 /// ```
 ///
 pub struct TokenizerBuilder<'tb, A> {
-    allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
     stop_words: Option<&'tb Set<A>>,
     normalizer_option: NormalizerOption<'tb>,
+    segmenter_option: SegmenterOption<'tb>,
 }
 
 impl<'tb, A> TokenizerBuilder<'tb, A> {
@@ -163,7 +164,11 @@ impl<'tb, A> TokenizerBuilder<'tb, A> {
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
     pub fn new() -> TokenizerBuilder<'tb, A> {
-        Self { normalizer_option: NormalizerOption::default(), allow_list: None, stop_words: None }
+        Self {
+            normalizer_option: crate::normalizer::DEFAULT_NORMALIZER_OPTION,
+            segmenter_option: SegmenterOption::default(),
+            stop_words: None,
+        }
     }
 }
 
@@ -188,6 +193,10 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
     /// * `separators` - a slice of str to classify as separator.
     pub fn separators(&mut self, separators: &'tb [&'tb str]) -> &mut Self {
         self.normalizer_option.classifier.separators = Some(separators);
+
+        let aho =
+            AhoCorasick::builder().match_kind(MatchKind::LeftmostFirst).build(separators).unwrap();
+        self.segmenter_option.aho = Some(aho);
         self
     }
 
@@ -220,13 +229,16 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
     ///
     /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.
     pub fn allow_list(&mut self, allow_list: &'tb HashMap<Script, Vec<Language>>) -> &mut Self {
-        self.allow_list = Some(allow_list);
+        self.segmenter_option.allow_list = Some(allow_list);
         self
     }
 
     /// Build the configurated `Tokenizer`.
     pub fn build(&'tb self) -> Tokenizer<'tb> {
-        Tokenizer { normalizer_option: &self.normalizer_option, allow_list: self.allow_list }
+        Tokenizer {
+            normalizer_option: &self.normalizer_option,
+            segmenter_option: &self.segmenter_option,
+        }
     }
 }
 
