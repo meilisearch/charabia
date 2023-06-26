@@ -1,10 +1,7 @@
-use unicode_segmentation::UnicodeSegmentation;
-
 use super::Segmenter;
 
 /// Arabic specialized [`Segmenter`].
 ///
-/// This Segmenter uses [`UnicodeSegmentation`] internally to segment the provided text.
 /// Arabic text is segmented by word boundaries and by punctuation.
 /// We need a workaround to segment the Arabic text that starts with `ال` (the) because it is not segmented by word boundaries.
 /// One possible solution is to segment any word that starts with `ال` into two words. The `ال` and the rest of the word.
@@ -16,28 +13,18 @@ pub struct ArabicSegmenter;
 // All specialized segmenters only need to implement the method `segment_str` of the `Segmenter` trait.
 impl Segmenter for ArabicSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        // Create the iterator that will segment the provided text.
-        let segment_iterator = to_segment
-            // Split the text by word boundaries.
-            .split_word_bounds()
-            // Check if the lemma starts with `ال` and if so, split it into two lemmas.
-            .flat_map(|lemma| {
-                // check if lemma starts with 'ال', 'أل', 'إل', 'آل' or 'ٱل'
-                if lemma.len() > 2
-                    && (lemma.starts_with("ال")
-                        || lemma.starts_with("أل")
-                        || lemma.starts_with("إل")
-                        || lemma.starts_with("آل")
-                        || lemma.starts_with("ٱل"))
-                {
-                    vec![&lemma[..4], &lemma[4..]]
-                } else {
-                    vec![lemma]
-                }
-            });
-
-        // Return the created iterator wrapping it in a Box.
-        Box::new(segment_iterator)
+        // check if to_segment starts with 'ال', 'أل', 'إل', 'آل' or 'ٱل'
+        if to_segment.len() > 2
+            && (to_segment.starts_with("ال")
+                || to_segment.starts_with("أل")
+                || to_segment.starts_with("إل")
+                || to_segment.starts_with("آل")
+                || to_segment.starts_with("ٱل"))
+        {
+            Box::new(vec![&to_segment[..4], &to_segment[4..]].into_iter())
+        } else {
+            Box::new(Some(to_segment).into_iter())
+        }
     }
 }
 

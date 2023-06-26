@@ -6,8 +6,6 @@ pub use arabic::ArabicSegmenter;
 #[cfg(feature = "chinese")]
 pub use chinese::ChineseSegmenter;
 use either::Either;
-#[cfg(feature = "hebrew")]
-pub use hebrew::HebrewSegmenter;
 #[cfg(feature = "japanese")]
 pub use japanese::JapaneseSegmenter;
 #[cfg(feature = "korean")]
@@ -24,8 +22,6 @@ use crate::token::Token;
 mod arabic;
 #[cfg(feature = "chinese")]
 mod chinese;
-#[cfg(feature = "hebrew")]
-mod hebrew;
 #[cfg(feature = "japanese")]
 mod japanese;
 #[cfg(feature = "korean")]
@@ -53,9 +49,6 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // chinese segmenter
         #[cfg(feature = "chinese")]
         ((Script::Cj, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
-        // hebrew segmenter
-        #[cfg(feature = "hebrew")]
-        ((Script::Hebrew, Language::Heb), Box::new(HebrewSegmenter) as Box<dyn Segmenter>),
         // japanese segmenter
         #[cfg(feature = "japanese")]
         ((Script::Cj, Language::Jpn), Box::new(JapaneseSegmenter) as Box<dyn Segmenter>),
