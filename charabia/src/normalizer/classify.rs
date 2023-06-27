@@ -63,10 +63,10 @@ fn separator_kind(lemma: &str) -> SeparatorKind {
 }
 
 pub static DEFAULT_SEPARATOR_SET: Lazy<HashSet<&str>> =
-    Lazy::new(|| crate::separators::DEFAULT_SEPARATORS.iter().map(|s| *s).collect());
+    Lazy::new(|| crate::separators::DEFAULT_SEPARATORS.iter().copied().collect());
 
 pub static CONTEXT_SEPARATOR_SET: Lazy<HashSet<&str>> =
-    Lazy::new(|| crate::separators::CONTEXT_SEPARATORS.iter().map(|s| *s).collect());
+    Lazy::new(|| crate::separators::CONTEXT_SEPARATORS.iter().copied().collect());
 
 #[cfg(test)]
 mod test {

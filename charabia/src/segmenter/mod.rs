@@ -114,7 +114,7 @@ pub struct SegmentedStrIter<'o, 'tb> {
     inner: Box<dyn Iterator<Item = &'o str> + 'o>,
     current: Box<dyn Iterator<Item = &'o str> + 'o>,
     aho_iter: Option<AhoSegmentedStrIter<'o, 'tb>>,
-    segmenter: &'static Box<dyn Segmenter>,
+    segmenter: &'static dyn Segmenter,
     options: &'tb SegmenterOption<'tb>,
     script: Script,
     language: Option<Language>,
@@ -135,7 +135,7 @@ impl<'o, 'tb> SegmentedStrIter<'o, 'tb> {
             inner: Box::new(inner),
             current: Box::new(None.into_iter()),
             aho_iter: None,
-            segmenter: &DEFAULT_SEGMENTER,
+            segmenter: &*DEFAULT_SEGMENTER,
             options,
             script: Script::Other,
             language: None,
@@ -149,7 +149,7 @@ impl<'o, 'tb> Iterator for SegmentedStrIter<'o, 'tb> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.current.next() {
             Some(s) => Some(s),
-            None => match self.aho_iter.as_mut().map(|aho_iter| aho_iter.next()).flatten() {
+            None => match self.aho_iter.as_mut().and_then(|aho_iter| aho_iter.next()) {
                 Some((s, MatchType::Match)) => Some(s),
                 Some((s, MatchType::Interleave)) => {
                     self.current = self.segmenter.segment_str(s);
@@ -164,7 +164,7 @@ impl<'o, 'tb> Iterator for SegmentedStrIter<'o, 'tb> {
                     self.language = detector.language;
                     self.aho_iter = Some(AhoSegmentedStrIter::new(
                         text,
-                        self.options.aho.as_ref().unwrap_or_else(|| &DEFAULT_SEPARATOR_AHO),
+                        self.options.aho.as_ref().unwrap_or(&DEFAULT_SEPARATOR_AHO),
                     ));
 
                     self.next()
@@ -231,7 +231,7 @@ enum MatchType {
 /// if no Script is detected or no segmenter corresponds to the Script,
 /// the function try to get the default segmenter in the map;
 /// if no default segmenter exists in the map return the library DEFAULT_SEGMENTER.
-fn segmenter<'b>(detector: &mut StrDetection) -> &'b Box<dyn Segmenter> {
+fn segmenter<'b>(detector: &mut StrDetection) -> &'b dyn Segmenter {
     let detected_script = detector.script();
     let mut filtered_segmenters =
         SEGMENTERS.iter().filter(|((script, _), _)| *script == detected_script);
