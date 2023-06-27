@@ -186,7 +186,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
         });
         self
     }
-    /// Configure the words that will be classified as `TokenKind::Separator`.
+    /// Configure the words that will be used to separate words and classified as `TokenKind::Separator`.
     ///
     /// # Arguments
     ///

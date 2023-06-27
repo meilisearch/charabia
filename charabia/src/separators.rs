@@ -1,3 +1,17 @@
+/// Default characters categorized as separators.
+///
+/// This list contains all the characters in below unicode categories:
+/// - Pc Connector Punctuation
+/// - Pd Dash Punctuation
+/// - Pe Close Punctuation
+/// - Pf Final Punctuation
+/// - Pi Initial Punctuation
+/// - Po Other Punctuation
+/// - Ps Open Punctuation
+/// - Zl Line Separator
+/// - Zp Paragraph Separator
+/// - Zs Space Separator
+/// plus ". ", ", " and ។ល។" (៘ decomposition) to categorize them as hard separators
 #[rustfmt::skip]
 pub const DEFAULT_SEPARATORS: &[&str] = &[
     ". ", ", ", "_", "‿", "⁀", "⁔", "︳", "︴", "﹍", "﹎", "﹏", "＿", "-", "֊", "־", "᐀", "᠆", "‐", "‒", "–",
