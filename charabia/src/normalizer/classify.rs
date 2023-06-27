@@ -1,5 +1,7 @@
-use deunicode::deunicode_char;
+use std::collections::HashSet;
+
 use fst::Set;
+use once_cell::sync::Lazy;
 
 use super::{Normalizer, NormalizerOption};
 use crate::{SeparatorKind, Token, TokenKind};
@@ -17,32 +19,24 @@ pub struct Classifier;
 
 impl Normalizer for Classifier {
     fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
+        token.kind = TokenKind::Word;
         let lemma = token.lemma();
-        let mut is_hard_separator = false;
-        if options
-            .classifier
-            .stop_words
-            .as_ref()
-            .map(|stop_words| stop_words.contains(lemma))
-            .unwrap_or(false)
-        {
-            token.kind = TokenKind::StopWord;
-        } else if lemma.chars().all(|c| match classify_separator(c) {
-            Some(SeparatorKind::Hard) => {
-                is_hard_separator = true;
-                true
-            }
-            Some(SeparatorKind::Soft) => true,
 
-            None => false,
-        }) {
-            if is_hard_separator {
-                token.kind = TokenKind::Separator(SeparatorKind::Hard);
-            } else {
-                token.kind = TokenKind::Separator(SeparatorKind::Soft);
+        if let Some(stop_words) = &options.classifier.stop_words {
+            if stop_words.contains(lemma) {
+                token.kind = TokenKind::StopWord;
+                return token;
             }
-        } else {
-            token.kind = TokenKind::Word;
+        }
+
+        match options.classifier.separators {
+            Some(separators) if separators.contains(&lemma) => {
+                token.kind = TokenKind::Separator(separator_kind(lemma));
+            }
+            None if DEFAULT_SEPARATOR_SET.contains(lemma) => {
+                token.kind = TokenKind::Separator(separator_kind(lemma));
+            }
+            _otherwise => (),
         }
 
         token
@@ -53,27 +47,26 @@ impl Normalizer for Classifier {
     }
 }
 
-fn classify_separator(c: char) -> Option<SeparatorKind> {
-    match deunicode_char(c)?.chars().next()? {
-        // Prevent deunicoding cyrillic chars (e.g. ь -> ' is incorrect)
-        _ if ('\u{0410}'..='\u{044f}').contains(&c) => None, // russian cyrillic letters [а-яА-Я]
-        c if c.is_whitespace() => Some(SeparatorKind::Soft), // whitespaces
-        '-' | '_' | '\'' | ':' | '/' | '\\' | '@' | '"' | '+' | '~' | '=' | '^' | '*' | '#' => {
-            Some(SeparatorKind::Soft)
-        }
-        '.' | ';' | ',' | '!' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' => {
-            Some(SeparatorKind::Hard)
-        }
-        _ => None,
-    }
-}
-
 /// Structure for providing options to the classfier.
 #[derive(Clone, Default)]
 pub struct ClassifierOption<'no> {
     pub stop_words: Option<Set<&'no [u8]>>,
     pub separators: Option<&'no [&'no str]>,
 }
+
+fn separator_kind(lemma: &str) -> SeparatorKind {
+    if CONTEXT_SEPARATOR_SET.contains(lemma) {
+        SeparatorKind::Hard
+    } else {
+        SeparatorKind::Soft
+    }
+}
+
+pub static DEFAULT_SEPARATOR_SET: Lazy<HashSet<&str>> =
+    Lazy::new(|| crate::separators::DEFAULT_SEPARATORS.iter().map(|s| *s).collect());
+
+pub static CONTEXT_SEPARATOR_SET: Lazy<HashSet<&str>> =
+    Lazy::new(|| crate::separators::CONTEXT_SEPARATORS.iter().map(|s| *s).collect());
 
 #[cfg(test)]
 mod test {
@@ -86,12 +79,12 @@ mod test {
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
         vec![
-            Token { lemma: Cow::Borrowed("   "), ..Default::default() },
-            Token { lemma: Cow::Borrowed("\" "), ..Default::default() },
-            Token { lemma: Cow::Borrowed("@   "), ..Default::default() },
+            Token { lemma: Cow::Borrowed(" "), ..Default::default() },
+            Token { lemma: Cow::Borrowed("\""), ..Default::default() },
+            Token { lemma: Cow::Borrowed("@"), ..Default::default() },
             Token { lemma: Cow::Borrowed("."), ..Default::default() },
-            Token { lemma: Cow::Borrowed("   ."), ..Default::default() },
-            Token { lemma: Cow::Borrowed("  。"), ..Default::default() },
+            Token { lemma: Cow::Borrowed(". "), ..Default::default() },
+            Token { lemma: Cow::Borrowed("。"), ..Default::default() },
             Token { lemma: Cow::Borrowed("S.O.S"), ..Default::default() },
             Token { lemma: Cow::Borrowed("ь"), ..Default::default() },
         ]
@@ -101,32 +94,32 @@ mod test {
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Cow::Borrowed("   "),
+                lemma: Cow::Borrowed(" "),
                 kind: TokenKind::Separator(SeparatorKind::Soft),
                 ..Default::default()
             },
             Token {
-                lemma: Cow::Borrowed("\" "),
+                lemma: Cow::Borrowed("\""),
                 kind: TokenKind::Separator(SeparatorKind::Soft),
                 ..Default::default()
             },
             Token {
-                lemma: Cow::Borrowed("@   "),
+                lemma: Cow::Borrowed("@"),
                 kind: TokenKind::Separator(SeparatorKind::Soft),
                 ..Default::default()
             },
             Token {
                 lemma: Cow::Borrowed("."),
+                kind: TokenKind::Separator(SeparatorKind::Soft),
+                ..Default::default()
+            },
+            Token {
+                lemma: Cow::Borrowed(". "),
                 kind: TokenKind::Separator(SeparatorKind::Hard),
                 ..Default::default()
             },
             Token {
-                lemma: Cow::Borrowed("   ."),
-                kind: TokenKind::Separator(SeparatorKind::Hard),
-                ..Default::default()
-            },
-            Token {
-                lemma: Cow::Borrowed("  。"),
+                lemma: Cow::Borrowed("。"),
                 kind: TokenKind::Separator(SeparatorKind::Hard),
                 ..Default::default()
             },
@@ -139,32 +132,32 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Cow::Borrowed("   "),
+                lemma: Cow::Borrowed(" "),
                 kind: TokenKind::Separator(SeparatorKind::Soft),
                 ..Default::default()
             },
             Token {
-                lemma: Cow::Borrowed("\" "),
+                lemma: Cow::Borrowed("\""),
                 kind: TokenKind::Separator(SeparatorKind::Soft),
                 ..Default::default()
             },
             Token {
-                lemma: Cow::Borrowed("@   "),
+                lemma: Cow::Borrowed("@"),
                 kind: TokenKind::Separator(SeparatorKind::Soft),
                 ..Default::default()
             },
             Token {
                 lemma: Cow::Borrowed("."),
+                kind: TokenKind::Separator(SeparatorKind::Soft),
+                ..Default::default()
+            },
+            Token {
+                lemma: Cow::Borrowed(". "),
                 kind: TokenKind::Separator(SeparatorKind::Hard),
                 ..Default::default()
             },
             Token {
-                lemma: Cow::Borrowed("   ."),
-                kind: TokenKind::Separator(SeparatorKind::Hard),
-                ..Default::default()
-            },
-            Token {
-                lemma: Cow::Borrowed("  。"),
+                lemma: Cow::Borrowed("。"),
                 kind: TokenKind::Separator(SeparatorKind::Hard),
                 ..Default::default()
             },
