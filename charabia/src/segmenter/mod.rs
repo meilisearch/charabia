@@ -70,7 +70,7 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
 pub static DEFAULT_SEGMENTER: Lazy<Box<dyn Segmenter>> = Lazy::new(|| Box::new(LatinSegmenter));
 
 pub static DEFAULT_SEPARATOR_AHO: Lazy<AhoCorasick> = Lazy::new(|| {
-    AhoCorasick::builder().match_kind(MatchKind::LeftmostFirst).build(DEFAULT_SEPARATORS).unwrap()
+    AhoCorasick::builder().match_kind(MatchKind::LeftmostLongest).build(DEFAULT_SEPARATORS).unwrap()
 });
 
 /// Iterator over segmented [`Token`]s.
