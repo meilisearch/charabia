@@ -44,6 +44,7 @@
 
 pub mod normalizer;
 pub mod segmenter;
+pub mod separators;
 
 mod detection;
 mod token;

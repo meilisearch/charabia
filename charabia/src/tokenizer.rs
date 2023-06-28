@@ -1,19 +1,21 @@
 use std::collections::HashMap;
 
+use aho_corasick::{AhoCorasick, MatchKind};
 use fst::Set;
 
 use crate::detection::{Language, Script};
 use crate::normalizer::{NormalizedTokenIter, NormalizerOption};
-use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter};
+use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter, SegmenterOption};
+use crate::separators::DEFAULT_SEPARATORS;
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o, 'al, 'no> {
-    token_iter: NormalizedTokenIter<'o, 'al, 'no>,
+pub struct ReconstructedTokenIter<'o, 'tb> {
+    token_iter: NormalizedTokenIter<'o, 'tb>,
     original: &'o str,
 }
 
-impl<'o> Iterator for ReconstructedTokenIter<'o, '_, '_> {
+impl<'o> Iterator for ReconstructedTokenIter<'o, '_> {
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -84,9 +86,7 @@ pub trait Tokenize<'o> {
 
 impl Tokenize<'_> for &str {
     fn tokenize(&self) -> NormalizedTokenIter {
-        const NO: NormalizerOption =
-            NormalizerOption { create_char_map: false, stop_words: None, lossy: true };
-        self.segment().normalize(&NO)
+        self.segment().normalize(&crate::normalizer::DEFAULT_NORMALIZER_OPTION)
     }
 
     fn reconstruct(&self) -> ReconstructedTokenIter {
@@ -97,33 +97,33 @@ impl Tokenize<'_> for &str {
 /// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
-pub struct Tokenizer<'al, 'no> {
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
-    normalizer_option: &'no NormalizerOption<'no>,
+pub struct Tokenizer<'tb> {
+    segmenter_option: &'tb SegmenterOption<'tb>,
+    normalizer_option: &'tb NormalizerOption<'tb>,
 }
 
-impl<'al, 'no> Tokenizer<'al, 'no> {
+impl<'tb> Tokenizer<'tb> {
     /// Creates an Iterator over [`Token`]s.
     ///
     /// The provided text is segmented creating tokens,
     /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
-    pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'al, 'no> {
-        original.segment_with_allowlist(self.allow_list).normalize(self.normalizer_option)
+    pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'tb> {
+        original.segment_with_option(self.segmenter_option).normalize(self.normalizer_option)
     }
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
-    pub fn reconstruct<'o>(&self, original: &'o str) -> ReconstructedTokenIter<'o, 'al, 'no> {
+    pub fn reconstruct<'o>(&self, original: &'o str) -> ReconstructedTokenIter<'o, 'tb> {
         ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     /// Segments the provided text creating an Iterator over [`Token`].
-    pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'al> {
-        original.segment_with_allowlist(self.allow_list)
+    pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'tb> {
+        original.segment_with_option(self.segmenter_option)
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
-    pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'al> {
-        original.segment_str_with_allowlist(self.allow_list)
+    pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'tb> {
+        original.segment_str_with_option(self.segmenter_option)
     }
 }
 
@@ -154,33 +154,120 @@ impl<'al, 'no> Tokenizer<'al, 'no> {
 /// let tokenizer = builder.build();
 /// ```
 ///
-pub struct TokenizerBuilder<'al, 'no, A> {
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
-    stop_words: Option<&'no Set<A>>,
-    normalizer_option: NormalizerOption<'no>,
+pub struct TokenizerBuilder<'tb, A> {
+    stop_words: Option<&'tb Set<A>>,
+    words_dict: Option<&'tb [&'tb str]>,
+    normalizer_option: NormalizerOption<'tb>,
+    segmenter_option: SegmenterOption<'tb>,
 }
 
-impl<'al, 'no, A> TokenizerBuilder<'al, 'no, A> {
+impl<'tb, A> TokenizerBuilder<'tb, A> {
     /// Create a `TokenizerBuilder` with default settings,
     ///
     /// if you don't plan to set stop_words, prefer use [`TokenizerBuilder::default`]
-    pub fn new() -> TokenizerBuilder<'al, 'no, A> {
-        Self { normalizer_option: NormalizerOption::default(), allow_list: None, stop_words: None }
+    pub fn new() -> TokenizerBuilder<'tb, A> {
+        Self {
+            normalizer_option: crate::normalizer::DEFAULT_NORMALIZER_OPTION,
+            segmenter_option: SegmenterOption::default(),
+            stop_words: None,
+            words_dict: None,
+        }
     }
 }
 
-impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
+impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
     /// Configure the words that will be classified as `TokenKind::StopWord`.
     ///
     /// # Arguments
     ///
     /// * `stop_words` - a `Set` of the words to classify as stop words.
-    pub fn stop_words(&mut self, stop_words: &'no Set<A>) -> &mut Self {
+    pub fn stop_words(&mut self, stop_words: &'tb Set<A>) -> &mut Self {
         self.stop_words = Some(stop_words);
-        self.normalizer_option.stop_words = self.stop_words.map(|sw| {
+        self.normalizer_option.classifier.stop_words = self.stop_words.map(|sw| {
             let sw = sw.as_fst().as_bytes();
             Set::new(sw).unwrap()
         });
+        self
+    }
+
+    /// Configure the words that will be used to separate words and classified as `TokenKind::Separator`.
+    ///
+    /// # Arguments
+    ///
+    /// * `separators` - a slice of str to classify as separator.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use charabia::TokenizerBuilder;
+    ///
+    /// // create the builder.
+    /// let mut builder = TokenizerBuilder::default();
+    ///
+    /// // create a custom list of separators.
+    /// let separators = [" ", ", ", ". ", "?", "!"];
+    ///
+    /// // configurate separators.
+    /// builder.separators(&separators);
+    ///
+    /// // build the tokenizer passing the text to tokenize.
+    /// let tokenizer = builder.build();
+    ///
+    /// // text to tokenize.
+    /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+    ///
+    /// let output: Vec<_> = tokenizer.segment_str(orig).collect();
+    /// assert_eq!(
+    ///   &output,
+    ///   &["The", " ", "quick", " ", "(\"brown\")", " ", "fox", " ", "can't", " ", "jump", " ", "32.3", " ", "feet", ", ", "right", "?", " ", "Brr", ", ", "it's", " ", "29.3°F", "!"]
+    /// );
+    /// ```
+    ///
+    pub fn separators(&mut self, separators: &'tb [&'tb str]) -> &mut Self {
+        self.normalizer_option.classifier.separators = Some(separators);
+        self
+    }
+
+    /// Configure the words that will be segmented before any other segmentation.
+    ///
+    /// This words dictionary is used to override the segmentation over these words,
+    /// the tokenizer will find all the occurences of these words before any Language based segmentation.
+    /// If some of the words are in the stop_words' list or in the separators' list,
+    /// then they will be categorized as `TokenKind::StopWord` or as `TokenKind::Separator` aswell.
+    ///
+    /// # Arguments
+    ///
+    /// * `words` - a slice of str.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use charabia::TokenizerBuilder;
+    ///
+    /// // create the builder.
+    /// let mut builder = TokenizerBuilder::default();
+    ///
+    /// // create a custom list of words.
+    /// let words = ["J. R. R.", "Dr.", "J. K."];
+    ///
+    /// // configurate words.
+    /// builder.words_dict(&words);
+    ///
+    /// // build the tokenizer passing the text to tokenize.
+    /// let tokenizer = builder.build();
+    ///
+    /// // text to tokenize.
+    /// let orig = "J. R. R. Tolkien. J. K. Rowling. Dr. Seuss";
+    ///
+    /// let output: Vec<_> = tokenizer.segment_str(orig).collect();
+    /// assert_eq!(
+    ///   &output,
+    ///   &["J. R. R.", " ", "Tolkien", ". ", "J. K.", " ", "Rowling", ". ", "Dr.", " ", "Seuss"]
+    /// );
+    /// ```
+    ///
+    pub fn words_dict(&mut self, words: &'tb [&'tb str]) -> &mut Self {
+        self.words_dict = Some(words);
         self
     }
 
@@ -212,18 +299,51 @@ impl<'al, 'no, A: AsRef<[u8]>> TokenizerBuilder<'al, 'no, A> {
     /// # Arguments
     ///
     /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.
-    pub fn allow_list(&mut self, allow_list: &'al HashMap<Script, Vec<Language>>) -> &mut Self {
-        self.allow_list = Some(allow_list);
+    pub fn allow_list(&mut self, allow_list: &'tb HashMap<Script, Vec<Language>>) -> &mut Self {
+        self.segmenter_option.allow_list = Some(allow_list);
         self
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build(&'no self) -> Tokenizer<'al, 'no> {
-        Tokenizer { normalizer_option: &self.normalizer_option, allow_list: self.allow_list }
+    pub fn build(&mut self) -> Tokenizer {
+        // If a custom list of separators or/and a custom list of words have been given,
+        // then an Aho-Corasick automaton is created to pre-segment the text during the tokenization process
+        // TODO: avoid recreating the automaton if nothing changed
+        match (self.normalizer_option.classifier.separators, self.words_dict) {
+            (Some(separators), None) => {
+                let aho = AhoCorasick::builder()
+                    .match_kind(MatchKind::LeftmostLongest)
+                    .build(separators)
+                    .unwrap();
+
+                self.segmenter_option.aho = Some(aho);
+            }
+            (separators, Some(words)) => {
+                // use the default separators' list if a custom words' list is given but no custom separators' list.
+                let separators = separators.unwrap_or(DEFAULT_SEPARATORS);
+                // merge both lists together and create the Aho-Corasick automaton.
+                let mut vec = Vec::with_capacity(separators.len() + words.len());
+                vec.extend_from_slice(words);
+                vec.extend_from_slice(separators);
+                let aho = AhoCorasick::builder()
+                    .match_kind(MatchKind::LeftmostLongest)
+                    .build(vec)
+                    .unwrap();
+
+                self.segmenter_option.aho = Some(aho);
+            }
+            // reset the state in case the builder is reused.
+            (None, None) => self.segmenter_option.aho = None,
+        }
+
+        Tokenizer {
+            normalizer_option: &self.normalizer_option,
+            segmenter_option: &self.segmenter_option,
+        }
     }
 }
 
-impl Default for TokenizerBuilder<'_, '_, Vec<u8>> {
+impl Default for TokenizerBuilder<'_, Vec<u8>> {
     fn default() -> Self {
         Self::new()
     }
@@ -243,7 +363,7 @@ mod test {
         assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
 
         let tokens: Vec<_> = {
-            let builder = TokenizerBuilder::default();
+            let mut builder = TokenizerBuilder::default();
             let tokens = {
                 let tokenizer = builder.build();
                 tokenizer.tokenize(text).collect()
