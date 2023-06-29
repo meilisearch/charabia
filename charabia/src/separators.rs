@@ -65,7 +65,7 @@ pub const DEFAULT_SEPARATORS: &[&str] = &[
 pub const CONTEXT_SEPARATORS: &[&str] = &[
     "᠆", // Mongolian Todo Soft Hyphen, mark the end of a paragraph.
     "᚛", "᚜", // Oghams, mark start and end of text
-    "!", ". ", ", ", ":", ";", "?", "¡", "§", "¶", "¿", ";", // Latin
+    "!", ". ", ", ", ";", "?", "¡", "§", "¶", "¿", ";", // Latin
     "՜", // Armenian exclamation mark
     "՝", // Armenian comma
     "՞", // Armenian question mark
