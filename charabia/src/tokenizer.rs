@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 use aho_corasick::{AhoCorasick, MatchKind};
@@ -98,8 +99,8 @@ impl Tokenize<'_> for &str {
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 pub struct Tokenizer<'tb> {
-    segmenter_option: &'tb SegmenterOption<'tb>,
-    normalizer_option: &'tb NormalizerOption<'tb>,
+    segmenter_option: Cow<'tb, SegmenterOption<'tb>>,
+    normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
 }
 
 impl<'tb> Tokenizer<'tb> {
@@ -107,23 +108,23 @@ impl<'tb> Tokenizer<'tb> {
     ///
     /// The provided text is segmented creating tokens,
     /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
-    pub fn tokenize<'o>(&self, original: &'o str) -> NormalizedTokenIter<'o, 'tb> {
-        original.segment_with_option(self.segmenter_option).normalize(self.normalizer_option)
+    pub fn tokenize<'t, 'o>(&'t self, original: &'o str) -> NormalizedTokenIter<'o, 't> {
+        original.segment_with_option(&self.segmenter_option).normalize(&self.normalizer_option)
     }
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
-    pub fn reconstruct<'o>(&self, original: &'o str) -> ReconstructedTokenIter<'o, 'tb> {
+    pub fn reconstruct<'t, 'o>(&'t self, original: &'o str) -> ReconstructedTokenIter<'o, 't> {
         ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     /// Segments the provided text creating an Iterator over [`Token`].
-    pub fn segment<'o>(&self, original: &'o str) -> SegmentedTokenIter<'o, 'tb> {
-        original.segment_with_option(self.segmenter_option)
+    pub fn segment<'t, 'o>(&'t self, original: &'o str) -> SegmentedTokenIter<'o, 't> {
+        original.segment_with_option(&self.segmenter_option)
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
-    pub fn segment_str<'o>(&self, original: &'o str) -> SegmentedStrIter<'o, 'tb> {
-        original.segment_str_with_option(self.segmenter_option)
+    pub fn segment_str<'t, 'o>(&'t self, original: &'o str) -> SegmentedStrIter<'o, 't> {
+        original.segment_str_with_option(&self.segmenter_option)
     }
 }
 
@@ -337,8 +338,20 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
         }
 
         Tokenizer {
-            normalizer_option: &self.normalizer_option,
-            segmenter_option: &self.segmenter_option,
+            normalizer_option: Cow::Borrowed(&self.normalizer_option),
+            segmenter_option: Cow::Borrowed(&self.segmenter_option),
+        }
+    }
+
+    /// Build the configurated `Tokenizer` consumming self.
+    ///
+    /// This method allows to drop the tokenizer builder without having to drop the Tokenizer itself.
+    pub fn into_tokenizer(mut self) -> Tokenizer<'tb> {
+        drop(self.build());
+
+        Tokenizer {
+            normalizer_option: Cow::Owned(self.normalizer_option),
+            segmenter_option: Cow::Owned(self.segmenter_option),
         }
     }
 }
