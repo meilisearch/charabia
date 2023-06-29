@@ -224,11 +224,18 @@ impl<'o, 'tb> SegmentedTokenIter<'o, 'tb> {
     }
 }
 
-impl Token<'_> {
+pub trait Normalize {
+    type Item;
+    fn normalize(self, options: &NormalizerOption) -> Self::Item;
+}
+
+impl Normalize for Token<'_> {
+    type Item = Self;
+
     /// Normalize [`Token`] using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    pub fn normalize(mut self, options: &NormalizerOption) -> Self {
+    fn normalize(mut self, options: &NormalizerOption) -> Self::Item {
         for normalizer in NORMALIZERS.iter() {
             if normalizer.should_normalize(&self) {
                 self = normalizer.normalize(self, options);
@@ -247,12 +254,32 @@ impl Token<'_> {
     }
 }
 
+impl<'o> Normalize for &'o str {
+    type Item = Cow<'o, str>;
+
+    /// Normalize an str.
+    fn normalize(self, options: &NormalizerOption) -> Self::Item {
+        let mut normalized = Token { lemma: Cow::Borrowed(self), ..Default::default() };
+        for normalizer in NORMALIZERS.iter() {
+            normalized = normalizer.normalize(normalized, options);
+        }
+
+        if options.lossy {
+            for normalizer in LOSSY_NORMALIZERS.iter() {
+                normalized = normalizer.normalize(normalized, options);
+            }
+        }
+
+        normalized.lemma
+    }
+}
+
 #[cfg(test)]
 mod test {
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
-            use crate::Token;
+            use crate::{Token, Normalize};
 
             const TEST_NORMALIZER_OPTIONS: NormalizerOption = NormalizerOption {
                 create_char_map: true,
