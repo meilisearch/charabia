@@ -61,7 +61,7 @@ greek = []
 # allow splitting camelCase latin words
 latin-camelcase = ["dep:finl_unicode"]
 
-khmer = []
+khmer = ["dep:icu", "dep:icu_provider_blob", "dep:icu_provider"]
 
 [dev-dependencies]
 criterion = "0.3"
