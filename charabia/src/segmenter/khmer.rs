@@ -1,13 +1,12 @@
 use std::vec;
 
+use icu::segmenter::WordSegmenter;
+
 // Import `Segmenter` trait.
 use crate::segmenter::Segmenter;
-use icu::segmenter::{WordSegmenter};
 
 extern crate alloc; // required as my-data-mod is written for #[no_std]
-use icu::locid::{locale, Locale};
 use icu_provider_blob::BlobDataProvider;
-
 //TIP: Some segmentation Libraries need to initialize a instance of the Segmenter.
 //     This initialization could be time-consuming and shouldn't be done at each call of `segment_str`.
 //     In this case, you may want to store the initialized instance in a lazy static like below and call it in `segment_str`.
@@ -17,14 +16,16 @@ use icu_provider_blob::BlobDataProvider;
 use once_cell::sync::Lazy;
 //
 static SEGMENTER: Lazy<WordSegmenter> = Lazy::new(|| {
-    const LOCALE: Locale = locale!("km");
+    let blob: Vec<u8> =
+        std::fs::read("./dictionaries/bin/icu4x-khmer-keys")
+            .expect("failed to read khmer keys");
 
-    let blob: Vec<u8> = std::fs::read("./icu4x-khmer-keys").expect("failed to read khmer keys");
+    let buffer_provider: BlobDataProvider =
+        BlobDataProvider::try_new_from_blob(blob.into_boxed_slice())
+            .expect("failed to load khmer keys");
 
-    let buffer_provider: BlobDataProvider = 
-        BlobDataProvider::try_new_from_blob(blob.into_boxed_slice()).expect("failed to load khmer keys");
-
-    WordSegmenter::try_new_with_buffer_provider(&buffer_provider).expect("failed to initialize khmer word segmenter")
+    WordSegmenter::try_new_lstm_with_buffer_provider(&buffer_provider)
+        .expect("failed to initialize khmer word segmenter")
 });
 
 // Make a small documentation of the specialized Segmenter like below.
@@ -56,9 +57,11 @@ impl Segmenter for KhmerSegmenter {
 
         // Return the created iterator wrapping it in a Box.
         Box::new(
-            positions.iter().map(|(start, end)|
-                &to_segment[*start..*end]
-            ).collect::<Vec<&str>>().into_iter()
+            positions
+                .iter()
+                .map(|(start, end)| &to_segment[*start..*end])
+                .collect::<Vec<&str>>()
+                .into_iter(),
         )
     }
 }
