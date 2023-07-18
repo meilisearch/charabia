@@ -1,5 +1,8 @@
 use jieba_rs::Jieba;
 use once_cell::sync::Lazy;
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::path::Path;
 
 use crate::segmenter::Segmenter;
 
@@ -17,7 +20,39 @@ impl Segmenter for ChineseSegmenter {
     }
 }
 
-static JIEBA: Lazy<Jieba> = Lazy::new(Jieba::new);
+fn read_lines<P>(filename: P) -> Vec<String>
+where P: AsRef<Path>,
+{
+    let path = filename.as_ref();
+    if !path.exists() {
+        println!("****");
+        return vec![];
+    }
+
+    if let Ok(file) = File::open(&path) {
+        let reader = io::BufReader::new(file);
+        let mut lines = Vec::new();
+    
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                lines.push(line);
+            }
+        }
+    
+        return lines;
+    }
+    return vec![]
+}
+
+
+static JIEBA: Lazy<Jieba> = Lazy::new(|| {
+    let mut jieba = Jieba::new();
+    let lines = read_lines("./charabia/dictionaries/chinese_company_names/words.txt");
+    for line in lines {
+        jieba.add_word(line.as_str(), Some(99 as usize), None);
+    }
+    jieba
+});
 
 #[cfg(test)]
 mod test {
