@@ -123,12 +123,18 @@ pub struct SegmentedStrIter<'o, 'tb> {
 impl<'o, 'tb> SegmentedStrIter<'o, 'tb> {
     pub fn new(original: &'o str, options: &'tb SegmenterOption<'tb>) -> Self {
         let mut current_script = Script::Other;
+        let mut group_id = 0;
         let inner = original.linear_group_by_key(move |c| {
             let script = Script::from(c);
             if script != Script::Other && script != current_script {
+                // if both previous and current scripts are differents than Script::Other,
+                // split into a new script group.
+                if current_script != Script::Other {
+                    group_id += 1;
+                }
                 current_script = script
             }
-            current_script
+            group_id
         });
 
         Self {
