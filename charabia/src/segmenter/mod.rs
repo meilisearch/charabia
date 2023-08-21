@@ -261,7 +261,7 @@ fn segmenter<'b>(detector: &mut StrDetection) -> &'b dyn Segmenter {
 }
 
 /// Structure for providing options to a normalizer.
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct SegmenterOption<'tb> {
     pub aho: Option<AhoCorasick>,
     pub allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,

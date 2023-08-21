@@ -48,7 +48,7 @@ impl Normalizer for Classifier {
 }
 
 /// Structure for providing options to the classfier.
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ClassifierOption<'no> {
     pub stop_words: Option<Set<&'no [u8]>>,
     pub separators: Option<&'no [&'no str]>,

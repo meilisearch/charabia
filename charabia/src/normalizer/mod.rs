@@ -78,7 +78,7 @@ impl<'o> Iterator for NormalizedTokenIter<'o, '_> {
 }
 
 /// Structure for providing options to a normalizer.
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct NormalizerOption<'tb> {
     pub create_char_map: bool,
     pub classifier: ClassifierOption<'tb>,
@@ -276,6 +276,14 @@ impl<'o> Normalize for &'o str {
 
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
+    use crate::normalizer::quote::QuoteNormalizer;
+    use crate::normalizer::{
+        CompatibilityDecompositionNormalizer, LowercaseNormalizer, Normalizer,
+    };
+    use crate::Token;
+
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
@@ -328,4 +336,40 @@ Make sure that normalized tokens are valid or change the trigger condition of th
         };
     }
     pub(crate) use test_normalizer;
+
+    #[test]
+    fn split_at() {
+        fn display_token<N>(token: &Token) {
+            println!("{} with {}", token.lemma(), std::any::type_name::<N>());
+            if let Some(char_map) = token.char_map.as_ref() {
+                let mut s = &token.lemma[..];
+                for (start, len) in char_map {
+                    match s.get((*len as usize)..) {
+                        Some(n) => {
+                            println!("{} - {:?}", &s[..(*len as usize)], (start, len));
+                            s = n;
+                        }
+                        None => println!("⚠ - {:?}", (start, len)),
+                    }
+                }
+            }
+        }
+
+        let options = crate::normalizer::NormalizerOption {
+            create_char_map: true,
+            lossy: true,
+            ..Default::default()
+        };
+
+        let string = "0÷IÖꞪz";
+        let mut normalized = Token { lemma: Cow::Borrowed(string), ..Default::default() };
+        display_token::<()>(&normalized);
+        normalized = CompatibilityDecompositionNormalizer.normalize(normalized, &options);
+        display_token::<CompatibilityDecompositionNormalizer>(&normalized);
+        normalized = LowercaseNormalizer.normalize(normalized, &options);
+        display_token::<LowercaseNormalizer>(&normalized);
+        normalized = QuoteNormalizer.normalize(normalized, &options);
+        display_token::<QuoteNormalizer>(&normalized);
+        let _ = normalized;
+    }
 }
