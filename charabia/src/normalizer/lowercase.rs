@@ -9,10 +9,33 @@ use crate::Token;
 pub struct LowercaseNormalizer;
 
 impl Normalizer for LowercaseNormalizer {
-    // lowercasing characters doesn't change the characters length,
-    // so the `normalize` method is overloaded to skip the useless char_map computing.
+    // lowercasing characters cna change the characters length, so we need
+    // to make sure that the char mapping is correct and remap it if necessary.
+    // <https://github.com/meilisearch/charabia/pull/234>
     fn normalize<'o>(&self, mut token: Token<'o>, _options: &NormalizerOption) -> Token<'o> {
-        token.lemma = Cow::Owned(token.lemma().to_lowercase());
+        match token.char_map.take() {
+            Some(char_map) => {
+                // Most of the time lowercasing a string will not change it's length
+                let lowercased = token.lemma.to_lowercase();
+                if token.lemma.len() == lowercased.len() {
+                    token.lemma = Cow::Owned(lowercased);
+                } else {
+                    let mut new_lemma = String::new(); // with_capacity?
+                    let mut new_char_map = Vec::with_capacity(char_map.len());
+                    let mut s = token.lemma.as_ref();
+                    for (orig_len, new_len) in char_map {
+                        let (chunk, tail) = s.split_at(new_len as usize);
+                        s = tail;
+                        let lowercased_chunk = chunk.to_lowercase();
+                        new_char_map.push((orig_len, lowercased_chunk.len() as u8));
+                        new_lemma.push_str(&lowercased_chunk);
+                    }
+                    token.char_map = Some(new_char_map);
+                    token.lemma = Cow::Owned(new_lemma);
+                }
+            }
+            None => token.lemma = Cow::Owned(token.lemma().to_lowercase()),
+        }
 
         token
     }
