@@ -98,6 +98,7 @@ impl Tokenize<'_> for &str {
 /// Structure used to tokenize a text with custom configurations.
 ///
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
+#[derive(Debug)]
 pub struct Tokenizer<'tb> {
     segmenter_option: Cow<'tb, SegmenterOption<'tb>>,
     normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
@@ -366,7 +367,7 @@ impl Default for TokenizerBuilder<'_, Vec<u8>> {
 mod test {
     use fst::Set;
 
-    use crate::tokenizer::{Tokenize, TokenizerBuilder};
+    use crate::{Tokenize, TokenizerBuilder};
 
     #[test]
     fn check_lifetimes() {
