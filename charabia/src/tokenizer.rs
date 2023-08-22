@@ -366,6 +366,7 @@ impl Default for TokenizerBuilder<'_, Vec<u8>> {
 #[cfg(test)]
 mod test {
     use fst::Set;
+    use quickcheck::quickcheck;
 
     use crate::{Tokenize, TokenizerBuilder};
 
@@ -397,5 +398,12 @@ mod test {
             tokens
         };
         assert_eq!(tokens.iter().last().map(|t| t.lemma()), Some("."));
+    }
+
+    #[quickcheck]
+    fn shorten_after_tokenized(text: String) -> bool {
+        let text = text.as_str();
+        let tokens: Vec<_> = text.tokenize().collect();
+        tokens.len() <= text.len()
     }
 }
