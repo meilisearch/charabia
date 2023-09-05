@@ -191,4 +191,89 @@ mod test {
             .normalize(Token { lemma: Cow::Borrowed("foobar"), ..Default::default() }, &options);
         assert!(token.is_word());
     }
+
+    #[quickcheck]
+    fn is_stop_word_iff_stop_words_contain_lemma(
+        mut stop_words: Vec<String>,
+        lemma: String,
+        create_char_map: bool,
+        lossy: bool,
+        containing: bool,
+    ) {
+        if containing {
+            stop_words.push(lemma.clone());
+        } else {
+            stop_words.retain(|w| w != &lemma);
+        }
+
+        stop_words.sort();
+        let stop_words = Set::from_iter(stop_words.iter()).unwrap();
+        let stop_words = stop_words.as_fst().as_bytes();
+        let stop_words = Set::new(stop_words).unwrap();
+        let options = NormalizerOption {
+            create_char_map,
+            classifier: ClassifierOption { stop_words: Some(stop_words), separators: None },
+            lossy,
+        };
+
+        let token = Classifier
+            .normalize(Token { lemma: Cow::Borrowed(&lemma), ..Default::default() }, &options);
+        assert_eq!(token.is_stopword(), containing);
+    }
+
+    #[quickcheck]
+    fn is_separator_if_separators_contain_lemma(
+        mut separators: Vec<String>,
+        lemma: String,
+        create_char_map: bool,
+        lossy: bool,
+        containing: bool,
+    ) {
+        if containing {
+            separators.push(lemma.clone());
+        } else {
+            separators.retain(|w| w != &lemma);
+        }
+        let separators: Vec<&str> = separators.iter().map(|s| s.as_str()).collect();
+        let options = NormalizerOption {
+            create_char_map,
+            classifier: ClassifierOption { stop_words: None, separators: Some(&separators) },
+            lossy,
+        };
+
+        let token = Classifier
+            .normalize(Token { lemma: Cow::Borrowed(&lemma), ..Default::default() }, &options);
+        assert_eq!(token.is_separator(), containing);
+        if containing {
+            assert!(token.is_separator());
+        }
+    }
+
+    #[quickcheck]
+    fn is_stop_word_if_both_stop_works_and_separators_contain_lemma(
+        mut stop_words_and_separators: Vec<String>,
+        lemma: String,
+        create_char_map: bool,
+        lossy: bool,
+    ) {
+        stop_words_and_separators.push(lemma.clone());
+        stop_words_and_separators.sort();
+        let stop_words = Set::from_iter(stop_words_and_separators.iter()).unwrap();
+        let stop_words = stop_words.as_fst().as_bytes();
+        let stop_words = Set::new(stop_words).unwrap();
+        let separators: Vec<&str> = stop_words_and_separators.iter().map(|s| s.as_str()).collect();
+        let options = NormalizerOption {
+            create_char_map,
+            classifier: ClassifierOption {
+                stop_words: Some(stop_words),
+                separators: Some(&separators),
+            },
+            lossy,
+        };
+
+        let token = Classifier
+            .normalize(Token { lemma: Cow::Borrowed(&lemma), ..Default::default() }, &options);
+        assert!(token.is_stopword());
+        assert!(!token.is_separator());
+    }
 }
