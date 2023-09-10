@@ -185,14 +185,24 @@ pub type StaticToken = Token<'static>;
 #[cfg(test)]
 impl Arbitrary for Token<'static> {
     fn arbitrary(g: &mut Gen) -> Self {
+        let lemma = String::arbitrary(g);
+
+        let bytes_count = lemma.len();
+        let byte_start = usize::arbitrary(g).saturating_sub(bytes_count);
+        let byte_end = byte_start + bytes_count;
+
+        let chars_count = lemma.chars().count();
+        let char_start = usize::arbitrary(g).saturating_sub(chars_count);
+        let char_end = char_start + chars_count;
+
         Token {
             kind: TokenKind::arbitrary(g),
             lemma: Cow::Owned(String::arbitrary(g)),
-            char_start: usize::arbitrary(g),
-            char_end: usize::arbitrary(g),
-            byte_start: usize::arbitrary(g),
-            byte_end: usize::arbitrary(g),
             char_map: Option::arbitrary(g),
+            char_start,
+            char_end,
+            byte_start,
+            byte_end,
             script: Script::arbitrary(g),
             language: Option::arbitrary(g),
         }
