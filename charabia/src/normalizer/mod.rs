@@ -287,7 +287,7 @@ mod test {
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
-            use crate::{Token, Normalize};
+            use crate::{Token, Normalize, StaticToken};
 
             const TEST_NORMALIZER_OPTIONS: NormalizerOption = NormalizerOption {
                 create_char_map: true,
@@ -332,6 +332,11 @@ Check if the `NORMALIZERS` list in `charabia/src/normalizer/mod.rs` contains the
 Make sure that normalized tokens are valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
 "#
                 );
+            }
+
+            #[quickcheck]
+            fn normalizer_not_panic_for_random_token(token: StaticToken) {
+                token.normalize(&TEST_NORMALIZER_OPTIONS);
             }
         };
     }

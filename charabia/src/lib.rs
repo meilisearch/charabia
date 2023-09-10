@@ -61,4 +61,7 @@ pub use normalizer::Normalize;
 pub use segmenter::Segment;
 pub use token::{SeparatorKind, Token, TokenKind};
 
+#[cfg(test)]
+pub use token::StaticToken;
+
 pub use crate::tokenizer::{ReconstructedTokenIter, Tokenize, Tokenizer, TokenizerBuilder};
