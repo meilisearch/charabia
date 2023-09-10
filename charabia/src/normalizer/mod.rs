@@ -288,6 +288,7 @@ mod test {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
             use crate::{Token, Normalize, StaticToken};
+            use fst::Set;
 
             const TEST_NORMALIZER_OPTIONS: NormalizerOption = NormalizerOption {
                 create_char_map: true,
@@ -335,8 +336,21 @@ Make sure that normalized tokens are valid or change the trigger condition of th
             }
 
             #[quickcheck]
-            fn normalizer_not_panic_for_random_token(token: StaticToken) {
-                token.normalize(&TEST_NORMALIZER_OPTIONS);
+            fn normalizer_not_panic_for_random_option(token: StaticToken, create_char_map: bool, lossy: bool, mut stop_words: Vec<String>, separators: Vec<String>) {
+                stop_words.sort();
+                let stop_words = Set::from_iter(stop_words.iter()).unwrap();
+                let stop_words = Set::new(stop_words.as_fst().as_bytes()).unwrap();
+                let separators: Vec<&str> = separators.iter().map(|s| s.as_str()).collect();
+                let normalizer_option = NormalizerOption {
+                    create_char_map,
+                    lossy,
+                    classifier:  crate::normalizer::ClassifierOption {
+                        stop_words: Some(stop_words),
+                        separators: Some(separators.as_slice()),
+                    }
+                };
+
+                token.normalize(&normalizer_option);
             }
         };
     }

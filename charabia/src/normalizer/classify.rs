@@ -72,8 +72,6 @@ pub static CONTEXT_SEPARATOR_SET: Lazy<HashSet<&str>> =
 mod test {
     use std::borrow::Cow;
 
-    use fst::Set;
-
     use crate::normalizer::test::test_normalizer;
 
     // base tokens to normalize.

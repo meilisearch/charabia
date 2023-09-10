@@ -198,11 +198,11 @@ impl Arbitrary for Token<'static> {
         Token {
             kind: TokenKind::arbitrary(g),
             lemma: Cow::Owned(String::arbitrary(g)),
-            char_map: Option::arbitrary(g),
             char_start,
             char_end,
             byte_start,
             byte_end,
+            char_map: None,
             script: Script::arbitrary(g),
             language: Option::arbitrary(g),
         }
