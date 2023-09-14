@@ -1,6 +1,6 @@
-use std::borrow::Cow;
+use std::iter::once;
 
-use super::{Normalizer, NormalizerOption};
+use super::{CharNormalizer, CharOrStr};
 use crate::detection::Script;
 use crate::Token;
 
@@ -8,30 +8,21 @@ use crate::Token;
 ///
 pub struct LowercaseNormalizer;
 
-impl Normalizer for LowercaseNormalizer {
-    // lowercasing characters cna change the characters length, so we need
-    // to make sure that the char mapping is correct and remap it if necessary.
-    // <https://github.com/meilisearch/charabia/pull/234>
-    fn normalize<'o>(&self, mut token: Token<'o>, _options: &NormalizerOption) -> Token<'o> {
-        match token.char_map.take() {
-            Some(char_map) => {
-                let mut new_lemma = String::with_capacity(token.lemma.len());
-                let mut new_char_map = Vec::with_capacity(char_map.len());
-                let mut s = token.lemma.as_ref();
-                for (orig_len, new_len) in char_map {
-                    let (chunk, tail) = s.split_at(new_len as usize);
-                    s = tail;
-                    let lowercased_chunk = chunk.to_lowercase();
-                    new_char_map.push((orig_len, lowercased_chunk.len() as u8));
-                    new_lemma.push_str(&lowercased_chunk);
-                }
-                token.lemma = Cow::Owned(new_lemma);
-                token.char_map = Some(new_char_map);
-            }
-            None => token.lemma = Cow::Owned(token.lemma().to_lowercase()),
-        }
+impl CharNormalizer for LowercaseNormalizer {
+    fn normalize_char(&self, c: char) -> Option<CharOrStr> {
+        let mut normalized = c.to_lowercase();
 
-        token
+        // if the original character is converted in exactly one character,
+        // then we return the character directly instead of creating a string for it.
+        match (normalized.next(), normalized.next()) {
+            (Some(c), None) => Some(c.into()),
+            (Some(first), Some(second)) => {
+                let normalized: String =
+                    once(first).chain(once(second)).chain(normalized).collect();
+                Some(normalized.into())
+            }
+            (None, _) => None,
+        }
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -46,6 +37,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
+    use crate::normalizer::{Normalizer, NormalizerOption};
     use crate::token::TokenKind;
 
     fn tokens() -> Vec<Token<'static>> {
@@ -64,6 +56,18 @@ mod test {
             char_end: 10,
             byte_end: 10,
             script: Script::Latin,
+            char_map: Some(vec![
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+            ]),
             ..Default::default()
         }]
     }
@@ -75,6 +79,18 @@ mod test {
             byte_end: 10,
             script: Script::Latin,
             kind: TokenKind::Word,
+            char_map: Some(vec![
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+                (1, 1),
+            ]),
             ..Default::default()
         }]
     }
