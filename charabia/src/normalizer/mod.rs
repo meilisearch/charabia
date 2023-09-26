@@ -336,7 +336,7 @@ Make sure that normalized tokens are valid or change the trigger condition of th
             }
 
             #[quickcheck]
-            fn normalizer_not_panic_for_random_option(token: StaticToken, create_char_map: bool, lossy: bool, mut stop_words: Vec<String>, separators: Vec<String>) {
+            fn normalizer_not_panic_for_random_option(token: StaticToken, create_char_map: bool, lossy: bool, mut stop_words: Vec<String>, separators: Vec<String>, original_lengths_arg: usize) {
                 stop_words.sort();
                 let stop_words = Set::from_iter(stop_words.iter()).unwrap();
                 let stop_words = Set::new(stop_words.as_fst().as_bytes()).unwrap();
@@ -350,7 +350,8 @@ Make sure that normalized tokens are valid or change the trigger condition of th
                     }
                 };
 
-                token.normalize(&normalizer_option);
+                let normalized_token = token.normalize(&normalizer_option);
+                let _ = normalized_token.original_lengths(original_lengths_arg);
             }
         };
     }
