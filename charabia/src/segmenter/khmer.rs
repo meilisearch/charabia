@@ -16,15 +16,13 @@ use icu_provider_blob::BlobDataProvider;
 use once_cell::sync::Lazy;
 //
 static SEGMENTER: Lazy<WordSegmenter> = Lazy::new(|| {
-    let blob: Vec<u8> =
-        std::fs::read("./dictionaries/bin/icu4x-khmer-keys")
-            .expect("failed to read khmer keys");
+    let blob = include_bytes!("../../dictionaries/bin/icu4x-khmer-keys");
 
     let buffer_provider: BlobDataProvider =
-        BlobDataProvider::try_new_from_blob(blob.into_boxed_slice())
+        BlobDataProvider::try_new_from_static_blob(blob)
             .expect("failed to load khmer keys");
 
-    WordSegmenter::try_new_lstm_with_buffer_provider(&buffer_provider)
+    WordSegmenter::try_new_dictionary_with_buffer_provider(&buffer_provider)
         .expect("failed to initialize khmer word segmenter")
 });
 
