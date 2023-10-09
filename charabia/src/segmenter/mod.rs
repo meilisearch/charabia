@@ -28,14 +28,14 @@ mod arabic;
 mod chinese;
 #[cfg(feature = "japanese")]
 mod japanese;
+#[cfg(feature = "khmer")]
+mod khmer;
 #[cfg(feature = "korean")]
 mod korean;
 mod latin;
 #[cfg(feature = "thai")]
 mod thai;
 mod utils;
-#[cfg(feature = "khmer")]
-mod khmer;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
 ///

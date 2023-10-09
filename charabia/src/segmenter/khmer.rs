@@ -19,8 +19,7 @@ static SEGMENTER: Lazy<WordSegmenter> = Lazy::new(|| {
     let blob = include_bytes!("../../dictionaries/bin/icu4x-khmer-keys");
 
     let buffer_provider: BlobDataProvider =
-        BlobDataProvider::try_new_from_static_blob(blob)
-            .expect("failed to load khmer keys");
+        BlobDataProvider::try_new_from_static_blob(blob).expect("failed to load khmer keys");
 
     WordSegmenter::try_new_dictionary_with_buffer_provider(&buffer_provider)
         .expect("failed to initialize khmer word segmenter")
@@ -41,9 +40,7 @@ pub struct KhmerSegmenter;
 impl Segmenter for KhmerSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         let (_, positions) =
-            SEGMENTER
-            .segment_str(to_segment)
-            .fold((None, vec![]), |mut acc, elem| {
+            SEGMENTER.segment_str(to_segment).fold((None, vec![]), |mut acc, elem| {
                 if acc.0.is_some() {
                     acc.1.push((acc.0.unwrap(), elem));
                 }
