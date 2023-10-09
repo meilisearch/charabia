@@ -5,19 +5,23 @@ use once_cell::sync::Lazy;
 pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese")]
 pub use self::chinese::ChineseNormalizer;
+pub use self::classify::{Classifier, ClassifierOption};
 pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
 pub use self::control_char::ControlCharNormalizer;
+#[cfg(feature = "greek")]
+use self::greek::GreekNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
-use crate::classifier::ClassifiedTokenIter;
-use crate::normalizer::greek::GreekNormalizer;
-use crate::normalizer::nonspacing_mark::NonspacingMarkNormalizer;
+use self::nonspacing_mark::NonspacingMarkNormalizer;
+use self::quote::QuoteNormalizer;
+use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
 mod arabic;
 #[cfg(feature = "chinese")]
 mod chinese;
+mod classify;
 mod compatibility_decomposition;
 mod control_char;
 #[cfg(feature = "greek")]
@@ -26,31 +30,46 @@ mod greek;
 mod japanese;
 mod lowercase;
 mod nonspacing_mark;
+mod quote;
 
-/// List of [`Normalizer`]s used by [`Normalize::normalize`].
+/// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
         Box::new(CompatibilityDecompositionNormalizer),
+        Box::new(ControlCharNormalizer),
+        Box::new(Classifier),
+    ]
+});
+
+/// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
+pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
+    vec![
         Box::new(LowercaseNormalizer),
+        Box::new(QuoteNormalizer),
         #[cfg(feature = "chinese")]
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
         #[cfg(feature = "greek")]
         Box::new(GreekNormalizer),
-        Box::new(ControlCharNormalizer),
-        Box::new(NonspacingMarkNormalizer),
         Box::new(ArabicNormalizer),
+        Box::new(NonspacingMarkNormalizer),
     ]
 });
 
+pub(crate) const DEFAULT_NORMALIZER_OPTION: NormalizerOption = NormalizerOption {
+    create_char_map: false,
+    lossy: true,
+    classifier: ClassifierOption { stop_words: None, separators: None },
+};
+
 /// Iterator over Normalized [`Token`]s.
-pub struct NormalizedTokenIter<'o, 'al, 'sw, A> {
-    token_iter: ClassifiedTokenIter<'o, 'al, 'sw, A>,
-    options: NormalizerOption,
+pub struct NormalizedTokenIter<'o, 'tb> {
+    token_iter: SegmentedTokenIter<'o, 'tb>,
+    options: &'tb NormalizerOption<'tb>,
 }
 
-impl<'o, A: AsRef<[u8]>> Iterator for NormalizedTokenIter<'o, '_, '_, A> {
+impl<'o> Iterator for NormalizedTokenIter<'o, '_> {
     type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -59,9 +78,11 @@ impl<'o, A: AsRef<[u8]>> Iterator for NormalizedTokenIter<'o, '_, '_, A> {
 }
 
 /// Structure for providing options to a normalizer.
-#[derive(Clone, Copy, Default)]
-pub struct NormalizerOption {
+#[derive(Debug, Clone, Default)]
+pub struct NormalizerOption<'tb> {
     pub create_char_map: bool,
+    pub classifier: ClassifierOption<'tb>,
+    pub lossy: bool,
 }
 
 /// Trait defining a normalizer.
@@ -69,7 +90,7 @@ pub trait Normalizer: Sync + Send {
     /// Normalize the provided [`Token`].
     /// Options can be set using the provided [`NormalizerOption`].
     ///
-    fn normalize<'o>(&self, token: Token<'o>, options: NormalizerOption) -> Token<'o>;
+    fn normalize<'o>(&self, token: Token<'o>, options: &NormalizerOption) -> Token<'o>;
 
     /// Return true if the normalizer can process Token of a specific [`Script`] and [`Language`].
     ///
@@ -133,7 +154,7 @@ impl<T> Normalizer for T
 where
     T: CharNormalizer,
 {
-    fn normalize<'o>(&self, mut token: Token<'o>, options: NormalizerOption) -> Token<'o> {
+    fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
         if options.create_char_map {
             match token.char_map.take() {
                 Some(mut char_map) => {
@@ -194,23 +215,38 @@ impl From<String> for CharOrStr {
     }
 }
 
-impl<'o, 'al, 'sw, A> ClassifiedTokenIter<'o, 'al, 'sw, A> {
+impl<'o, 'tb> SegmentedTokenIter<'o, 'tb> {
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    pub fn normalize(self, options: NormalizerOption) -> NormalizedTokenIter<'o, 'al, 'sw, A> {
+    pub fn normalize(self, options: &'tb NormalizerOption<'tb>) -> NormalizedTokenIter<'o, 'tb> {
         NormalizedTokenIter { token_iter: self, options }
     }
 }
 
-impl Token<'_> {
+pub trait Normalize {
+    type Item;
+    fn normalize(self, options: &NormalizerOption) -> Self::Item;
+}
+
+impl Normalize for Token<'_> {
+    type Item = Self;
+
     /// Normalize [`Token`] using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
-    pub fn normalize(mut self, options: NormalizerOption) -> Self {
+    fn normalize(mut self, options: &NormalizerOption) -> Self::Item {
         for normalizer in NORMALIZERS.iter() {
             if normalizer.should_normalize(&self) {
                 self = normalizer.normalize(self, options);
+            }
+        }
+
+        if options.lossy {
+            for normalizer in LOSSY_NORMALIZERS.iter() {
+                if normalizer.should_normalize(&self) {
+                    self = normalizer.normalize(self, options);
+                }
             }
         }
 
@@ -218,19 +254,53 @@ impl Token<'_> {
     }
 }
 
+impl<'o> Normalize for &'o str {
+    type Item = Cow<'o, str>;
+
+    /// Normalize an str.
+    fn normalize(self, options: &NormalizerOption) -> Self::Item {
+        let mut normalized = Token { lemma: Cow::Borrowed(self), ..Default::default() };
+        for normalizer in NORMALIZERS.iter() {
+            normalized = normalizer.normalize(normalized, options);
+        }
+
+        if options.lossy {
+            for normalizer in LOSSY_NORMALIZERS.iter() {
+                normalized = normalizer.normalize(normalized, options);
+            }
+        }
+
+        normalized.lemma
+    }
+}
+
 #[cfg(test)]
 mod test {
+    use std::borrow::Cow;
+
+    use crate::normalizer::quote::QuoteNormalizer;
+    use crate::normalizer::{
+        CompatibilityDecompositionNormalizer, LowercaseNormalizer, Normalizer,
+    };
+    use crate::Token;
+
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
-            use crate::{Script, Token};
+            use crate::{Token, Normalize};
+
+            const TEST_NORMALIZER_OPTIONS: NormalizerOption = NormalizerOption {
+                create_char_map: true,
+                lossy: true,
+                classifier: crate::normalizer::ClassifierOption { stop_words: None, separators: None },
+            };
 
             #[test]
             fn normalizer_normalize() {
                 let normalized_tokens: Vec<_> = $tokens
                     .into_iter()
                     .map(|token| if Normalizer::should_normalize(&$normalizer, &token) {
-                        $normalizer.normalize(token, NormalizerOption { create_char_map: true })
+                        $normalizer.normalize(token, &TEST_NORMALIZER_OPTIONS)
                     } else {
                         token
                     })
@@ -250,8 +320,7 @@ it's probably due to a bug in the normalizer or a mistake in the provided normal
 
             #[test]
             fn global_normalize() {
-                let options = NormalizerOption { create_char_map: true };
-                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(options)).collect();
+                let normalized_tokens: Vec<_> = $tokens.into_iter().map(|t| t.normalize(&TEST_NORMALIZER_OPTIONS)).collect();
                 assert_eq!(
                     &normalized_tokens[..],
                     $global_result,
@@ -267,4 +336,40 @@ Make sure that normalized tokens are valid or change the trigger condition of th
         };
     }
     pub(crate) use test_normalizer;
+
+    #[test]
+    fn split_at() {
+        fn display_token<N>(token: &Token) {
+            println!("{} with {}", token.lemma(), std::any::type_name::<N>());
+            if let Some(char_map) = token.char_map.as_ref() {
+                let mut s = &token.lemma[..];
+                for (start, len) in char_map {
+                    match s.get((*len as usize)..) {
+                        Some(n) => {
+                            println!("{} - {:?}", &s[..(*len as usize)], (start, len));
+                            s = n;
+                        }
+                        None => println!("⚠ - {:?}", (start, len)),
+                    }
+                }
+            }
+        }
+
+        let options = crate::normalizer::NormalizerOption {
+            create_char_map: true,
+            lossy: true,
+            ..Default::default()
+        };
+
+        let string = "0÷IÖꞪz";
+        let mut normalized = Token { lemma: Cow::Borrowed(string), ..Default::default() };
+        display_token::<()>(&normalized);
+        normalized = CompatibilityDecompositionNormalizer.normalize(normalized, &options);
+        display_token::<CompatibilityDecompositionNormalizer>(&normalized);
+        normalized = LowercaseNormalizer.normalize(normalized, &options);
+        display_token::<LowercaseNormalizer>(&normalized);
+        normalized = QuoteNormalizer.normalize(normalized, &options);
+        display_token::<QuoteNormalizer>(&normalized);
+        let _ = normalized;
+    }
 }

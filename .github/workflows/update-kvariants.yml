@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Fetch latest version
         run: ./kvariants/bin/sync_dictionaries.sh
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           commit-message: Update kVariants dictionary
           branch: update-kvariants

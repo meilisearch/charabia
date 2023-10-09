@@ -17,7 +17,7 @@ jobs:
     name: Update version in Cargo.toml file
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -29,7 +29,7 @@ jobs:
         run: |
           raw_new_version=$(echo $NEW_VERSION | cut -d 'v' -f 2)
           new_string="version = \"$raw_new_version\""
-          sd '^version = "\d+.\d+.\w+"$' "$new_string" Cargo.toml
+          sd '^version = "\d+.\d+.\w+"$' "$new_string" charabia/Cargo.toml
       - name: Commit and push the changes to the ${{ env.NEW_BRANCH }} branch
         uses: EndBug/add-and-commit@v9
         with:
