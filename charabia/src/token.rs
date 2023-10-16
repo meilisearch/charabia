@@ -1,5 +1,8 @@
 use std::borrow::Cow;
 
+#[cfg(test)]
+use quickcheck::{Arbitrary, Gen};
+
 use crate::detection::{Language, Script};
 
 /// Define the kind of a [`TokenKind::Separator`].
@@ -24,6 +27,19 @@ pub enum TokenKind {
     /// meaning that it shouldn't be indexed but used to determine word proximity
     Separator(SeparatorKind),
     Unknown,
+}
+
+#[cfg(test)]
+impl Arbitrary for TokenKind {
+    fn arbitrary(g: &mut Gen) -> Self {
+        *g.choose(&[
+            Self::Word,
+            Self::StopWord,
+            Self::Separator(SeparatorKind::Hard),
+            Self::Separator(SeparatorKind::Soft),
+        ])
+        .unwrap()
+    }
 }
 
 impl Default for TokenKind {
@@ -158,6 +174,37 @@ impl Token<'_> {
                     .count();
                 (char_count, original_byte_len)
             }
+        }
+    }
+}
+
+#[cfg(test)]
+// WORKAROUND: The quickcheck macro can't be used with a type with lifetime.
+pub type StaticToken = Token<'static>;
+
+#[cfg(test)]
+impl Arbitrary for Token<'static> {
+    fn arbitrary(g: &mut Gen) -> Self {
+        let lemma = String::arbitrary(g);
+
+        let bytes_count = lemma.len();
+        let byte_start = usize::arbitrary(g).saturating_sub(bytes_count);
+        let byte_end = byte_start + bytes_count;
+
+        let chars_count = lemma.chars().count();
+        let char_start = usize::arbitrary(g).saturating_sub(chars_count);
+        let char_end = char_start + chars_count;
+
+        Token {
+            kind: TokenKind::arbitrary(g),
+            lemma: Cow::Owned(String::arbitrary(g)),
+            char_start,
+            char_end,
+            byte_start,
+            byte_end,
+            char_map: None,
+            script: Script::arbitrary(g),
+            language: Option::arbitrary(g),
         }
     }
 }

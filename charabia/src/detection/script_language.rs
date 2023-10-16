@@ -1,5 +1,8 @@
 use core::str::FromStr;
 
+#[cfg(test)]
+use quickcheck::{Arbitrary, Gen};
+
 use super::chars;
 
 macro_rules! make_language {
@@ -239,6 +242,116 @@ impl From<char> for Script {
 impl Default for Script {
     fn default() -> Self {
         Self::Other
+    }
+}
+
+// impl Arbitrary for Script {
+#[cfg(test)]
+impl Arbitrary for Script {
+    fn arbitrary(g: &mut Gen) -> Self {
+        *g.choose(&[
+            Script::Arabic,
+            Script::Armenian,
+            Script::Bengali,
+            Script::Cyrillic,
+            Script::Devanagari,
+            Script::Ethiopic,
+            Script::Georgian,
+            Script::Greek,
+            Script::Gujarati,
+            Script::Gurmukhi,
+            Script::Hangul,
+            Script::Hebrew,
+            Script::Kannada,
+            Script::Khmer,
+            Script::Latin,
+            Script::Malayalam,
+            Script::Myanmar,
+            Script::Oriya,
+            Script::Sinhala,
+            Script::Tamil,
+            Script::Telugu,
+            Script::Thai,
+        ])
+        .unwrap()
+    }
+}
+
+#[cfg(test)]
+impl Arbitrary for Language {
+    fn arbitrary(g: &mut Gen) -> Self {
+        *g.choose(&[
+            Language::Epo,
+            Language::Eng,
+            Language::Rus,
+            Language::Cmn,
+            Language::Spa,
+            Language::Por,
+            Language::Ita,
+            Language::Ben,
+            Language::Fra,
+            Language::Deu,
+            Language::Ukr,
+            Language::Kat,
+            Language::Ara,
+            Language::Hin,
+            Language::Jpn,
+            Language::Heb,
+            Language::Yid,
+            Language::Pol,
+            Language::Amh,
+            Language::Jav,
+            Language::Kor,
+            Language::Nob,
+            Language::Dan,
+            Language::Swe,
+            Language::Fin,
+            Language::Tur,
+            Language::Nld,
+            Language::Hun,
+            Language::Ces,
+            Language::Ell,
+            Language::Bul,
+            Language::Bel,
+            Language::Mar,
+            Language::Kan,
+            Language::Ron,
+            Language::Slv,
+            Language::Hrv,
+            Language::Srp,
+            Language::Mkd,
+            Language::Lit,
+            Language::Lav,
+            Language::Est,
+            Language::Tam,
+            Language::Vie,
+            Language::Urd,
+            Language::Tha,
+            Language::Guj,
+            Language::Uzb,
+            Language::Pan,
+            Language::Aze,
+            Language::Ind,
+            Language::Tel,
+            Language::Pes,
+            Language::Mal,
+            Language::Ori,
+            Language::Mya,
+            Language::Nep,
+            Language::Sin,
+            Language::Khm,
+            Language::Tuk,
+            Language::Aka,
+            Language::Zul,
+            Language::Sna,
+            Language::Afr,
+            Language::Lat,
+            Language::Slk,
+            Language::Cat,
+            Language::Tgl,
+            Language::Hye,
+        ])
+        .unwrap()
     }
 }
 

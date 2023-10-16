@@ -424,6 +424,11 @@ help: The normalized version of the segmented text is probably wrong, the used n
 Make sure that normalized text is valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
 "#);
             }
+
+            #[quickcheck]
+            fn segmentor_not_panic_for_random_input(text: String) {
+                let _ = $segmenter.segment_str(&text).collect::<Vec<_>>();
+            }
         }
     }
     pub(crate) use test_segmenter;

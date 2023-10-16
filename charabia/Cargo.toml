@@ -74,6 +74,9 @@ latin-snakecase = ["dep:finl_unicode"]
 [dev-dependencies]
 criterion = "0.3"
 jemallocator = "0.3.0"
+quickcheck = "1"
+quickcheck_macros = "1"
+
 
 [[bench]]
 name = "bench"
