@@ -42,6 +42,12 @@
 //! this features are additional Language supports that need to download and/or build a specialized dictionary that impact the compilation time.
 //! Theses features are listed in charabia's `cargo.toml` and can be deactivated via [dependency features](https://doc.rust-lang.org/cargo/reference/features.html#dependency-features).
 
+#[cfg(test)]
+extern crate quickcheck;
+#[cfg(test)]
+#[macro_use(quickcheck)]
+extern crate quickcheck_macros;
+
 pub mod normalizer;
 pub mod segmenter;
 pub mod separators;
@@ -54,5 +60,8 @@ pub use detection::{Language, Script};
 pub use normalizer::Normalize;
 pub use segmenter::Segment;
 pub use token::{SeparatorKind, Token, TokenKind};
+
+#[cfg(test)]
+pub use token::StaticToken;
 
 pub use crate::tokenizer::{ReconstructedTokenIter, Tokenize, Tokenizer, TokenizerBuilder};

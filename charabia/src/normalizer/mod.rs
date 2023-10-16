@@ -287,7 +287,8 @@ mod test {
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {
             use super::*;
-            use crate::{Token, Normalize};
+            use crate::{Token, Normalize, StaticToken};
+            use fst::Set;
 
             const TEST_NORMALIZER_OPTIONS: NormalizerOption = NormalizerOption {
                 create_char_map: true,
@@ -332,6 +333,25 @@ Check if the `NORMALIZERS` list in `charabia/src/normalizer/mod.rs` contains the
 Make sure that normalized tokens are valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
 "#
                 );
+            }
+
+            #[quickcheck]
+            fn normalizer_not_panic_for_random_option(token: StaticToken, create_char_map: bool, lossy: bool, mut stop_words: Vec<String>, separators: Vec<String>, original_lengths_arg: usize) {
+                stop_words.sort();
+                let stop_words = Set::from_iter(stop_words.iter()).unwrap();
+                let stop_words = Set::new(stop_words.as_fst().as_bytes()).unwrap();
+                let separators: Vec<&str> = separators.iter().map(|s| s.as_str()).collect();
+                let normalizer_option = NormalizerOption {
+                    create_char_map,
+                    lossy,
+                    classifier:  crate::normalizer::ClassifierOption {
+                        stop_words: Some(stop_words),
+                        separators: Some(separators.as_slice()),
+                    }
+                };
+
+                let normalized_token = token.normalize(&normalizer_option);
+                let _ = normalized_token.original_lengths(original_lengths_arg);
             }
         };
     }
