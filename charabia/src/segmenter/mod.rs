@@ -16,6 +16,9 @@ use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
 
+#[cfg(feature = "khmer")]
+pub use khmer::KhmerSegmenter;
+
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::separators::DEFAULT_SEPARATORS;
 use crate::token::Token;
@@ -25,6 +28,8 @@ mod arabic;
 mod chinese;
 #[cfg(feature = "japanese")]
 mod japanese;
+#[cfg(feature = "khmer")]
+mod khmer;
 #[cfg(feature = "korean")]
 mod korean;
 mod latin;
@@ -59,6 +64,8 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // thai segmenter
         #[cfg(feature = "thai")]
         ((Script::Thai, Language::Tha), Box::new(ThaiSegmenter) as Box<dyn Segmenter>),
+        #[cfg(feature = "khmer")]
+        ((Script::Khmer, Language::Khm), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
         // arabic segmenter
         ((Script::Arabic, Language::Ara), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
     ]
