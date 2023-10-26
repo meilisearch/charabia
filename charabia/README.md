@@ -25,6 +25,7 @@ Charabia provides a simple API to segment, normalize, or tokenize (segment + nor
 | **Japanese** 🇯🇵 | ✅ [lindera](https://github.com/lindera-morphology/lindera) IPA-dict | ❌ [compatibility decomposition](https://unicode.org/reports/tr15/) | 🟧 ~3MiB/sec    | 🟧 ~3MiB/sec    |
 | **Korean** 🇰🇷 | ✅ [lindera](https://github.com/lindera-morphology/lindera) KO-dict | ❌ [compatibility decomposition](https://unicode.org/reports/tr15/) | 🟥 ~2MiB/sec    | 🟥 ~2MiB/sec    |
 | **Thai** 🇹🇭 | ✅ [dictionary based](https://github.com/PyThaiNLP/nlpo3) | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) + [nonspacing-marks](https://www.compart.com/en/unicode/category/Mn) removal | 🟩 ~22MiB/sec    | 🟨 ~11MiB/sec    |
+| **Khmer** 🇰🇭 | ✅ dictionary based | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) | 🟧 ~7MiB/sec    | 🟧 ~5MiB/sec    |
 
 We aim to provide global language support, and your feedback helps us [move closer to that goal](https://docs.meilisearch.com/learn/advanced/language.html#improving-our-language-support). If you notice inconsistencies in your search results or the way your documents are processed, please open an issue on our [GitHub repository](https://github.com/meilisearch/charabia/issues/new/choose).
 
