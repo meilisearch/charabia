@@ -1,9 +1,11 @@
 use fst::raw::Fst;
 
 // Import `Segmenter` trait.
+use crate::segmenter::utils::FstSegmenter;
 use crate::segmenter::Segmenter;
 
 extern crate alloc; // required as my-data-mod is written for #[no_std]
+
 //TIP: Some segmentation Libraries need to initialize a instance of the Segmenter.
 //     This initialization could be time-consuming and shouldn't be done at each call of `segment_str`.
 //     In this case, you may want to store the initialized instance in a lazy static like below and call it in `segment_str`.
@@ -11,9 +13,6 @@ extern crate alloc; // required as my-data-mod is written for #[no_std]
 //
 // Put this import at the top of the file.
 use once_cell::sync::Lazy;
-
-use super::utils::FstSegmenter;
-//
 
 // dictionary source - https://github.com/unicode-org/icu/blob/main/icu4c/source/data/brkitr/dictionaries/khmerdict.txt
 static WORDS_FST: Lazy<Fst<&[u8]>> =
