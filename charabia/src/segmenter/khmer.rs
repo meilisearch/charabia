@@ -1,12 +1,11 @@
-use std::vec;
-
-use icu::segmenter::WordSegmenter;
+use fst::raw::Fst;
 
 // Import `Segmenter` trait.
+use crate::segmenter::utils::FstSegmenter;
 use crate::segmenter::Segmenter;
 
 extern crate alloc; // required as my-data-mod is written for #[no_std]
-use icu_provider_blob::BlobDataProvider;
+
 //TIP: Some segmentation Libraries need to initialize a instance of the Segmenter.
 //     This initialization could be time-consuming and shouldn't be done at each call of `segment_str`.
 //     In this case, you may want to store the initialized instance in a lazy static like below and call it in `segment_str`.
@@ -14,16 +13,12 @@ use icu_provider_blob::BlobDataProvider;
 //
 // Put this import at the top of the file.
 use once_cell::sync::Lazy;
-//
-static SEGMENTER: Lazy<WordSegmenter> = Lazy::new(|| {
-    let blob = include_bytes!("../../dictionaries/bin/icu4x-khmer-keys");
 
-    let buffer_provider: BlobDataProvider =
-        BlobDataProvider::try_new_from_static_blob(blob).expect("failed to load khmer keys");
+// dictionary source - https://github.com/unicode-org/icu/blob/main/icu4c/source/data/brkitr/dictionaries/khmerdict.txt
+static WORDS_FST: Lazy<Fst<&[u8]>> =
+    Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/khmer/words.fst")[..]).unwrap());
 
-    WordSegmenter::try_new_dictionary_with_buffer_provider(&buffer_provider)
-        .expect("failed to initialize khmer word segmenter")
-});
+static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST));
 
 // Make a small documentation of the specialized Segmenter like below.
 /// <Script/Language> specialized [`Segmenter`].
@@ -39,25 +34,7 @@ pub struct KhmerSegmenter;
 // All specialized segmenters only need to implement the method `segment_str` of the `Segmenter` trait.
 impl Segmenter for KhmerSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let (_, positions) =
-            SEGMENTER.segment_str(to_segment).fold((None, vec![]), |mut acc, elem| {
-                if acc.0.is_some() {
-                    acc.1.push((acc.0.unwrap(), elem));
-                }
-
-                acc.0 = Some(elem);
-
-                acc
-            });
-
-        // Return the created iterator wrapping it in a Box.
-        Box::new(
-            positions
-                .iter()
-                .map(|(start, end)| &to_segment[*start..*end])
-                .collect::<Vec<&str>>()
-                .into_iter(),
-        )
+        FST_SEGMENTER.segment_str(to_segment)
     }
 }
 
