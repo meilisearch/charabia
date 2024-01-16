@@ -13,6 +13,7 @@ use self::greek::GreekNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
+pub use self::vietnamese::VietnameseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
 use self::quote::QuoteNormalizer;
 use crate::segmenter::SegmentedTokenIter;
@@ -31,6 +32,8 @@ mod japanese;
 mod lowercase;
 mod nonspacing_mark;
 mod quote;
+#[cfg(feature = "vietnamese")]
+mod vietnamese;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
@@ -54,6 +57,8 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(GreekNormalizer),
         Box::new(ArabicNormalizer),
         Box::new(NonspacingMarkNormalizer),
+        #[cfg(feature = "vietnamese")]
+        Box::new(VietnameseNormalizer),
     ]
 });
 
