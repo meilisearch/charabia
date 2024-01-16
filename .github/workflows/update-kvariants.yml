@@ -23,7 +23,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Fetch latest version
-        run: ./kvariants/bin/sync_dictionaries.sh
+        run: ./irg-kvariants/bin/sync_dictionaries.sh
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
