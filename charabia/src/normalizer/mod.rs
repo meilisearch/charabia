@@ -13,9 +13,9 @@ use self::greek::GreekNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
-pub use self::vietnamese::VietnameseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
 use self::quote::QuoteNormalizer;
+pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 

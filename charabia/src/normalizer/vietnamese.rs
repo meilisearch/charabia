@@ -1,6 +1,6 @@
 use super::{CharNormalizer, CharOrStr};
-use crate::Token;
 use crate::Script;
+use crate::Token;
 
 pub struct VietnameseNormalizer;
 
@@ -15,7 +15,6 @@ impl CharNormalizer for VietnameseNormalizer {
     fn should_normalize(&self, token: &Token) -> bool {
         token.script == Script::Latin && token.lemma.chars().any(is_should_normalize)
     } 
-
 }
 
 fn is_should_normalize(c: char) -> bool {
