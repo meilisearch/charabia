@@ -37,7 +37,7 @@ litemap = "0.6.1"
 zerovec = "0.9.3"
 
 [features]
-default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer"]
+default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese"]
 
 # allow chinese specialized tokenization
 chinese = ["dep:pinyin", "dep:jieba-rs"]
@@ -64,6 +64,9 @@ greek = []
 latin-camelcase = ["dep:finl_unicode"]
 
 khmer = []
+
+# allow vietnamese specialized tokenization
+vietnamese = []
 
 # allow splitting snake_case latin words
 latin-snakecase = ["dep:finl_unicode"]
