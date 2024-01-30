@@ -35,6 +35,7 @@ mod korean;
 mod latin;
 #[cfg(feature = "thai")]
 mod thai;
+#[cfg(any(feature = "thai", feature = "khmer"))]
 mod utils;
 
 /// List of used [`Segmenter`]s linked to their corresponding [`Script`] and [`Language`].
