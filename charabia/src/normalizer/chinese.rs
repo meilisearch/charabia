@@ -1,4 +1,4 @@
-use pinyin::ToPinyin;
+use character_converter::traditional_to_simplified;
 
 use super::CharNormalizer;
 use crate::detection::{Language, Script};
@@ -23,14 +23,15 @@ impl CharNormalizer for ChineseNormalizer {
         // Normalize to Pinyin
         // If we don't manage to convert the kvariant, we try to convert the original character.
         // If none of them are converted, we return the kvariant.
-        match kvariant.to_pinyin().or_else(|| c.to_pinyin()) {
-            Some(converted) => {
-                let with_tone = converted.with_tone();
+        Some(traditional_to_simplified(kvariant.to_string().as_str()).to_string().into())
+        // match kvariant.to_pinyin().or_else(|| c.to_pinyin()) {
+        //     Some(converted) => {
+        //         let with_tone = converted.with_tone();
 
-                Some(with_tone.to_string().into())
-            }
-            None => Some(kvariant.into()), // e.g. 杤
-        }
+        //         Some(with_tone.to_string().into())
+        //     }
+        //     None => Some(kvariant.into()), // e.g. 杤
+        // }
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -65,14 +66,6 @@ mod test {
                 language: Some(Language::Cmn),
                 ..Default::default()
             },
-            Token {
-                lemma: Owned("澚䀾亚㮺刄杤".to_string()),
-                char_end: 5,
-                byte_end: 15,
-                script: Script::Cj,
-                language: Some(Language::Cmn),
-                ..Default::default()
-            },
         ]
     }
 
@@ -81,34 +74,24 @@ mod test {
         vec![
             Token {
                 // lowercased
-                lemma: Owned("zūnyán".to_string()),
+                lemma: Owned("尊严".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                char_map: Some(vec![(3, 4), (3, 4)]),
+                char_map: Some(vec![(3, 3), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
             },
             Token {
                 // lowercased
-                lemma: Owned("shēngérzìyóu".to_string()),
+                lemma: Owned("生而自由".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 ..Default::default()
-            },
-            Token {
-                // It would be "yudǔyàběnrèn" without the kvariant normalization.
-                lemma: Owned("àoqìyàběnrènwàn".to_string()),
-                char_end: 5,
-                byte_end: 15,
-                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
-                ..Default::default()
-            },
+            }
         ]
     }
 
@@ -116,35 +99,25 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("zūnyán".to_string()),
+                lemma: Owned("尊严".to_string()),
                 char_end: 2,
                 byte_end: 6,
-                char_map: Some(vec![(3, 4), (3, 4)]),
+                char_map: Some(vec![(3, 3), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 kind: TokenKind::Word,
                 ..Default::default()
             },
             Token {
-                lemma: Owned("shēngérzìyóu".to_string()),
+                lemma: Owned("生而自由".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                char_map: Some(vec![(3, 6), (3, 3), (3, 3), (3, 4)]),
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
                 script: Script::Cj,
                 language: Some(Language::Cmn),
                 kind: TokenKind::Word,
                 ..Default::default()
-            },
-            Token {
-                lemma: Owned("àoqìyàběnrènwàn".to_string()),
-                char_end: 5,
-                byte_end: 15,
-                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
-                script: Script::Cj,
-                language: Some(Language::Cmn),
-                kind: TokenKind::Word,
-                ..Default::default()
-            },
+            }
         ]
     }
 

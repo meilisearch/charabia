@@ -106,16 +106,16 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("shēngérzìyóuoo".to_string()),
+                lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
-                    (3, 6),
                     (3, 3),
                     (3, 3),
-                    (3, 4),
+                    (3, 3),
+                    (3, 3),
                     (1, 0),
                     (1, 1),
                     (1, 1),
@@ -125,16 +125,16 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("shēngérzìyóuoo".to_string()),
+                lemma: Owned("生而自由oo".to_string()),
                 char_end: 9,
                 byte_end: 17,
                 script: Script::Cj,
                 char_map: Some(vec![
                     (1, 0),
-                    (3, 6),
                     (3, 3),
                     (3, 3),
-                    (3, 4),
+                    (3, 3),
+                    (3, 3),
                     (1, 0),
                     (1, 1),
                     (1, 1),
