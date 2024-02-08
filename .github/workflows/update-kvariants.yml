@@ -25,7 +25,7 @@ jobs:
       - name: Fetch latest version
         run: ./irg-kvariants/bin/sync_dictionaries.sh
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           commit-message: Update kVariants dictionary
           branch: update-kvariants
