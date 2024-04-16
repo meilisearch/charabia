@@ -1,8 +1,6 @@
-use lindera_core::mode::Mode;
 #[cfg(feature = "japanese-segmentation-ipadic")]
-use lindera_core::mode::Penalty;
-use lindera_dictionary::{DictionaryConfig, DictionaryKind};
-use lindera_tokenizer::tokenizer::{Tokenizer, TokenizerConfig};
+use lindera::Penalty;
+use lindera::{DictionaryConfig, DictionaryKind, Mode, Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
