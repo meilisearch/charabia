@@ -313,7 +313,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
         // TODO: avoid recreating the automaton if nothing changed
         match (self.normalizer_option.classifier.separators, self.words_dict) {
             (Some(separators), None) => {
-                let pattern = separators.into_iter().filter(|s| !s.is_empty());
+                let pattern = separators.iter().filter(|s| !s.is_empty());
                 let aho = AhoCorasick::builder()
                     .match_kind(MatchKind::LeftmostLongest)
                     .build(pattern)
@@ -326,7 +326,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
                 let separators = separators.unwrap_or(DEFAULT_SEPARATORS);
                 // merge both lists together and create the Aho-Corasick automaton.
                 let pattern =
-                    words.into_iter().chain(separators.into_iter()).filter(|s| !s.is_empty());
+                    words.iter().chain(separators).filter(|s| !s.is_empty());
                 let aho = AhoCorasick::builder()
                     .match_kind(MatchKind::LeftmostLongest)
                     .build(pattern)
