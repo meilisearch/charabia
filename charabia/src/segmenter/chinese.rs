@@ -64,6 +64,7 @@ mod test {
     ];
 
     // Segmented and normalized version of the text.
+    #[cfg(feature = "chinese-normalization-pinyin")]
     const TOKENIZED: &[&str] = &[
         "rénrén",
         "shēngérzìyóu",
@@ -96,6 +97,42 @@ mod test {
         "hùxiāng",
         "duì",
         "dài",
+        "。",
+    ];
+
+    #[cfg(not(feature = "chinese-normalization-pinyin"))]
+    const TOKENIZED: &[&str] = &[
+        "人人",
+        "生而自由",
+        ",",
+        "在",
+        "尊",
+        "嚴",
+        "和",
+        "權",
+        "利",
+        "上",
+        "一律平等",
+        "。",
+        "他",
+        "們",
+        "賦",
+        "有",
+        "理性",
+        "和",
+        "良心",
+        ",",
+        "並",
+        "應",
+        "以",
+        "兄弟",
+        "關",
+        "係",
+        "的",
+        "精神",
+        "互相",
+        "對",
+        "待",
         "。",
     ];
 

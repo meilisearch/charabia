@@ -3,11 +3,13 @@ use std::collections::HashMap;
 
 use aho_corasick::{AhoCorasick, FindIter, MatchKind};
 pub use arabic::ArabicSegmenter;
-#[cfg(feature = "chinese")]
+#[cfg(feature = "chinese-segmentation")]
 pub use chinese::ChineseSegmenter;
 use either::Either;
 #[cfg(feature = "japanese")]
 pub use japanese::JapaneseSegmenter;
+#[cfg(feature = "khmer")]
+pub use khmer::KhmerSegmenter;
 #[cfg(feature = "korean")]
 pub use korean::KoreanSegmenter;
 pub use latin::LatinSegmenter;
@@ -16,15 +18,12 @@ use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
 
-#[cfg(feature = "khmer")]
-pub use khmer::KhmerSegmenter;
-
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::separators::DEFAULT_SEPARATORS;
 use crate::token::Token;
 
 mod arabic;
-#[cfg(feature = "chinese")]
+#[cfg(feature = "chinese-segmentation")]
 mod chinese;
 #[cfg(feature = "japanese")]
 mod japanese;
@@ -54,7 +53,7 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
         // latin segmenter
         ((Script::Latin, Language::Other), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
         // chinese segmenter
-        #[cfg(feature = "chinese")]
+        #[cfg(feature = "chinese-segmentation")]
         ((Script::Cj, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
         // japanese segmenter
         #[cfg(feature = "japanese")]

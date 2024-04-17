@@ -1,3 +1,4 @@
+#[cfg(feature = "chinese-normalization-pinyin")]
 use pinyin::ToPinyin;
 
 use super::CharNormalizer;
@@ -23,14 +24,17 @@ impl CharNormalizer for ChineseNormalizer {
         // Normalize to Pinyin
         // If we don't manage to convert the kvariant, we try to convert the original character.
         // If none of them are converted, we return the kvariant.
-        match kvariant.to_pinyin().or_else(|| c.to_pinyin()) {
+        #[cfg(feature = "chinese-normalization-pinyin")]
+        let kvariant = match kvariant.to_pinyin().or_else(|| c.to_pinyin()) {
             Some(converted) => {
                 let with_tone = converted.with_tone();
 
-                Some(with_tone.to_string().into())
+                with_tone.to_string()
             }
-            None => Some(kvariant.into()), // e.g. 杤
-        }
+            None => kvariant, // e.g. 杤
+        };
+
+        Some(kvariant.into())
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
@@ -77,6 +81,7 @@ mod test {
     }
 
     // expected result of the current Normalizer.
+    #[cfg(feature = "chinese-normalization-pinyin")]
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![
             Token {
@@ -113,6 +118,7 @@ mod test {
     }
 
     // expected result of the complete Normalizer pieline.
+    #[cfg(feature = "chinese-normalization-pinyin")]
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
@@ -144,6 +150,80 @@ mod test {
                 language: Some(Language::Cmn),
                 kind: TokenKind::Word,
                 ..Default::default()
+            },
+        ]
+    }
+
+    // expected result of the current Normalizer.
+    #[cfg(not(feature = "chinese-normalization-pinyin"))]
+    fn normalizer_result() -> Vec<Token<'static>> {
+        vec![
+            Token {
+                lemma: Owned("尊嚴".to_string()),
+                char_end: 2,
+                byte_end: 6,
+                char_map: Some(vec![(3, 3), (3, 3)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("生而自由".to_string()),
+                char_end: 4,
+                byte_end: 12,
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("澳䁈亞本刃𣜜".to_string()),
+                char_end: 5,
+                byte_end: 15,
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3), (3, 3), (3, 4)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+                ..Default::default()
+            },
+        ]
+    }
+
+    // expected result of the complete Normalizer pieline.
+    #[cfg(not(feature = "chinese-normalization-pinyin"))]
+    fn normalized_tokens() -> Vec<Token<'static>> {
+        vec![
+            Token {
+                kind: TokenKind::Word,
+                lemma: Owned("尊嚴".to_string()),
+                char_start: 0,
+                char_end: 2,
+                byte_start: 0,
+                byte_end: 6,
+                char_map: Some(vec![(3, 3), (3, 3)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+            },
+            Token {
+                kind: TokenKind::Word,
+                lemma: Owned("生而自由".to_string()),
+                char_start: 0,
+                char_end: 4,
+                byte_start: 0,
+                byte_end: 12,
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
+            },
+            Token {
+                kind: TokenKind::Word,
+                lemma: Owned("澳䁈亞本刃𣜜".to_string()),
+                char_start: 0,
+                char_end: 5,
+                byte_start: 0,
+                byte_end: 15,
+                char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3), (3, 3), (3, 4)]),
+                script: Script::Cj,
+                language: Some(Language::Cmn),
             },
         ]
     }
