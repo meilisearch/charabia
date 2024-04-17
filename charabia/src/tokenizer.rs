@@ -325,8 +325,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
                 // use the default separators' list if a custom words' list is given but no custom separators' list.
                 let separators = separators.unwrap_or(DEFAULT_SEPARATORS);
                 // merge both lists together and create the Aho-Corasick automaton.
-                let pattern =
-                    words.iter().chain(separators).filter(|s| !s.is_empty());
+                let pattern = words.iter().chain(separators).filter(|s| !s.is_empty());
                 let aho = AhoCorasick::builder()
                     .match_kind(MatchKind::LeftmostLongest)
                     .build(pattern)
