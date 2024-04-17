@@ -103,6 +103,7 @@ mod test {
     }
 
     // expected result of the complete Normalizer pieline.
+    #[cfg(feature = "chinese-normalization-pinyin")]
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
@@ -135,6 +136,51 @@ mod test {
                     (3, 3),
                     (3, 3),
                     (3, 4),
+                    (1, 0),
+                    (1, 1),
+                    (1, 1),
+                    (1, 0),
+                ]),
+                kind: TokenKind::Word,
+                ..Default::default()
+            },
+        ]
+    }
+
+    // expected result of the complete Normalizer pieline.
+    #[cfg(not(feature = "chinese-normalization-pinyin"))]
+    fn normalized_tokens() -> Vec<Token<'static>> {
+        vec![
+            Token {
+                lemma: Owned("生而自由oo".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Cj,
+                char_map: Some(vec![
+                    (1, 0),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (1, 0),
+                    (1, 1),
+                    (1, 1),
+                    (1, 0),
+                ]),
+                kind: TokenKind::Word,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("生而自由oo".to_string()),
+                char_end: 9,
+                byte_end: 17,
+                script: Script::Cj,
+                char_map: Some(vec![
+                    (1, 0),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
+                    (3, 3),
                     (1, 0),
                     (1, 1),
                     (1, 1),

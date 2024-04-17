@@ -38,7 +38,10 @@ zerovec = "0.10.1"
 default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese"]
 
 # allow chinese specialized tokenization
-chinese = ["dep:pinyin", "dep:jieba-rs"]
+chinese = ["chinese-segmentation", "chinese-normalization"]
+chinese-segmentation = ["dep:jieba-rs"]
+chinese-normalization = []
+chinese-normalization-pinyin = ["dep:pinyin", "chinese-normalization"]
 
 # allow hebrew specialized tokenization
 hebrew = []
