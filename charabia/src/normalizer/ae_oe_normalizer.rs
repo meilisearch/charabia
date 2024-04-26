@@ -1,18 +1,15 @@
-// Import `CharNormalizer` trait.
 use super::{ CharNormalizer, CharOrStr };
-use crate::Token;
+use crate::{Script, Token};
 
-// Make a small documentation of the specialized Normalizer like below.
-/// <Script/Language> specialized [`Normalizer`].
-///
-/// This Normalizer uses [`<UsedLibraryToNormalize>`] internally to normalize the provided token.
-/// <OptionalAdditionnalExplanations>
-pub struct OE_AE_Normalizer;
+/// This module contains the implementation of the `AeOeNormalizer` struct, which is a character normalizer
+/// that replaces the characters 'œ', 'æ', 'Œ', and 'Æ' with their respective replacements 'oe', 'ae', 'OE', and 'AE'.
+/// It also provides a test suite to validate the normalizer's functionality.
+
+pub struct AeOeNormalizer;
 
 // All normalizers only need to implement the method `normalize_char` and the method `should_normalize` of the `CharNormalizer` trait.
-impl CharNormalizer for AE_OE_Normalizer {
+impl CharNormalizer for AeOeNormalizer {
     // Creates the normalized version of the provided char.
-    // In this example we will remove whitespaces and lowercase other characters.
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
         match c {
             'œ' => Some("oe".to_string().into()),
@@ -25,21 +22,16 @@ impl CharNormalizer for AE_OE_Normalizer {
 
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, token: &Token) -> bool {
-        // here we lowercase only on Latin and Cyrillic Scripts and if the current token contains an uppercased character.
+        
         token.script == Script::Latin &&
-            token.script == Script::Cyrillic &&
-            (token.lemma.chars().any('œ') ||
-                token.lemma.chars().any('æ') ||
-                token.lemma.chars().any('Œ') ||
-                token.lemma.chars().any('Æ'))
+        token.script == Script::Cyrillic &&
+        token.lemma.chars().any(is_should_normalize)
     }
-}
 
-// Include the newly implemented Normalizer in the tokenization pipeline:
-//     - change the name of the file `dummy_example.rs` to `dummy.rs`
-//     - import module by adding `mod dummy;` (filename) in `normalizer/mod.rs`
-//     - Add Normalizer in `NORMALIZERS` in `normalizer/mod.rs`
-//     - check if it didn't break any test or benhchmark
+}
+fn is_should_normalize(c: char) -> bool {
+    matches!(c, 'œ' | 'æ' | 'Œ' | 'Æ')
+}
 
 // Test the normalizer:
 #[cfg(test)]
@@ -156,7 +148,6 @@ mod test {
         ]
     }
 
-    test_normalizer!(AE_OE_NormalizerNormalizer, tokens(), normalizer_result(), normalized_tokens());
+    test_normalizer!(AeOeNormalizer, tokens(), normalizer_result(), normalized_tokens());
 }
 
-// Your Normalizer will now be used on texts of the assigned Script and Language. Thank you for your contribution, and congratulation! 🎉
