@@ -313,26 +313,25 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
         // TODO: avoid recreating the automaton if nothing changed
         match (self.normalizer_option.classifier.separators, self.words_dict) {
             (Some(separators), None) => {
+                let pattern = separators.iter().filter(|s| !s.is_empty());
                 let aho = AhoCorasick::builder()
                     .match_kind(MatchKind::LeftmostLongest)
-                    .build(separators)
+                    .build(pattern)
                     .unwrap();
 
-                self.segmenter_option.aho = Some(aho);
+                self.segmenter_option.aho = Some(aho).filter(|aho| aho.patterns_len() != 0);
             }
             (separators, Some(words)) => {
                 // use the default separators' list if a custom words' list is given but no custom separators' list.
                 let separators = separators.unwrap_or(DEFAULT_SEPARATORS);
                 // merge both lists together and create the Aho-Corasick automaton.
-                let mut vec = Vec::with_capacity(separators.len() + words.len());
-                vec.extend_from_slice(words);
-                vec.extend_from_slice(separators);
+                let pattern = words.iter().chain(separators).filter(|s| !s.is_empty());
                 let aho = AhoCorasick::builder()
                     .match_kind(MatchKind::LeftmostLongest)
-                    .build(vec)
+                    .build(pattern)
                     .unwrap();
 
-                self.segmenter_option.aho = Some(aho);
+                self.segmenter_option.aho = Some(aho).filter(|aho| aho.patterns_len() != 0);
             }
             // reset the state in case the builder is reused.
             (None, None) => self.segmenter_option.aho = None,

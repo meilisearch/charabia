@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use once_cell::sync::Lazy;
 
 pub use self::arabic::ArabicNormalizer;
-#[cfg(feature = "chinese")]
+#[cfg(feature = "chinese-normalization")]
 pub use self::chinese::ChineseNormalizer;
 pub use self::classify::{Classifier, ClassifierOption};
 pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
@@ -23,7 +23,7 @@ use crate::Token;
 pub use self::ae_oe_normalizer::AeOeNormalizer;
 
 mod arabic;
-#[cfg(feature = "chinese")]
+#[cfg(feature = "chinese-normalization")]
 mod chinese;
 mod classify;
 mod compatibility_decomposition;
@@ -55,7 +55,7 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(LowercaseNormalizer),
         Box::new(QuoteNormalizer),
         Box::new(AeOeNormalizer),
-        #[cfg(feature = "chinese")]
+        #[cfg(feature = "chinese-normalization")]
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
