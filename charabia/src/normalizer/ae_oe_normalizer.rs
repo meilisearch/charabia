@@ -1,3 +1,4 @@
+use crate::normalizer::NormalizerOption;
 use super::{ CharNormalizer, CharOrStr };
 use crate::{Script, Token};
 
