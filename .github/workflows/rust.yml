@@ -28,6 +28,8 @@ jobs:
       run: cargo test --verbose --features japanese-transliteration
     - name: Run tests with chinese-normalization-pinyin on
       run: cargo test --verbose --features chinese chinese-normalization-pinyin
+    - name: Run tests with swedish-recomposition on
+      run: cargo test --verbose --features swedish-recomposition
     - name: Run irg-kvariants tests
       run: cargo test -p irg-kvariants --verbose
 
