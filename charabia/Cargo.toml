@@ -72,6 +72,9 @@ vietnamese = []
 # allow splitting snake_case latin words
 latin-snakecase = ["dep:finl_unicode"]
 
+# force Charabia to recompose Swedish characters
+swedish-recomposition = []
+
 [dev-dependencies]
 criterion = "0.5"
 jemallocator = "0.5.4"
