@@ -1,5 +1,4 @@
-use crate::normalizer::NormalizerOption;
-use super::{ CharNormalizer, CharOrStr };
+use super::{CharNormalizer, CharOrStr};
 use crate::{Script, Token};
 
 /// This module contains the implementation of the `AeOeNormalizer` struct, which is a character normalizer
@@ -13,10 +12,8 @@ impl CharNormalizer for AeOeNormalizer {
     // Creates the normalized version of the provided char.
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
         match c {
-            'œ' => Some("oe".to_string().into()),
-            'æ' => Some("ae".to_string().into()),
-            'Œ' => Some("OE".to_string().into()),
-            'Æ' => Some("AE".to_string().into()),
+            'œ'|'Œ' => Some("oe".to_string().into()),
+            'æ'|'Æ' => Some("ae".to_string().into()),
             _ => Some(c.into()),
         }
     }
@@ -24,9 +21,8 @@ impl CharNormalizer for AeOeNormalizer {
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, token: &Token) -> bool {
         
-        token.script == Script::Latin &&
-        token.script == Script::Cyrillic &&
-        token.lemma.chars().any(is_should_normalize)
+        token.script == Script::Latin 
+            && token.lemma.chars().any(is_should_normalize)
     }
 
 }
@@ -40,7 +36,7 @@ mod test {
     use std::borrow::Cow::Owned;
 
     use crate::normalizer::test::test_normalizer;
-    use crate::normalizer::Normalizer;
+    use crate::normalizer::{Normalizer, NormalizerOption};
     use crate::token::TokenKind;
 
     // base tokens to normalize.
@@ -48,32 +44,32 @@ mod test {
         vec![
             Token {
                 lemma: Owned("œ".to_string()),
-                char_end: 1,
+                char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("Œ".to_string()),
-                char_end: 1,
+                char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("æ".to_string()),
-                char_end: 1,
+                char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
                 ..Default::default()
             },
             Token {
                 lemma: Owned("Æ".to_string()),
-                char_end: 1,
+                char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
                 ..Default::default()
-            }
+            },
         ]
     }
 
@@ -85,13 +81,15 @@ mod test {
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 ..Default::default()
             },
             Token {
-                lemma: Owned("OE".to_string()),
+                lemma: Owned("oe".to_string()),
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 ..Default::default()
             },
             Token {
@@ -99,15 +97,17 @@ mod test {
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 ..Default::default()
             },
             Token {
-                lemma: Owned("AE".to_string()),
+                lemma: Owned("ae".to_string()),
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 ..Default::default()
-            }
+            },
         ]
     }
 
@@ -119,6 +119,7 @@ mod test {
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 kind: TokenKind::Word,
                 ..Default::default()
             },
@@ -127,6 +128,7 @@ mod test {
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 kind: TokenKind::Word,
                 ..Default::default()
             },
@@ -135,6 +137,7 @@ mod test {
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 kind: TokenKind::Word,
                 ..Default::default()
             },
@@ -143,12 +146,12 @@ mod test {
                 char_end: 2,
                 byte_end: 2,
                 script: Script::Latin,
+                char_map: Some(vec![(2, 2)]),
                 kind: TokenKind::Word,
                 ..Default::default()
-            }
+            },
         ]
     }
 
     test_normalizer!(AeOeNormalizer, tokens(), normalizer_result(), normalized_tokens());
 }
-

@@ -33,7 +33,6 @@ unicode-normalization = "0.1.22"
 irg-kvariants = "0.1.0"
 litemap = "0.7.2"
 zerovec = "0.10.1"
-jemalloc-sys = "0.5.4"
 
 [features]
 default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese"]
