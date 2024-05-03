@@ -1,6 +1,6 @@
 [package]
 name = "charabia"
-version = "0.8.9"
+version = "0.8.10"
 license = "MIT"
 authors = ["Many <many@meilisearch.com>"]
 edition = "2021"
@@ -71,6 +71,9 @@ vietnamese = []
 
 # allow splitting snake_case latin words
 latin-snakecase = ["dep:finl_unicode"]
+
+# force Charabia to recompose Swedish characters
+swedish-recomposition = []
 
 [dev-dependencies]
 criterion = "0.5"

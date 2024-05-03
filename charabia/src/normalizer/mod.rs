@@ -15,6 +15,8 @@ pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
 use self::quote::QuoteNormalizer;
+#[cfg(feature = "swedish-recomposition")]
+use self::swedish_recomposition::SwedishRecompositionNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
@@ -35,6 +37,8 @@ mod japanese;
 mod lowercase;
 mod nonspacing_mark;
 mod quote;
+#[cfg(feature = "swedish-recomposition")]
+mod swedish_recomposition;
 #[cfg(feature = "vietnamese")]
 mod vietnamese;
 
@@ -44,6 +48,8 @@ mod ae_oe_normalizer;
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
         Box::new(CompatibilityDecompositionNormalizer),
+        #[cfg(feature = "swedish-recomposition")]
+        Box::new(SwedishRecompositionNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(Classifier),
     ]
