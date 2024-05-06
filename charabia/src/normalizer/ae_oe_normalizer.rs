@@ -12,19 +12,16 @@ impl CharNormalizer for AeOeNormalizer {
     // Creates the normalized version of the provided char.
     fn normalize_char(&self, c: char) -> Option<CharOrStr> {
         match c {
-            'œ'|'Œ' => Some("oe".to_string().into()),
-            'æ'|'Æ' => Some("ae".to_string().into()),
+            'œ' | 'Œ' => Some("oe".to_string().into()),
+            'æ' | 'Æ' => Some("ae".to_string().into()),
             _ => Some(c.into()),
         }
     }
 
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, token: &Token) -> bool {
-        
-        token.script == Script::Latin 
-            && token.lemma.chars().any(is_should_normalize)
+        token.script == Script::Latin && token.lemma.chars().any(is_should_normalize)
     }
-
 }
 fn is_should_normalize(c: char) -> bool {
     matches!(c, 'œ' | 'æ' | 'Œ' | 'Æ')
