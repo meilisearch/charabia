@@ -22,6 +22,8 @@ pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
+pub use self::ae_oe_normalizer::AeOeNormalizer;
+
 mod arabic;
 #[cfg(feature = "chinese-normalization")]
 mod chinese;
@@ -40,6 +42,8 @@ mod swedish_recomposition;
 #[cfg(feature = "vietnamese")]
 mod vietnamese;
 
+mod ae_oe_normalizer;
+
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
@@ -56,6 +60,7 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
         Box::new(LowercaseNormalizer),
         Box::new(QuoteNormalizer),
+        Box::new(AeOeNormalizer),
         #[cfg(feature = "chinese-normalization")]
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
