@@ -31,7 +31,7 @@ impl CharNormalizer for ChineseNormalizer {
 
                 with_tone.to_string()
             }
-            None => kvariant, // e.g. 杤
+            None => kvariant.to_string(), // e.g. 杤
         };
 
         Some(kvariant.into())
