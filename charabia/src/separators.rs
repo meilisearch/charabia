@@ -11,11 +11,11 @@
 /// - Zl Line Separator
 /// - Zp Paragraph Separator
 /// - Zs Space Separator
-/// plus ". ", ", " and ។ល។" (៘ decomposition) to categorize them as hard separators
+/// plus "\0", ". ", ", " and ។ល។" (៘ decomposition) to categorize them as hard separators
 /// and "`" to understand markdown formatted text
 #[rustfmt::skip]
 pub const DEFAULT_SEPARATORS: &[&str] = &[
-    ". ", ", ", "_", "‿", "⁀", "⁔", "︳", "︴", "﹍", "﹎", "﹏", "＿", "-", "֊", "־", "᐀", "᠆", "‐", "‒", "–",
+    "\0", ". ", ", ", "_", "‿", "⁀", "⁔", "︳", "︴", "﹍", "﹎", "﹏", "＿", "-", "֊", "־", "᐀", "᠆", "‐", "‒", "–",
     "—", "―", "⸗", "⸚", "⸺", "⸻", "⹀", "〜", "〰", "゠", "︱", "︲", "﹘", "﹣", "－", "𐺭", ")",
     "]", "}", "༻", "༽", "᚜", "⁆", "⁾", "₎", "⌉", "⌋", "〉", "❩", "❫", "❭", "❯", "❱", "❳", "❵", "⟆",
     "⟧", "⟩", "⟫", "⟭", "⟯", "⦄", "⦆", "⦈", "⦊", "⦌", "⦎", "⦐", "⦒", "⦔", "⦖", "⦘", "⧙", "⧛", "⧽",
@@ -64,6 +64,7 @@ pub const DEFAULT_SEPARATORS: &[&str] = &[
 
 #[rustfmt::skip]
 pub const CONTEXT_SEPARATORS: &[&str] = &[
+    "\0", // Null byte, can be used as artificial separator
     "᠆", // Mongolian Todo Soft Hyphen, mark the end of a paragraph.
     "᚛", "᚜", // Oghams, mark start and end of text
     "!", ". ", ", ", ";", "?", "¡", "§", "¶", "¿", ";", // Latin
