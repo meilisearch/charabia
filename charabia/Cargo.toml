@@ -30,7 +30,7 @@ pinyin = { version = "0.10", default-features = false, features = [
 ], optional = true }
 wana_kana = { version = "3.0.0", optional = true }
 unicode-normalization = "0.1.23"
-irg-kvariants = "0.1.1"
+irg-kvariants = { path = "../irg-kvariants", version = "=0.1.1" }
 litemap = "0.7.3"
 zerovec = "0.10.4"
 
