@@ -15,12 +15,12 @@ pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
 use self::quote::QuoteNormalizer;
+#[cfg(feature = "russian")]
+pub use self::russian::RussianNormalizer;
 #[cfg(feature = "swedish-recomposition")]
 use self::swedish_recomposition::SwedishRecompositionNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
-#[cfg(feature = "russian")]
-pub use self::russian::RussianNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
@@ -39,12 +39,12 @@ mod japanese;
 mod lowercase;
 mod nonspacing_mark;
 mod quote;
+#[cfg(feature = "russian")]
+mod russian;
 #[cfg(feature = "swedish-recomposition")]
 mod swedish_recomposition;
 #[cfg(feature = "vietnamese")]
 mod vietnamese;
-#[cfg(feature = "russian")]
-mod russian;
 
 mod ae_oe_normalizer;
 
@@ -76,7 +76,7 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         #[cfg(feature = "vietnamese")]
         Box::new(VietnameseNormalizer),
         #[cfg(feature = "russian")]
-        Box::new(RussianNormalizer)
+        Box::new(RussianNormalizer),
     ]
 });
 

@@ -1,15 +1,14 @@
 use std::borrow::Cow;
 
 use super::{Normalizer, NormalizerOption};
+use crate::{Script, Token};
 use aho_corasick::AhoCorasick;
 use once_cell::sync::Lazy;
-use crate::{Script, Token};
 
 pub struct RussianNormalizer;
 
-static MATCHING_STR: Lazy<AhoCorasick> = Lazy::new(|| {
-    AhoCorasick::new(["Е\u{308}", "е\u{308}"]).unwrap()
-});
+static MATCHING_STR: Lazy<AhoCorasick> =
+    Lazy::new(|| AhoCorasick::new(["Е\u{308}", "е\u{308}"]).unwrap());
 
 impl Normalizer for RussianNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
@@ -111,8 +110,8 @@ mod test {
             lemma: Owned("Ёё".to_string()),
             char_end: 2,
             byte_end: 2,
-            script: Script::Cyrillic,   
-            char_map: None,   
+            script: Script::Cyrillic,
+            char_map: None,
             ..Default::default()
         }]
     }
