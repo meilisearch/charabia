@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 pub use script_language::{Language, Script};
 use whatlang::Detector;
 
@@ -12,11 +10,11 @@ pub struct StrDetection<'o, 'al> {
     inner: &'o str,
     pub script: Option<Script>,
     pub language: Option<Language>,
-    allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+    allow_list: Option<&'al [Language]>,
 }
 
 impl<'o, 'al> StrDetection<'o, 'al> {
-    pub fn new(inner: &'o str, allow_list: Option<&'al HashMap<Script, Vec<Language>>>) -> Self {
+    pub fn new(inner: &'o str, allow_list: Option<&'al [Language]>) -> Self {
         Self { inner, script: None, language: None, allow_list }
     }
 
@@ -27,8 +25,7 @@ impl<'o, 'al> StrDetection<'o, 'al> {
 
     pub fn language(&mut self) -> Language {
         let inner = self.inner;
-        let script = self.script();
-        *self.language.get_or_insert_with(|| Self::detect_lang(inner, script, self.allow_list))
+        *self.language.get_or_insert_with(|| Self::detect_lang(inner, self.allow_list))
     }
 
     /// detect script with whatlang,
@@ -41,11 +38,9 @@ impl<'o, 'al> StrDetection<'o, 'al> {
     /// if no language is detected, return Language::Other
     fn detect_lang(
         text: &str,
-        script: Script,
-        allow_list: Option<&HashMap<Script, Vec<Language>>>,
+        allow_list: Option<&[Language]>,
     ) -> Language {
         let detector = allow_list
-            .and_then(|allow_list| allow_list.get(&script))
             .map(|allow_list| allow_list.iter().map(|lang| (*lang).into()).collect())
             .map(Detector::with_allowlist)
             .unwrap_or_default();
@@ -57,14 +52,14 @@ impl<'o, 'al> StrDetection<'o, 'al> {
 pub trait Detect<'o, 'al> {
     fn detect(
         &'o self,
-        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+        allow_list: Option<&'al [Language]>,
     ) -> StrDetection<'o, 'al>;
 }
 
 impl<'o, 'al> Detect<'o, 'al> for &str {
     fn detect(
         &'o self,
-        allow_list: Option<&'al HashMap<Script, Vec<Language>>>,
+        allow_list: Option<&'al [Language]>,
     ) -> StrDetection<'o, 'al> {
         StrDetection::new(self, allow_list)
     }

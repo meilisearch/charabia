@@ -1,10 +1,9 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
 
 use aho_corasick::{AhoCorasick, MatchKind};
 use fst::Set;
 
-use crate::detection::{Language, Script};
+use crate::detection::Language;
 use crate::normalizer::{NormalizedTokenIter, NormalizerOption};
 use crate::segmenter::{Segment, SegmentedStrIter, SegmentedTokenIter, SegmenterOption};
 use crate::separators::DEFAULT_SEPARATORS;
@@ -301,7 +300,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
     /// # Arguments
     ///
     /// * `allow_list` - a `HashMap` of the selection of languages associated with a script to limit during autodetection.
-    pub fn allow_list(&mut self, allow_list: &'tb HashMap<Script, Vec<Language>>) -> &mut Self {
+    pub fn allow_list(&mut self, allow_list: &'tb [Language]) -> &mut Self {
         self.segmenter_option.allow_list = Some(allow_list);
         self
     }

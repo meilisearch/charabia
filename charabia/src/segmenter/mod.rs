@@ -52,6 +52,8 @@ pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = L
     vec![
         // latin segmenter
         ((Script::Latin, Language::Other), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
+        #[cfg(feature = "swedish-recomposition")]
+        ((Script::Latin, Language::Swe), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
         // chinese segmenter
         #[cfg(feature = "chinese-segmentation")]
         ((Script::Cj, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
@@ -271,7 +273,7 @@ fn segmenter<'b>(detector: &mut StrDetection) -> &'b dyn Segmenter {
 #[derive(Debug, Clone, Default)]
 pub struct SegmenterOption<'tb> {
     pub aho: Option<AhoCorasick>,
-    pub allow_list: Option<&'tb HashMap<Script, Vec<Language>>>,
+    pub allow_list: Option<&'tb [Language]>,
 }
 
 /// Trait defining a segmenter.
