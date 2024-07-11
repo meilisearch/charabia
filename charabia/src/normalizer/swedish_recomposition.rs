@@ -77,7 +77,7 @@ impl Normalizer for SwedishRecompositionNormalizer {
 
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Latin && MATCHING_STR.is_match(token.lemma())
+        token.language == Some(Language::Swedish) && MATCHING_STR.is_match(token.lemma())
     }
 }
 

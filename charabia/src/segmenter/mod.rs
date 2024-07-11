@@ -48,32 +48,39 @@ mod utils;
 /// A segmenter assigned to `Language::Other` is considered as the default `Segmenter` for any `Language` that uses the assigned `Script`.
 /// For example, [`LatinSegmenter`] is assigned to `(Script::Latin, Language::Other)`,
 /// meaning that `LatinSegmenter` is the default `Segmenter` for any `Language` that uses `Latin` `Script`.
-pub static SEGMENTERS: Lazy<HashMap<(Script, Language), Box<dyn Segmenter>>> = Lazy::new(|| {
-    vec![
-        // latin segmenter
-        ((Script::Latin, Language::Other), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
-        #[cfg(feature = "swedish-recomposition")]
-        ((Script::Latin, Language::Swe), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
-        // chinese segmenter
-        #[cfg(feature = "chinese-segmentation")]
-        ((Script::Cj, Language::Cmn), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
-        // japanese segmenter
-        #[cfg(feature = "japanese")]
-        ((Script::Cj, Language::Jpn), Box::new(JapaneseSegmenter) as Box<dyn Segmenter>),
-        // korean segmenter
-        #[cfg(feature = "korean")]
-        ((Script::Hangul, Language::Kor), Box::new(KoreanSegmenter) as Box<dyn Segmenter>),
-        // thai segmenter
-        #[cfg(feature = "thai")]
-        ((Script::Thai, Language::Tha), Box::new(ThaiSegmenter) as Box<dyn Segmenter>),
-        #[cfg(feature = "khmer")]
-        ((Script::Khmer, Language::Khm), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
-        // arabic segmenter
-        ((Script::Arabic, Language::Ara), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
-    ]
-    .into_iter()
-    .collect()
-});
+pub static SEGMENTERS: Lazy<HashMap<(Script, Option<Language>), Box<dyn Segmenter>>> =
+    Lazy::new(|| {
+        vec![
+            // latin segmenter
+            ((Script::Latin, None), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
+            #[cfg(feature = "swedish-recomposition")]
+            ((Script::Latin, Some(Language::Swe)), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
+            // chinese segmenter
+            #[cfg(feature = "chinese-segmentation")]
+            ((Script::Cj, Some(Language::Cmn)), Box::new(ChineseSegmenter) as Box<dyn Segmenter>),
+            // japanese segmenter
+            #[cfg(feature = "japanese")]
+            ((Script::Cj, Some(Language::Jpn)), Box::new(JapaneseSegmenter) as Box<dyn Segmenter>),
+            // korean segmenter
+            #[cfg(feature = "korean")]
+            (
+                (Script::Hangul, Some(Language::Kor)),
+                Box::new(KoreanSegmenter) as Box<dyn Segmenter>,
+            ),
+            // thai segmenter
+            #[cfg(feature = "thai")]
+            ((Script::Thai, Some(Language::Tha)), Box::new(ThaiSegmenter) as Box<dyn Segmenter>),
+            #[cfg(feature = "khmer")]
+            ((Script::Khmer, Some(Language::Khm)), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
+            // arabic segmenter
+            (
+                (Script::Arabic, Some(Language::Ara)),
+                Box::new(ArabicSegmenter) as Box<dyn Segmenter>,
+            ),
+        ]
+        .into_iter()
+        .collect()
+    });
 
 /// Picked [`Segmenter`] when no segmenter is specialized to the detected [`Script`].
 pub static DEFAULT_SEGMENTER: Lazy<Box<dyn Segmenter>> = Lazy::new(|| Box::new(LatinSegmenter));
@@ -263,7 +270,7 @@ fn segmenter<'b>(detector: &mut StrDetection) -> &'b dyn Segmenter {
             let detected_language = detector.language();
             SEGMENTERS
                 .get(&(detected_script, detected_language))
-                .or_else(|| SEGMENTERS.get(&(detected_script, Language::Other)))
+                .or_else(|| SEGMENTERS.get(&(detected_script, None)))
                 .unwrap_or(&DEFAULT_SEGMENTER)
         }
     }
