@@ -2,14 +2,121 @@ use core::str::FromStr;
 
 #[cfg(test)]
 use quickcheck::{Arbitrary, Gen};
+use serde::{Deserialize, Serialize};
 
 use super::chars;
 
-pub use whatlang::Lang as Language;
+macro_rules! make_language {
+    ($($language:tt), +) => {
+        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
+        pub enum Language {
+            $($language),+,
+        }
+        impl From<whatlang::Lang> for Language {
+            fn from(other: whatlang::Lang) -> Language {
+                match other {
+                    $(whatlang::Lang::$language => Language::$language), +
+                }
+            }
+        }
+
+        impl From<Language> for whatlang::Lang {
+            fn from(other: Language) -> whatlang::Lang {
+                match other {
+                    $(Language::$language => whatlang::Lang::$language), +,
+                }
+            }
+        }
+
+        impl Language {
+            pub fn code(&self) -> &'static str {
+                match self {
+                    $(Language::$language => whatlang::Lang::$language.code()), +,
+                }
+            }
+
+            pub fn from_code<S: AsRef<str>>(code: S) -> Option<Language> {
+                whatlang::Lang::from_code(code.as_ref()).map(Language::from)
+            }
+        }
+    };
+}
+
+make_language! {
+    Epo,
+    Eng,
+    Rus,
+    Cmn,
+    Spa,
+    Por,
+    Ita,
+    Ben,
+    Fra,
+    Deu,
+    Ukr,
+    Kat,
+    Ara,
+    Hin,
+    Jpn,
+    Heb,
+    Yid,
+    Pol,
+    Amh,
+    Jav,
+    Kor,
+    Nob,
+    Dan,
+    Swe,
+    Fin,
+    Tur,
+    Nld,
+    Hun,
+    Ces,
+    Ell,
+    Bul,
+    Bel,
+    Mar,
+    Kan,
+    Ron,
+    Slv,
+    Hrv,
+    Srp,
+    Mkd,
+    Lit,
+    Lav,
+    Est,
+    Tam,
+    Vie,
+    Urd,
+    Tha,
+    Guj,
+    Uzb,
+    Pan,
+    Aze,
+    Ind,
+    Tel,
+    Pes,
+    Mal,
+    Ori,
+    Mya,
+    Nep,
+    Sin,
+    Khm,
+    Tuk,
+    Aka,
+    Zul,
+    Sna,
+    Afr,
+    Lat,
+    Slk,
+    Cat,
+    Tgl,
+    Hye
+}
 
 macro_rules! make_script {
     ($($script:tt), +) => {
-        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
         pub enum Script {
             $($script),+,
             Cj,
@@ -246,12 +353,12 @@ mod test {
 
     #[test]
     fn from_into_language() {
-        assert_eq!(Language::Eng.name(), "eng");
-        assert_eq!(Language::from_name("eng"), Language::Eng);
-        assert_eq!(Language::Jpn.name(), "jpn");
-        assert_eq!(Language::from_name("jpn"), Language::Jpn);
-        assert_eq!(Language::Cmn.name(), "cmn");
-        assert_eq!(Language::from_name("cmn"), Language::Cmn);
+        assert_eq!(Language::Eng.code(), "eng");
+        assert_eq!(Language::from_code("eng"), Language::Eng);
+        assert_eq!(Language::Jpn.code(), "jpn");
+        assert_eq!(Language::from_code("jpn"), Language::Jpn);
+        assert_eq!(Language::Cmn.code(), "cmn");
+        assert_eq!(Language::from_code("cmn"), Language::Cmn);
     }
 
     #[test]

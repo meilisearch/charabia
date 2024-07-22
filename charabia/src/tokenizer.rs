@@ -10,12 +10,12 @@ use crate::separators::DEFAULT_SEPARATORS;
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o, 'tb> {
-    token_iter: NormalizedTokenIter<'o, 'tb>,
+pub struct ReconstructedTokenIter<'o, 'aho, 'lang, 'tb> {
+    token_iter: NormalizedTokenIter<'o, 'aho, 'lang, 'tb>,
     original: &'o str,
 }
 
-impl<'o> Iterator for ReconstructedTokenIter<'o, '_> {
+impl<'o> Iterator for ReconstructedTokenIter<'o, '_, '_, '_> {
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -99,8 +99,8 @@ impl Tokenize<'_> for &str {
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 #[derive(Debug)]
 pub struct Tokenizer<'tb> {
-    segmenter_option: Cow<'tb, SegmenterOption<'tb>>,
-    normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
+    pub segmenter_option: Cow<'tb, SegmenterOption<'tb>>,
+    pub normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
 }
 
 impl<'tb> Tokenizer<'tb> {
@@ -108,23 +108,55 @@ impl<'tb> Tokenizer<'tb> {
     ///
     /// The provided text is segmented creating tokens,
     /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
-    pub fn tokenize<'t, 'o>(&'t self, original: &'o str) -> NormalizedTokenIter<'o, 't> {
-        original.segment_with_option(&self.segmenter_option).normalize(&self.normalizer_option)
+    pub fn tokenize<'t, 'o>(&'t self, original: &'o str) -> NormalizedTokenIter<'o, 't, 't, 't> {
+        original
+            .segment_with_option(
+                self.segmenter_option.aho.as_ref(),
+                self.segmenter_option.allow_list,
+            )
+            .normalize(&self.normalizer_option)
+    }
+
+    /// Creates an Iterator over [`Token`]s.
+    ///
+    /// The provided text is segmented creating tokens,
+    /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
+    ///
+    /// # Arguments
+    ///
+    /// * `allow_list` - a slice of [`Language`] to allow during autodetection.
+    pub fn tokenize_with_allow_list<'t, 'o, 'lang>(
+        &'t self,
+        original: &'o str,
+        allow_list: Option<&'lang [Language]>,
+    ) -> NormalizedTokenIter<'o, 't, 'lang, 't> {
+        original
+            .segment_with_option(self.segmenter_option.aho.as_ref(), allow_list)
+            .normalize(&self.normalizer_option)
     }
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
-    pub fn reconstruct<'t, 'o>(&'t self, original: &'o str) -> ReconstructedTokenIter<'o, 't> {
+    pub fn reconstruct<'t, 'o>(
+        &'t self,
+        original: &'o str,
+    ) -> ReconstructedTokenIter<'o, 't, 't, 't> {
         ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     /// Segments the provided text creating an Iterator over [`Token`].
-    pub fn segment<'t, 'o>(&'t self, original: &'o str) -> SegmentedTokenIter<'o, 't> {
-        original.segment_with_option(&self.segmenter_option)
+    pub fn segment<'t, 'o>(&'t self, original: &'o str) -> SegmentedTokenIter<'o, 't, 't> {
+        original.segment_with_option(
+            self.segmenter_option.aho.as_ref(),
+            self.segmenter_option.allow_list,
+        )
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
-    pub fn segment_str<'t, 'o>(&'t self, original: &'o str) -> SegmentedStrIter<'o, 't> {
-        original.segment_str_with_option(&self.segmenter_option)
+    pub fn segment_str<'t, 'o>(&'t self, original: &'o str) -> SegmentedStrIter<'o, 't, 't> {
+        original.segment_str_with_option(
+            self.segmenter_option.aho.as_ref(),
+            self.segmenter_option.allow_list,
+        )
     }
 }
 
@@ -352,6 +384,15 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
             normalizer_option: Cow::Owned(self.normalizer_option),
             segmenter_option: Cow::Owned(self.segmenter_option),
         }
+    }
+
+    /// Build the tokenizer options consumming self.
+    ///
+    /// This method allows to drop the tokenizer builder without having to drop the options themselves.
+    pub fn into_options(mut self) -> (NormalizerOption<'tb>, SegmenterOption<'tb>) {
+        drop(self.build());
+
+        (self.normalizer_option, self.segmenter_option)
     }
 }
 
