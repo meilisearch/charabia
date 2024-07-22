@@ -354,11 +354,11 @@ mod test {
     #[test]
     fn from_into_language() {
         assert_eq!(Language::Eng.code(), "eng");
-        assert_eq!(Language::from_code("eng"), Language::Eng);
+        assert_eq!(Language::from_code("eng"), Some(Language::Eng));
         assert_eq!(Language::Jpn.code(), "jpn");
-        assert_eq!(Language::from_code("jpn"), Language::Jpn);
+        assert_eq!(Language::from_code("jpn"), Some(Language::Jpn));
         assert_eq!(Language::Cmn.code(), "cmn");
-        assert_eq!(Language::from_code("cmn"), Language::Cmn);
+        assert_eq!(Language::from_code("cmn"), Some(Language::Cmn));
     }
 
     #[test]
