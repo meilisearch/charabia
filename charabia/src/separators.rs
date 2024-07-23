@@ -8,6 +8,7 @@
 /// - Pi Initial Punctuation
 /// - Po Other Punctuation
 /// - Ps Open Punctuation
+/// - Sm Math Symbols
 /// - Zl Line Separator
 /// - Zp Paragraph Separator
 /// - Zs Space Separator
