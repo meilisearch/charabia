@@ -385,15 +385,6 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
             segmenter_option: Cow::Owned(self.segmenter_option),
         }
     }
-
-    /// Build the tokenizer options consuming self.
-    ///
-    /// This method allows to drop the tokenizer builder without having to drop the options themselves.
-    pub fn into_options(mut self) -> (NormalizerOption<'tb>, SegmenterOption<'tb>) {
-        drop(self.build());
-
-        (self.normalizer_option, self.segmenter_option)
-    }
 }
 
 impl Default for TokenizerBuilder<'_, Vec<u8>> {
