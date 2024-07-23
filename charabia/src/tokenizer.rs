@@ -386,7 +386,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
         }
     }
 
-    /// Build the tokenizer options consumming self.
+    /// Build the tokenizer options consuming self.
     ///
     /// This method allows to drop the tokenizer builder without having to drop the options themselves.
     pub fn into_options(mut self) -> (NormalizerOption<'tb>, SegmenterOption<'tb>) {
