@@ -99,8 +99,8 @@ impl Tokenize<'_> for &str {
 /// See [`TokenizerBuilder`] to know how to build a [`Tokenizer`].
 #[derive(Debug)]
 pub struct Tokenizer<'tb> {
-    pub segmenter_option: Cow<'tb, SegmenterOption<'tb>>,
-    pub normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
+    segmenter_option: Cow<'tb, SegmenterOption<'tb>>,
+    normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
 }
 
 impl<'tb> Tokenizer<'tb> {
