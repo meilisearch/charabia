@@ -8,8 +8,8 @@ use crate::{Script, Token};
 /// - normalizing the arabic Alef 'أ','إ','آ','ٱ' to 'ا'
 /// - normalizing the arabic Yeh 'ى' to 'ي'
 /// - Normalizing the arabic Taa Marbuta 'ة' to 'ه'
-/// https://en.wikipedia.org/wiki/Arabic_alphabet
-/// https://en.wikipedia.org/wiki/Kashida
+///   https://en.wikipedia.org/wiki/Arabic_alphabet
+///   https://en.wikipedia.org/wiki/Kashida
 
 pub struct ArabicNormalizer;
 
