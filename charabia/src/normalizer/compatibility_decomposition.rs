@@ -53,6 +53,13 @@ mod test {
     fn tokens() -> Vec<Token<'static>> {
         vec![
             Token {
+                lemma: Owned("Ёё".to_string()),
+                char_end: 2,
+                byte_end: 2,
+                script: Script::Cyrillic,
+                ..Default::default()
+            },
+            Token {
                 // Decompose 1E69 to 0073 0323 0307
                 lemma: Owned("ṩ ṩ".to_string()),
                 char_end: 2,
@@ -74,6 +81,14 @@ mod test {
     // expected result of the current Normalizer.
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![
+            Token {
+                lemma: Owned("Е\u{308}е\u{308}".to_string()),
+                char_end: 2,
+                byte_end: 2,
+                char_map: Some(vec![(2, 4), (2, 4)]),
+                script: Script::Cyrillic,
+                ..Default::default()
+            },
             Token {
                 lemma: Owned("s\u{0323}\u{0307} s\u{0323}\u{0307}".to_string()),
                 char_end: 2,
@@ -108,6 +123,15 @@ mod test {
     // expected result of the complete Normalizer pieline.
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
+            Token {
+                lemma: Owned("ее".to_string()),
+                char_end: 2,
+                byte_end: 2,
+                script: Script::Cyrillic,
+                char_map: Some(vec![(2, 2), (2, 2)]),
+                kind: TokenKind::Word,
+                ..Default::default()
+            },
             Token {
                 lemma: Owned("s s".to_string()),
                 char_end: 2,
