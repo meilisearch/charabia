@@ -1,6 +1,6 @@
 [package]
 name = "charabia"
-version = "0.8.12"
+version = "0.9.0"
 license = "MIT"
 authors = ["Many <many@meilisearch.com>"]
 edition = "2021"
@@ -31,7 +31,7 @@ unicode-normalization = "0.1.23"
 irg-kvariants = { path = "../irg-kvariants", version = "=0.1.1" }
 
 [features]
-default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese"]
+default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese", "swedish-recomposition"]
 
 # allow chinese specialized tokenization
 chinese = ["chinese-segmentation", "chinese-normalization"]

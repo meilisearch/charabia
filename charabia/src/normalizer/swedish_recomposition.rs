@@ -8,7 +8,7 @@ use crate::normalizer::NormalizerOption;
 use crate::{Language, Token};
 
 static MATCHING_STR: Lazy<AhoCorasick> = Lazy::new(|| {
-    AhoCorasick::new(&["A\u{30a}", "a\u{30a}", "A\u{308}", "a\u{308}", "O\u{308}", "o\u{308}"])
+    AhoCorasick::new(["A\u{30a}", "a\u{30a}", "A\u{308}", "a\u{308}", "O\u{308}", "o\u{308}"])
         .unwrap()
 });
 
