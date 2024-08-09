@@ -17,6 +17,7 @@ use once_cell::sync::Lazy;
 use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
+pub use german::GermanSegmenter;
 
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::separators::DEFAULT_SEPARATORS;
@@ -36,6 +37,7 @@ mod latin;
 mod thai;
 #[cfg(any(feature = "thai", feature = "khmer"))]
 mod utils;
+mod german;
 
 pub type SegmenterMap = HashMap<(Script, Option<Language>), Box<dyn Segmenter>>;
 
@@ -72,6 +74,8 @@ pub static SEGMENTERS: Lazy<SegmenterMap> = Lazy::new(|| {
         ((Script::Khmer, Some(Language::Khm)), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
         // arabic segmenter
         ((Script::Arabic, Some(Language::Ara)), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
+        // german segmenter
+        ((Script::Latin, Some(Language::Deu)), Box::new(GermanSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
     .collect()
