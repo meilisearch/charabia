@@ -47,7 +47,7 @@ pub(crate) fn split_compound_words<'a>(
                 // Convert the prefix to lowercase for dictionary lookup
                 if dictionary.contains(&prefix.to_lowercase()) {
                     // Check if the remaining suffix would be at least two characters long
-                    if suffix.len() != 0 && suffix.len() < 2 {
+                    if suffix.len() != 0 && suffix.len() < 4 {
                         continue;
                     }
 
@@ -145,4 +145,21 @@ mod test {
 
     // Macro that runs several tests on the Segmenter.
     test_segmenter!(GermanSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Deu);
+
+    macro_rules! test_segmentation {
+        ($text:expr, $segmented:expr, $name:ident) => {
+            #[test]
+            fn $name() {
+                let dictionary = &*DICTIONARY;
+                let segmented_text: Vec<_> = split_compound_words($text, dictionary).into_iter().collect();
+                assert_eq!(segmented_text, $segmented);
+            }
+        };
+    }
+
+    test_segmentation!("Literaturverwaltungsprogramm", ["Literatur", "verwaltungs", "programm"], word1);
+    test_segmentation!("Schreibprozess", ["Schreib", "prozess"], word2);
+    test_segmentation!("Interkulturalität", ["Interkulturalität"], word3);
+    test_segmentation!("Wissensorganisation", ["Wissens", "organisation"], word4);
+    test_segmentation!("Aufgabenplanung", ["Aufgaben", "planung"], word5);
 }
