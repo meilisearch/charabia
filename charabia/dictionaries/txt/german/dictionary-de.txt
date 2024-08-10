@@ -1534,6 +1534,7 @@ aug
 augapfel
 augen
 augmentation
+augsburg
 august
 augustiner
 auktion
@@ -2393,6 +2394,7 @@ bereitwilligkeits
 berg
 berge
 bergen
+bergisch
 bergler
 bergmanns
 bergung
@@ -2921,6 +2923,7 @@ braue
 brauer
 brauerei
 braun
+braunschweig
 brause
 braut
 bravourstück
@@ -3284,6 +3287,7 @@ darlehens
 darlehn
 darlehns
 darm
+darmstadt
 darstellen
 darsteller
 darstellung
@@ -4875,6 +4879,7 @@ essens
 essenz
 esser
 essig
+esslingen
 etablieren
 etablissement
 etage
@@ -5406,6 +5411,8 @@ frechheit
 fregatte
 frei
 freiberufler
+freiberg
+freiburg
 freigabe
 freigebigkeit
 freigebigkeits
@@ -5831,6 +5838,7 @@ gelenk
 gelenkigkeit
 gelenkigkeits
 gelichter
+gelsenkirchen
 gelten
 geltendmachen
 geltung
@@ -6416,6 +6424,7 @@ gönnerschaft
 gönnertum
 götter
 göttin
+göttingen
 götze
 götzen
 gültigkeit
@@ -6424,6 +6433,7 @@ günstling
 gürtel
 güte
 güter
+gütersloh
 haar
 haaresbreite
 hab
@@ -6565,6 +6575,7 @@ hehler
 hehlerei
 heide
 heidelbeere
+heidelberg
 heidenangst
 heidenspaß
 heidentum
@@ -6573,6 +6584,7 @@ heil
 heiland
 heilbarkeit
 heilbarkeits
+heilbronn
 heilen
 heiler
 heiligen
@@ -6825,6 +6837,9 @@ humorist
 humus
 hund
 hunde
+hundert
+hunderte
+hunderter
 hundertschaft
 hunger
 hunne
@@ -7376,6 +7391,7 @@ kahlschlag
 kahn
 kai
 kaiser
+kaiserslautern
 kajak
 kajüte
 kakadu
@@ -8444,6 +8460,7 @@ land
 lande
 landes
 landschafts
+landshut
 landtags
 landung
 landungs
@@ -8829,6 +8846,7 @@ mafiosi
 mafioso
 magazin
 magd
+magdeburg
 magen
 magenta
 magie
@@ -8898,6 +8916,7 @@ manko
 mann
 mannequin
 mannesmut
+mannheim
 mannigfaltigkeit
 mannigfaltigkeits
 mannsbild
@@ -9435,6 +9454,7 @@ möglichkeit
 möglichkeits
 möhre
 mönch
+mönchengladbach
 mönchstum
 mörder
 mörser
@@ -9640,6 +9660,7 @@ netz
 neu
 neujahrs
 neuling
+neumünster
 neun
 neuntklässler
 neuordnen
@@ -9713,6 +9734,7 @@ nominieren
 nonne
 nord
 norden
+norderstedt
 norm
 normal
 normalität
@@ -9789,6 +9811,7 @@ obelisk
 ober
 oberflächlichkeit
 oberflächlichkeits
+oberhausen
 obfrau
 obhut
 objekt
@@ -10863,6 +10886,7 @@ ratgeber
 rathaus
 ratifikation
 ratifizieren
+ratingen
 ration
 rationalisieren
 rationalisierung
@@ -10925,6 +10949,7 @@ rechtlichkeits
 rechts
 rechtschreib
 reck
+recklinghausen
 recycling
 redakteur
 redaktion
@@ -10972,6 +10997,7 @@ regelungs
 regen
 regeneration
 regenerieren
+regensburg
 regent
 regentschaft
 regie
@@ -11258,6 +11284,7 @@ rosen
 rosette
 rosine
 rost
+rostock
 rot
 rotation
 rotations
@@ -11372,6 +11399,7 @@ salto
 salut
 salve
 salz
+salzgitter
 samariter
 samba
 same
@@ -12227,6 +12255,7 @@ solidarisieren
 solidarität
 solidaritäts
 solidität
+solingen
 solist
 solitär
 solo
@@ -12989,6 +13018,7 @@ tauglichkeits
 taumel
 taupunkt
 tausch
+tausend
 tausende
 tausender
 tausendsasa
@@ -14509,6 +14539,7 @@ vier
 vierbeiner
 viereck
 vierlinge
+viersen
 viertel
 viertklässler
 vierziger
@@ -14949,6 +14980,7 @@ wohnungs
 wolf
 wolfram
 wolfs
+wolfsburg
 wolke
 wolken
 woll
@@ -15061,6 +15093,7 @@ zeche
 zeh
 zehenspitze
 zehn
+zehnt
 zehner
 zehnerpotenz
 zehntel

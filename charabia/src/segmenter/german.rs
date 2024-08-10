@@ -70,7 +70,7 @@ pub(crate) fn split_compound_words<'a>(
 }
 
 impl Segmenter for GermanSegmenter {
-    fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
+    fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item=&'o str> + 'o> {
         let dictionary = &*DICTIONARY;
 
         let segments: Vec<&'o str> = to_segment
@@ -111,8 +111,7 @@ mod test {
         "Strom",
         "brücke",
         " ",
-        "Magd",
-        "eburg",
+        "Magdeburg",
         ".",
     ];
 
@@ -138,8 +137,7 @@ mod test {
         "strom",
         "brucke",
         " ",
-        "magd",
-        "eburg",
+        "magdeburg",
         ".",
     ];
 
