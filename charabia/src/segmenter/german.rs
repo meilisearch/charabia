@@ -46,8 +46,8 @@ pub(crate) fn split_compound_words<'a>(
 
                 // Convert the prefix to lowercase for dictionary lookup
                 if dictionary.contains(&prefix.to_lowercase()) {
-                    // Check if the remaining suffix would be at least two characters long
-                    if suffix.len() != 0 && suffix.len() < 4 {
+                    // Check if the remaining suffix would be at least three characters long
+                    if suffix.len() != 0 && suffix.len() < 3 {
                         continue;
                     }
 
