@@ -18,10 +18,8 @@ pub static DICTIONARY: Lazy<HashSet<String>> = Lazy::new(|| {
     let data = DICTIONARY_DATA;
 
     let cursor = io::Cursor::new(data);
-    for line in io::BufReader::new(cursor).lines() {
-        if let Ok(word) = line {
-            dictionary.insert(word);
-        }
+    for word in io::BufReader::new(cursor).lines().map_while(Result::ok) {
+        dictionary.insert(word);
     }
 
     dictionary
@@ -47,7 +45,7 @@ pub(crate) fn split_compound_words<'a>(
                 // Convert the prefix to lowercase for dictionary lookup
                 if dictionary.contains(&prefix.to_lowercase()) {
                     // Check if the remaining suffix would be at least three characters long
-                    if suffix.len() != 0 && suffix.len() < 3 {
+                    if !suffix.is_empty() && suffix.len() < 3 {
                         continue;
                     }
 
