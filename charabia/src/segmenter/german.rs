@@ -155,7 +155,7 @@ mod test {
 
     test_segmentation!("Literaturverwaltungsprogramm", ["Literatur", "verwaltungs", "programm"], word1);
     test_segmentation!("Schreibprozess", ["Schreib", "prozess"], word2);
-    test_segmentation!("Interkulturalität", ["Interkulturalität"], word3);
+    test_segmentation!("Interkulturalität", ["Inter", "kultur", "alität"], word3);
     test_segmentation!("Wissensorganisation", ["Wissens", "organisation"], word4);
     test_segmentation!("Aufgabenplanung", ["Aufgaben", "planung"], word5);
 }
