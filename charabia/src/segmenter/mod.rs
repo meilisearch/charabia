@@ -6,6 +6,7 @@ pub use arabic::ArabicSegmenter;
 #[cfg(feature = "chinese-segmentation")]
 pub use chinese::ChineseSegmenter;
 use either::Either;
+pub use german::GermanSegmenter;
 #[cfg(feature = "japanese")]
 pub use japanese::JapaneseSegmenter;
 #[cfg(feature = "khmer")]
@@ -17,7 +18,6 @@ use once_cell::sync::Lazy;
 use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
-pub use german::GermanSegmenter;
 
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::separators::DEFAULT_SEPARATORS;
@@ -26,6 +26,7 @@ use crate::token::Token;
 mod arabic;
 #[cfg(feature = "chinese-segmentation")]
 mod chinese;
+mod german;
 #[cfg(feature = "japanese")]
 mod japanese;
 #[cfg(feature = "khmer")]
@@ -37,7 +38,6 @@ mod latin;
 mod thai;
 #[cfg(any(feature = "thai", feature = "khmer"))]
 mod utils;
-mod german;
 
 pub type SegmenterMap = HashMap<(Script, Option<Language>), Box<dyn Segmenter>>;
 
