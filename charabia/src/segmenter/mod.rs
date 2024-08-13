@@ -17,6 +17,7 @@ use once_cell::sync::Lazy;
 use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
+pub use persian::PersianSegmenter;
 
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::separators::DEFAULT_SEPARATORS;
@@ -36,6 +37,7 @@ mod latin;
 mod thai;
 #[cfg(any(feature = "thai", feature = "khmer"))]
 mod utils;
+mod persian;
 
 pub type SegmenterMap = HashMap<(Script, Option<Language>), Box<dyn Segmenter>>;
 
