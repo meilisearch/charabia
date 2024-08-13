@@ -43,6 +43,7 @@ mod swedish_recomposition;
 mod vietnamese;
 
 mod ae_oe_normalizer;
+mod persian;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
