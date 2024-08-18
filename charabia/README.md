@@ -16,7 +16,7 @@ Charabia provides a simple API to segment, normalize, or tokenize (segment + nor
 
 |  Script / Language  |                           specialized segmentation                            | specialized normalization | Segmentation Performance level | Tokenization Performance level |
 |---------------------|-------------------------------------------------------------------------------|---------------------------|-------------------|---|
-| **Latin** | ✅ CamelCase segmentation | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) + lowercase + [nonspacing-marks](https://www.compart.com/en/unicode/category/Mn) removal + `Ð vs Đ` spoofing normalization         | 🟩 ~23MiB/sec    | 🟨 ~9MiB/sec    |
+| **Latin** | ✅ CamelCase segmentation | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) + lowercase + [nonspacing-marks](https://www.compart.com/en/unicode/category/Mn) removal + `Ð vs Đ` spoofing normalization + `ı` normalization | 🟩 ~23MiB/sec    | 🟨 ~9MiB/sec    |
 | **Greek** | ❌ | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) + lowercase + final sigma normalization         | 🟩 ~27MiB/sec    | 🟨 ~8MiB/sec    |
 | **Cyrillic** - **Georgian** | ❌ | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) + lowercase          | 🟩 ~27MiB/sec    | 🟨 ~9MiB/sec    |
 | **Chinese** **CMN** 🇨🇳 | ✅ [jieba](https://github.com/messense/jieba-rs) | ✅ [compatibility decomposition](https://unicode.org/reports/tr15/) + kvariant conversion | 🟨 ~10MiB/sec    | 🟧 ~5MiB/sec    |
