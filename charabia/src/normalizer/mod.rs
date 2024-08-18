@@ -17,6 +17,8 @@ use self::nonspacing_mark::NonspacingMarkNormalizer;
 use self::quote::QuoteNormalizer;
 #[cfg(feature = "swedish-recomposition")]
 use self::swedish_recomposition::SwedishRecompositionNormalizer;
+#[cfg(feature = "turkish")]
+pub use self::turkish::TurkishNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
@@ -39,6 +41,8 @@ mod nonspacing_mark;
 mod quote;
 #[cfg(feature = "swedish-recomposition")]
 mod swedish_recomposition;
+#[cfg(feature = "turkish")]
+mod turkish;
 #[cfg(feature = "vietnamese")]
 mod vietnamese;
 
@@ -71,6 +75,8 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(NonspacingMarkNormalizer),
         #[cfg(feature = "vietnamese")]
         Box::new(VietnameseNormalizer),
+        #[cfg(feature = "turkish")]
+        Box::new(TurkishNormalizer),
     ]
 });
 
