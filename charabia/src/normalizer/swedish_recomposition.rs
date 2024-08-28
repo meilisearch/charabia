@@ -5,10 +5,10 @@ use once_cell::sync::Lazy;
 
 use super::Normalizer;
 use crate::normalizer::NormalizerOption;
-use crate::{Script, Token};
+use crate::{Language, Token};
 
 static MATCHING_STR: Lazy<AhoCorasick> = Lazy::new(|| {
-    AhoCorasick::new(&["A\u{30a}", "a\u{30a}", "A\u{308}", "a\u{308}", "O\u{308}", "o\u{308}"])
+    AhoCorasick::new(["A\u{30a}", "a\u{30a}", "A\u{308}", "a\u{308}", "O\u{308}", "o\u{308}"])
         .unwrap()
 });
 
@@ -77,7 +77,7 @@ impl Normalizer for SwedishRecompositionNormalizer {
 
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Latin && MATCHING_STR.is_match(token.lemma())
+        token.language == Some(Language::Swe) && MATCHING_STR.is_match(token.lemma())
     }
 }
 
@@ -101,6 +101,7 @@ mod test {
     use crate::normalizer::test::test_normalizer;
     use crate::normalizer::Normalizer;
     use crate::token::TokenKind;
+    use crate::Script;
 
     // base tokens to normalize.
     fn tokens() -> Vec<Token<'static>> {
@@ -109,6 +110,7 @@ mod test {
             char_end: 13,
             byte_end: 19,
             script: Script::Latin,
+            language: Some(Language::Swe),
             ..Default::default()
         }]
     }
@@ -121,6 +123,7 @@ mod test {
             char_end: 13,
             byte_end: 19,
             script: Script::Latin,
+            language: Some(Language::Swe),
             ..Default::default()
         }]
     }
@@ -148,6 +151,7 @@ mod test {
             ]),
             script: Script::Latin,
             kind: TokenKind::Word,
+            language: Some(Language::Swe),
             ..Default::default()
         }]
     }

@@ -40,5 +40,5 @@ mod test {
         "snake", "_", "case",
     ];
 
-    test_segmenter!(LatinSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Other);
+    test_segmenter!(LatinSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Latin, Language::Eng);
 }

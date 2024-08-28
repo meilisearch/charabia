@@ -2,15 +2,15 @@ use core::str::FromStr;
 
 #[cfg(test)]
 use quickcheck::{Arbitrary, Gen};
+use serde::{Deserialize, Serialize};
 
 use super::chars;
 
 macro_rules! make_language {
     ($($language:tt), +) => {
-        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
         pub enum Language {
             $($language),+,
-            Other,
         }
         impl From<whatlang::Lang> for Language {
             fn from(other: whatlang::Lang) -> Language {
@@ -24,27 +24,19 @@ macro_rules! make_language {
             fn from(other: Language) -> whatlang::Lang {
                 match other {
                     $(Language::$language => whatlang::Lang::$language), +,
-                    _other => whatlang::Lang::Eng,
                 }
-            }
-        }
-
-        impl Default for Language {
-            fn default() -> Self {
-                Self::Other
             }
         }
 
         impl Language {
-            pub fn name(&self) -> &'static str {
+            pub fn code(&self) -> &'static str {
                 match self {
                     $(Language::$language => whatlang::Lang::$language.code()), +,
-                    _other => "other",
                 }
             }
 
-            pub fn from_name<S: AsRef<str>>(code: S) -> Language {
-                whatlang::Lang::from_code(code.as_ref()).map(Language::from).unwrap_or_default()
+            pub fn from_code<S: AsRef<str>>(code: S) -> Option<Language> {
+                whatlang::Lang::from_code(code.as_ref()).map(Language::from)
             }
         }
     };
@@ -124,7 +116,7 @@ make_language! {
 
 macro_rules! make_script {
     ($($script:tt), +) => {
-        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+        #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
         pub enum Script {
             $($script),+,
             Cj,
@@ -361,12 +353,12 @@ mod test {
 
     #[test]
     fn from_into_language() {
-        assert_eq!(Language::Eng.name(), "eng");
-        assert_eq!(Language::from_name("eng"), Language::Eng);
-        assert_eq!(Language::Jpn.name(), "jpn");
-        assert_eq!(Language::from_name("jpn"), Language::Jpn);
-        assert_eq!(Language::Cmn.name(), "cmn");
-        assert_eq!(Language::from_name("cmn"), Language::Cmn);
+        assert_eq!(Language::Eng.code(), "eng");
+        assert_eq!(Language::from_code("eng"), Some(Language::Eng));
+        assert_eq!(Language::Jpn.code(), "jpn");
+        assert_eq!(Language::from_code("jpn"), Some(Language::Jpn));
+        assert_eq!(Language::Cmn.code(), "cmn");
+        assert_eq!(Language::from_code("cmn"), Some(Language::Cmn));
     }
 
     #[test]

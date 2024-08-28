@@ -1,6 +1,6 @@
 [package]
 name = "irg-kvariants"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "A simple wrapper around kvariant from hfhchan/irg"
@@ -11,8 +11,8 @@ repository = "https://github.com/meilisearch/charabia"
 [dependencies]
 csv = "1.3.0"
 once_cell = "1.19.0"
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.203", features = ["derive"] }
 
 [build-dependencies]
 csv = "1.3.0"
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.203", features = ["derive"] }
