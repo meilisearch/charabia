@@ -14,7 +14,7 @@ pub struct ThaiSegmenter;
 static WORDS_FST: Lazy<Fst<&[u8]>> =
     Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap());
 
-static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST));
+static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST, None, true));
 
 impl Segmenter for ThaiSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {

@@ -18,7 +18,7 @@ use once_cell::sync::Lazy;
 static WORDS_FST: Lazy<Fst<&[u8]>> =
     Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/khmer/words.fst")[..]).unwrap());
 
-static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST));
+static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST, None, true));
 
 // Make a small documentation of the specialized Segmenter like below.
 /// <Script/Language> specialized [`Segmenter`].
