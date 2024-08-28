@@ -3,12 +3,16 @@ use fst::raw::{Fst, Output};
 /// Final-state-transducer (FST) Segmenter
 pub(crate) struct FstSegmenter<'fst> {
     words_fst: &'fst Fst<&'fst [u8]>,
-    min_length: Option<usize>,     // Optional minimum length for a word to be segmented
-    allow_char_split: bool,        // Flag to allow or disallow splitting words into characters
+    min_length: Option<usize>, // Optional minimum length for a word to be segmented
+    allow_char_split: bool,    // Flag to allow or disallow splitting words into characters
 }
 
 impl<'fst> FstSegmenter<'fst> {
-    pub(crate) fn new(words_fst: &'fst Fst<&'fst [u8]>, min_length: Option<usize>, allow_char_split: bool) -> Self {
+    pub(crate) fn new(
+        words_fst: &'fst Fst<&'fst [u8]>,
+        min_length: Option<usize>,
+        allow_char_split: bool,
+    ) -> Self {
         Self { words_fst, min_length, allow_char_split }
     }
 
@@ -66,7 +70,8 @@ impl<'fst> FstSegmenter<'fst> {
 
         Box::new(iter)
     }
-}/// find the longest key that is prefix of the given value.
+}
+/// find the longest key that is prefix of the given value.
 #[inline]
 fn find_longest_prefix(fst: &Fst<&[u8]>, value: &[u8]) -> Option<(u64, usize)> {
     let mut node = fst.root();

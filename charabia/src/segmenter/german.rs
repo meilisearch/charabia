@@ -12,7 +12,8 @@ pub struct GermanSegmenter;
 static WORDS_FST: Lazy<Fst<&[u8]>> =
     Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/german/words.fst")[..]).unwrap());
 
-static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST, Some(4), true));
+static FST_SEGMENTER: Lazy<FstSegmenter> =
+    Lazy::new(|| FstSegmenter::new(&WORDS_FST, Some(4), true));
 
 impl Segmenter for GermanSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
