@@ -6,6 +6,7 @@ pub use arabic::ArabicSegmenter;
 #[cfg(feature = "chinese-segmentation")]
 pub use chinese::ChineseSegmenter;
 use either::Either;
+#[cfg(feature = "german-segmentation")]
 pub use german::GermanSegmenter;
 #[cfg(feature = "japanese")]
 pub use japanese::JapaneseSegmenter;
@@ -26,6 +27,7 @@ use crate::token::Token;
 mod arabic;
 #[cfg(feature = "chinese-segmentation")]
 mod chinese;
+#[cfg(feature = "german-segmentation")]
 mod german;
 #[cfg(feature = "japanese")]
 mod japanese;
@@ -75,6 +77,7 @@ pub static SEGMENTERS: Lazy<SegmenterMap> = Lazy::new(|| {
         // arabic segmenter
         ((Script::Arabic, Some(Language::Ara)), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
         // german segmenter
+        #[cfg(feature = "german-segmentation")]
         ((Script::Latin, Some(Language::Deu)), Box::new(GermanSegmenter) as Box<dyn Segmenter>),
     ]
     .into_iter()
