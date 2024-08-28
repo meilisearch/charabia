@@ -31,7 +31,7 @@ unicode-normalization = "0.1.23"
 irg-kvariants = { path = "../irg-kvariants", version = "=0.1.1" }
 
 [features]
-default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese", "swedish-recomposition", "german-segmentation"]
+default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese", "swedish-recomposition", "turkish", "german-segmentation"]
 
 # allow chinese specialized tokenization
 chinese = ["chinese-segmentation", "chinese-normalization"]
@@ -71,7 +71,10 @@ latin-snakecase = ["dep:finl_unicode"]
 # force Charabia to recompose Swedish characters
 swedish-recomposition = []
 
-# force Charabia to decompose German composite words
+# allow turkish specialized tokenization
+turkish = []
+
+# allow decomposition of German composite words
 german-segmentation = []
 
 [dev-dependencies]
