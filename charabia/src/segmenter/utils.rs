@@ -59,7 +59,7 @@ impl<'fst> FstSegmenter<'fst> {
             // ensure the length is a valid character boundary
             length = to_segment
                 .char_indices()
-                .find(|(idx, _)| idx >= length)
+                .find(|(idx, _)| *idx >= length)
                 .map(|(idx, _)| idx)
                 .unwrap_or(to_segment.len());
 
