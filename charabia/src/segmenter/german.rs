@@ -13,7 +13,7 @@ static WORDS_FST: Lazy<Fst<&[u8]>> =
     Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/german/words.fst")[..]).unwrap());
 
 static FST_SEGMENTER: Lazy<FstSegmenter> =
-    Lazy::new(|| FstSegmenter::new(&WORDS_FST, Some(4), true));
+    Lazy::new(|| FstSegmenter::new(&WORDS_FST, Some(2), true));
 
 impl Segmenter for GermanSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
@@ -100,7 +100,34 @@ mod test {
         word1
     );
     test_segmentation!("Schreibprozess", &["Schreib", "prozess"], word2);
-    test_segmentation!("Interkulturalität", &["Inter", "kultur", "alität"], word3);
+    test_segmentation!("Interkulturalität", &["Inter", "kulturalität"], word3);
     test_segmentation!("Wissensorganisation", &["Wissens", "organisation"], word4);
     test_segmentation!("Aufgabenplanung", &["Aufgaben", "planung"], word5);
+    test_segmentation!("Eisbrecher", &["Eis", "brecher"], word6);
+    test_segmentation!("Zuckerei", &["Zucker", "ei"], word7);
+    test_segmentation!("Glatteis", &["Glatt", "eis"], word8);
+    test_segmentation!("Sinnfindung", &["Sinn", "findung"], word9);
+    test_segmentation!(
+        "Donaudampfschifffahrtsgesellschaftskapitän",
+        &["Donau", "dampf", "schifffahrts", "gesellschafts", "kapitän"],
+        word10
+    );
+    test_segmentation!(
+        "Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz",
+        &[
+            "Rind",
+            "fleisch",
+            "etikettierungs",
+            "überwachungs",
+            "aufgaben",
+            "übertragungs",
+            "gesetz"
+        ],
+        word11
+    );
+    test_segmentation!(
+        "Nahrungsmittelunverträglichkeitsdiagnoseverfahren",
+        &["Nahrungs", "mittel", "un", "verträglichkeits", "diagnose", "verfahren"],
+        word12
+    );
 }

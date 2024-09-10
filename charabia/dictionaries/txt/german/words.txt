@@ -6192,7 +6192,7 @@ Glas
 Glaser
 Glasnost
 Glasur
-Glatteis
+Glatt
 Glatze
 Glaube
 Glauben
@@ -8306,6 +8306,7 @@ Kuli
 Kulisse
 Kult
 Kultur
+Kulturalität
 Kultus
 Kummer
 Kumpan
@@ -21691,7 +21692,7 @@ glas
 glaser
 glasnost
 glasur
-glatteis
+glatt
 glatze
 glaube
 glauben
@@ -23805,6 +23806,7 @@ kuli
 kulisse
 kult
 kultur
+kulturalität
 kultus
 kummer
 kumpan
