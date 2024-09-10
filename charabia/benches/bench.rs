@@ -17,6 +17,8 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
     ((132, Script::Khmer, Language::Khm), "ធ្វេីមនុស្សត្រូវចេះស្រលាញ់នឹងជួយគ្នាទៅវិញទៅមក ព្រោះពិភពលោកនេះមានទុកច្រេីនហេីយគួយតែមានអំពេីល្អច្រេីនមិនថាជួយបាន១រឺ២នាក់ច្រេីនរឺតិចទេ៕"),
     ((132, Script::Arabic, Language::Ara), "اللُّغَةُ العربية هي أكثر اللغات السامية تحدثا، ومن أكثر اللغات انتشارا"),
     ((134, Script::Arabic, Language::Vie), "Các nhà nước trong lịch sử Việt Nam có những quốc hiệu khác nhau như Xích Quỷ, Văn Lang, Đại Việt, Đại"),
+    ((131, Script::Latin, Language::Deu), "Deutschland vereint Alpen, Küsten und Städte wie Berlin. Kultur und Geschichte prägen das Land, das Natur und Moderne verbindet."),
+
     // long texts (~365 bytes)
     ((363, Script::Cj, Language::Cmn), "距今60万年-2万年的时间内，北京地区处于旧石器时代，在周口店发现了旧石器时代早期北京直立人、中期新洞人和晚期山顶洞人的典型遗址。北京地区在不晚于1万年前已经开始进入新石器时代。当时该地区人类定居生活固定化，逐渐从山洞中迁徙出来，到平原地区定居[12]。"),
     ((364, Script::Cj, Language::Jpn), "詳しくは以下の をご覧下さい。語学ないし文学の立場からの価値判断は一切おこなっていません。だけど、バラ科の仲間ということでは「すもももももももものうち」は正しいことになります。すももものうち！今日は「すもももももももものうち」について考えます。"),
@@ -29,7 +31,8 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
     ((327, Script::Khmer, Language::Khm), "រឿងពីរដែលមនុស្សហាមចិត្តខ្លួនឯងមិនបានគឺ សើច និង ស្រឡាញ់។ តែសម្រាប់ខ្ញុំ ប្រាក់ ចន្ទធីតា រឿងមួយទៀតដែលខ្ញុំហាមចិត្តខ្លួនឯងមិនបាននោះ គឺញ៉ាំ គេគ្រប់គ្នាពេលខូចចិត្តបាយទឹកមិនបានទេ តែខ្ញុំពេលខូចចិត្តដឹងតែឃ្លាន ញ៉ាំច្រើនឬតិចក៏អាស្រ័យលើថាទំហំនៃការខូចចិត្តខ្លាំងឬខ្សោយ។"),
     ((366, Script::Arabic, Language::Ara), "العربية لغةٌ رسمية في كل دول الوطن العربي (إضافة إلى كونها لغة رسمية في تشاد وإريتريا). وهي إحدى اللغات الرسمية الست في منظمة الأمم المتحدة، ويُحتفل بالعربية في 18 ديسمبر كذكرى اعتمادها في الأمم المتحدة."),
     ((365, Script::Latin, Language::Vie), "Lãnh thổ Việt Nam xuất hiện con người sinh sống từ thời đại đồ đá cũ, khởi đầu với các nhà nước Văn Lang, Âu Lạc. Âu Lạc bị nhà Triệu ở phương Bắc thôn tính vào đầu thế kỷ thứ 2 TCN sau đó là thời kỳ Bắc thuộc kéo dài hơn một thiên niên kỷ.Chế độ quân chủ độc lập"),
-    ];
+    ((354, Script::Latin, Language::Deu), "Magdeburg, die Hauptstadt Sachsen-Anhalts, beeindruckt mit dem Magdeburger Dom, dem Jahrtausendturm im Elbauenpark und dem Wasserstraßenkreuz. Der Domplatz ist umgeben von Bauwerken, wie dem Hundertwasserhaus. Der Elbauenpark bietet viele Freizeitmöglichkeiten, während die Magdeburger Börde für fruchtbare Ackerflächen für z.B. Zuckerrüben bekannt ist."),
+];
 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
