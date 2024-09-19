@@ -38,7 +38,8 @@ impl CharNormalizer for ChineseNormalizer {
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Cj && matches!(token.language, None | Some(Language::Cmn))
+        token.script == Script::Cj
+            && matches!(token.language, None | Some(Language::Cmn) | Some(Language::Zho))
     }
 }
 
@@ -74,7 +75,7 @@ mod test {
                 char_end: 5,
                 byte_end: 15,
                 script: Script::Cj,
-                language: Some(Language::Cmn),
+                language: Some(Language::Zho),
                 ..Default::default()
             },
         ]
@@ -111,7 +112,7 @@ mod test {
                 byte_end: 15,
                 char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
                 script: Script::Cj,
-                language: Some(Language::Cmn),
+                language: Some(Language::Zho),
                 ..Default::default()
             },
         ]
@@ -147,7 +148,7 @@ mod test {
                 byte_end: 15,
                 char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 4), (3, 4), (3, 4)]),
                 script: Script::Cj,
-                language: Some(Language::Cmn),
+                language: Some(Language::Zho),
                 kind: TokenKind::Word,
                 ..Default::default()
             },
@@ -182,7 +183,7 @@ mod test {
                 byte_end: 15,
                 char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3), (3, 3), (3, 4)]),
                 script: Script::Cj,
-                language: Some(Language::Cmn),
+                language: Some(Language::Zho),
                 ..Default::default()
             },
         ]
@@ -223,7 +224,7 @@ mod test {
                 byte_end: 15,
                 char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3), (3, 3), (3, 4)]),
                 script: Script::Cj,
-                language: Some(Language::Cmn),
+                language: Some(Language::Zho),
             },
         ]
     }

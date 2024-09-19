@@ -31,7 +31,7 @@ unicode-normalization = "0.1.23"
 irg-kvariants = { path = "../irg-kvariants", version = "=0.1.1" }
 
 [features]
-default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "latin-camelcase", "latin-snakecase", "khmer", "vietnamese", "swedish-recomposition", "turkish", "german-segmentation"]
+default = ["chinese", "hebrew", "japanese", "thai", "korean", "greek", "khmer", "vietnamese", "swedish-recomposition", "turkish", "german-segmentation"]
 
 # allow chinese specialized tokenization
 chinese = ["chinese-segmentation", "chinese-normalization"]
