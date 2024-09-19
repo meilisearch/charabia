@@ -10,6 +10,7 @@ macro_rules! make_language {
     ($($language:tt), +) => {
         #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
         pub enum Language {
+            Zho,
             $($language),+,
         }
         impl From<whatlang::Lang> for Language {
@@ -23,6 +24,7 @@ macro_rules! make_language {
         impl From<Language> for whatlang::Lang {
             fn from(other: Language) -> whatlang::Lang {
                 match other {
+                    Language::Zho => whatlang::Lang::Cmn,
                     $(Language::$language => whatlang::Lang::$language), +,
                 }
             }
@@ -31,12 +33,16 @@ macro_rules! make_language {
         impl Language {
             pub fn code(&self) -> &'static str {
                 match self {
+                    Language::Zho => "zho",
                     $(Language::$language => whatlang::Lang::$language.code()), +,
                 }
             }
 
             pub fn from_code<S: AsRef<str>>(code: S) -> Option<Language> {
-                whatlang::Lang::from_code(code.as_ref()).map(Language::from)
+                match code.as_ref() {
+                    "zho" => Some(Language::Zho),
+                    _ => whatlang::Lang::from_code(code.as_ref()).map(Language::from),
+                }
             }
         }
     };
