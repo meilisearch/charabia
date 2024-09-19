@@ -397,7 +397,6 @@ mod test {
     ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
             use crate::{Token, Language, Script};
             use crate::segmenter::{Segment, AhoSegmentedStrIter, MatchType, DEFAULT_SEPARATOR_AHO};
-            use crate::tokenizer::Tokenize;
             use super::*;
 
             #[test]
@@ -427,7 +426,7 @@ Check if the expected Script/Language corresponds to the detected Script/Languag
 
             #[test]
             fn segment() {
-                let segmented_text: Vec<_> = $text.segment_str().collect();
+                let segmented_text: Vec<_> = $text.segment_str_with_option(None, Some(&[$language])).collect();
                 assert_eq!(&segmented_text[..], $segmented, r#"
 Segmenter chosen by global segment() function, didn't segment the text as expected.
 
@@ -438,7 +437,8 @@ Check if the tested segmenter is assigned to the good Script/Language in `SEGMEN
 
             #[test]
             fn tokenize() {
-                let tokens: Vec<_> = $text.tokenize().collect();
+                let tokenizer = crate::TokenizerBuilder::default().into_tokenizer();
+                let tokens: Vec<_> = tokenizer.tokenize_with_allow_list($text, Some(&[$language])).collect();
                 let tokenized_text: Vec<_> = tokens.iter().map(|t| t.lemma()).collect();
 
                 assert_eq!(&tokenized_text[..], $tokenized, r#"
