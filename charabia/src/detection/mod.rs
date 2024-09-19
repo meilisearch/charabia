@@ -27,7 +27,11 @@ impl<'o, 'al> StrDetection<'o, 'al> {
         let inner = self.inner;
         self.language = match self.language.take() {
             Some(lang) => Some(lang),
-            None => Self::detect_lang(inner, self.allow_list),
+            None => match self.allow_list {
+                Some([unique_language]) => Some(*unique_language),
+                None if Self::detect_script(inner) == Script::Latin => None,
+                _otherwise => Self::detect_lang(inner, self.allow_list),
+            },
         };
 
         self.language
