@@ -1,6 +1,30 @@
 use super::{CharNormalizer, CharOrStr};
 use crate::{Script, Token};
 
+const CHAR_PAIRS: &[(char, Option<(char, Option<char>)>)] = &[
+    ('Æ', Some(('a', Some('e')))),
+    #[cfg(feature = "vietnamese")]
+    ('Ð', Some(('d', None))),
+    ('æ', Some(('a', Some('e')))),
+    #[cfg(feature = "vietnamese")]
+    ('ð', Some(('d', None))),
+    #[cfg(feature = "vietnamese")]
+    ('Đ', Some(('d', None))),
+    #[cfg(feature = "vietnamese")]
+    ('đ', Some(('d', None))),
+    #[cfg(feature = "turkish")]
+    ('ı', Some(('i', None))),
+    ('Œ', Some(('o', Some('e')))),
+    ('œ', Some(('o', Some('e')))),
+    ('ة', Some(('ه', None))),
+    ('ـ', None),
+    ('ٱ', Some(('ا', None))),
+    ('ى', Some(('ي', None))),
+    ('‘', Some(('\'', None))),
+    ('’', Some(('\'', None))),
+    ('‛', Some(('\'', None))),
+];
+
 /// This module contains the implementation of the `CharacterConverterNormalizer` struct, which is a character normalizer
 
 pub struct CharacterConverterNormalizer;
@@ -31,29 +55,37 @@ impl CharNormalizer for CharacterConverterNormalizer {
 
     // Returns `true` if the Normalizer should be used.
     fn should_normalize(&self, token: &Token) -> bool {
-        true
+        token
+            .lemma
+            .chars()
+            .any(|c| c.is_uppercase() || CHAR_PAIRS.binary_search_by(|(k, _)| k.cmp(&c)).is_ok())
     }
 }
 
 fn normalize_char(c: char) -> Option<CharOrStr> {
-    match c {
-        'œ' | 'Œ' => Some("oe".to_string().into()),
-        'æ' | 'Æ' => Some("ae".to_string().into()),
-        'ـ' => None,
-        'ٱ' => Some('ا'.into()),
-        'ى' => Some('ي'.into()),
-        'ة' => Some('ه'.into()),
-        '’' | '‘' | '‛' => Some('\''.into()),
-        #[cfg(feature = "turkish")]
-        'ı' => Some('i'.into()),
-        #[cfg(feature = "vietnamese")]
-        'Ð' | 'Đ' | 'đ' | 'ð' => Some("d".to_string().into()),
+    match CHAR_PAIRS.binary_search_by(|(k, _)| k.cmp(&c)).map(|i| &CHAR_PAIRS[i].1) {
+        Ok(Some((first, Some(second)))) => {
+            Some(CharOrStr::Char(*first).merge(&CharOrStr::Char(*second)))
+        }
+        Ok(Some((first, None))) => Some(CharOrStr::Char(*first)),
+        Ok(None) => None,
         _ => Some(c.into()),
     }
-}
 
-fn is_control(c: char) -> bool {
-    c.is_control() && !c.is_whitespace()
+    // match c {
+    //     'œ' | 'Œ' => Some("oe".to_string().into()),
+    //     'æ' | 'Æ' => Some("ae".to_string().into()),
+    //     'ـ' => None,
+    //     'ٱ' => Some('ا'.into()),
+    //     'ى' => Some('ي'.into()),
+    //     'ة' => Some('ه'.into()),
+    //     '’' | '‘' | '‛' => Some('\''.into()),
+    //     #[cfg(feature = "turkish")]
+    //     'ı' => Some('i'.into()),
+    //     #[cfg(feature = "vietnamese")]
+    //     'Ð' | 'Đ' | 'đ' | 'ð' => Some("d".to_string().into()),
+    //     _ => Some(c.into()),
+    // }
 }
 
 // Test the normalizer:
@@ -96,6 +128,14 @@ mod test {
                 script: Script::Latin,
                 ..Default::default()
             },
+            // Taa Marbuta
+            Token {
+                lemma: Owned("النهاردة".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Arabic,
+                ..Default::default()
+            },
         ]
     }
 
@@ -132,6 +172,23 @@ mod test {
                 byte_end: 2,
                 script: Script::Latin,
                 char_map: Some(vec![(2, 2)]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("النهارده".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                script: Script::Arabic,
                 ..Default::default()
             },
         ]
@@ -173,6 +230,24 @@ mod test {
                 byte_end: 2,
                 script: Script::Latin,
                 char_map: Some(vec![(2, 2)]),
+                kind: TokenKind::Word,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("النهارده".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                script: Script::Arabic,
                 kind: TokenKind::Word,
                 ..Default::default()
             },
