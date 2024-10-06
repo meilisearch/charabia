@@ -27,7 +27,7 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     const TEXT: &str =
-        "Der Dampfschifffahrtskapitän fährt über den Mittellandkanal zur Strombrücke Magdeburg.";
+        "Der Dampfschifffahrtskapitän fährt über den Mittellandkanal zur Strombrücke Magdeburg 123 456.";
 
     const SEGMENTED: &[&str] = &[
         "Der",
@@ -52,6 +52,10 @@ mod test {
         "brücke",
         " ",
         "Magdeburg",
+        " ",
+        "123",
+        " ",
+        "456",
         ".",
     ];
 
@@ -78,6 +82,10 @@ mod test {
         "brucke",
         " ",
         "magdeburg",
+        " ",
+        "123",
+        " ",
+        "456",
         ".",
     ];
 
