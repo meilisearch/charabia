@@ -79,10 +79,11 @@ german-segmentation = []
 
 [dev-dependencies]
 criterion = "0.5"
-jemallocator = "0.5.4"
 quickcheck = "1"
 quickcheck_macros = "1"
 
+[target.'cfg(any(all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64", all(target_arch = "powerpc64", target_endian = "little"))), all(target_os = "macos", target_arch = "aarch64")))'.dev-dependencies]
+jemallocator = "0.5.4"
 
 [[bench]]
 name = "bench"
