@@ -40,7 +40,7 @@ impl Segmenter for JapaneseSegmenter {
 mod test {
     use crate::segmenter::test::test_segmenter;
 
-    const TEXT: &str = "関西国際空港限定トートバッグ すもももももももものうち";
+    const TEXT: &str = "関西国際空港限定トートバッグ すもももももももものうち 123 456";
 
     const SEGMENTED: &[&str] = if cfg!(feature = "japanese-segmentation-ipadic") {
         &[
@@ -57,6 +57,10 @@ mod test {
             "もも",
             "の",
             "うち",
+            " ",
+            "123",
+            " ",
+            "456",
         ]
     } else if cfg!(feature = "japanese-segmentation-unidic") {
         &[
@@ -74,6 +78,10 @@ mod test {
             "もも",
             "の",
             "うち",
+            " ",
+            "123",
+            " ",
+            "456",
         ]
     } else {
         &[]
@@ -98,6 +106,10 @@ mod test {
             "もも",
             "の",
             "うち",
+            " ",
+            "123",
+            " ",
+            "456",
         ]
     } else if cfg!(feature = "japanese-segmentation-unidic") {
         &[
@@ -122,6 +134,10 @@ mod test {
             "もも",
             "の",
             "うち",
+            " ",
+            "123",
+            " ",
+            "456",
         ]
     } else {
         &[]

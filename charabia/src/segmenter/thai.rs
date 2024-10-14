@@ -27,7 +27,7 @@ impl Segmenter for ThaiSegmenter {
 mod test {
     use crate::segmenter::test::test_segmenter;
 
-    const TEXT: &str = "ภาษาไทยง่ายนิดเดียว ไก่ขันตอนเช้าบนขันน้ำ ฉันสระผมที่สระน้ำด้วยน้ำยาสระผม";
+    const TEXT: &str = "ภาษาไทยง่ายนิดเดียว ไก่ขันตอนเช้าบนขันน้ำ ฉันสระผมที่สระน้ำด้วยน้ำยาสระผม 123 456";
 
     const SEGMENTED: &[&str] = &[
         "ภาษาไทย",
@@ -47,6 +47,10 @@ mod test {
         "ด้วย",
         "น้ำยา",
         "สระผม",
+        " ",
+        "123",
+        " ",
+        "456",
     ];
 
     const TOKENIZED: &[&str] = &[
@@ -67,6 +71,10 @@ mod test {
         "ดวย",
         "นายา",
         "สระผม",
+        " ",
+        "123",
+        " ",
+        "456",
     ];
     // Macro that run several tests on the Segmenter.
     test_segmenter!(ThaiSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Thai, Language::Tha);
