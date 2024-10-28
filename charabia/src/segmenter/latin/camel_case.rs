@@ -5,20 +5,26 @@ use slice_group_by::StrGroupBy;
 /// For instance, "camelCase" is split into ["camel", "Case"].
 /// A camelCase boundary constitutes a lowercase letter directly followed by an uppercase letter
 /// optionally with any number of non-spacing marks in between.
+/// Two consecutive uppercase letters constitute a boundary only if the following letter is lowercase
+/// (eg.: "MongoDBError" is split into ["Mongo", "DB", "Error"])  
 pub(crate) fn split_camel_case_bounds(str: &str) -> impl Iterator<Item = &str> {
-    let mut last_char_was_lowercase = str.chars().next().map_or(false, |c| c.is_lowercase());
+    let mut peek_char = str.chars().map(|c| c.is_lowercase());
+    let mut last_char_was_lowercase: bool = peek_char.next().unwrap_or_default();
+    
+    peek_char.next();
 
     str.linear_group_by(move |_, char| {
+        let peek_char_is_lowercase: bool = peek_char.next().unwrap_or_default();
+        
         if char.is_mark_nonspacing() {
             return true;
         }
 
-        if last_char_was_lowercase && char.is_letter_uppercase() {
-            return false;
-        }
+        let should_group =
+            !((last_char_was_lowercase || peek_char_is_lowercase) && char.is_letter_uppercase());
 
         last_char_was_lowercase = char.is_letter_lowercase();
-        true
+        should_group
     })
 }
 
@@ -48,4 +54,6 @@ mod test {
         non_spacing_marks_are_respected
     );
     test_segmentation!("a\u{0301}B", ["a\u{0301}", "B"], non_spacing_mark_after_first_letter);
+    test_segmentation!("openSSL", ["open", "SSL"], consecutive_uppercase_is_not_split);
+    test_segmentation!("MongoDBDatabase", ["Mongo", "DB", "Database"], last_uppercase_from_non_final_sequence);
 }
