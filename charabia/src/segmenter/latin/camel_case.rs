@@ -10,12 +10,12 @@ use slice_group_by::StrGroupBy;
 pub(crate) fn split_camel_case_bounds(str: &str) -> impl Iterator<Item = &str> {
     let mut peek_char = str.chars().map(|c| c.is_lowercase());
     let mut last_char_was_lowercase: bool = peek_char.next().unwrap_or_default();
-    
+
     peek_char.next();
 
     str.linear_group_by(move |_, char| {
         let peek_char_is_lowercase: bool = peek_char.next().unwrap_or_default();
-        
+
         if char.is_mark_nonspacing() {
             return true;
         }
@@ -55,5 +55,9 @@ mod test {
     );
     test_segmentation!("a\u{0301}B", ["a\u{0301}", "B"], non_spacing_mark_after_first_letter);
     test_segmentation!("openSSL", ["open", "SSL"], consecutive_uppercase_is_not_split);
-    test_segmentation!("MongoDBDatabase", ["Mongo", "DB", "Database"], last_uppercase_from_non_final_sequence);
+    test_segmentation!(
+        "MongoDBDatabase",
+        ["Mongo", "DB", "Database"],
+        last_uppercase_from_non_final_sequence
+    );
 }
