@@ -6,7 +6,7 @@ use slice_group_by::StrGroupBy;
 /// A camelCase boundary constitutes a lowercase letter directly followed by an uppercase letter
 /// optionally with any number of non-spacing marks in between.
 /// Two consecutive uppercase letters constitute a boundary only if the following letter is lowercase
-/// (eg.: "MongoDBError" is split into ["Mongo", "DB", "Error"])  
+/// (eg., "MongoDBError" is split into ["Mongo", "DB", "Error"])  
 pub(crate) fn split_camel_case_bounds(str: &str) -> impl Iterator<Item = &str> {
     let mut peek_char = str.chars().map(|c| c.is_lowercase());
     let mut last_char_was_lowercase: bool = peek_char.next().unwrap_or_default();
