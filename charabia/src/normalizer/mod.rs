@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use once_cell::sync::Lazy;
 
+pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese-normalization")]
 pub use self::chinese::ChineseNormalizer;
@@ -23,8 +24,6 @@ pub use self::turkish::TurkishNormalizer;
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
-
-pub use self::ae_oe_normalizer::AeOeNormalizer;
 
 mod arabic;
 #[cfg(feature = "chinese-normalization")]

@@ -59,9 +59,8 @@ mod tokenizer;
 pub use detection::{Language, Script, StrDetection};
 pub use normalizer::Normalize;
 pub use segmenter::Segment;
-pub use token::{SeparatorKind, Token, TokenKind};
-
 #[cfg(test)]
 pub use token::StaticToken;
+pub use token::{SeparatorKind, Token, TokenKind};
 
 pub use crate::tokenizer::{ReconstructedTokenIter, Tokenize, Tokenizer, TokenizerBuilder};

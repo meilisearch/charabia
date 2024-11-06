@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use once_cell::sync::Lazy;
 use serde::Deserialize;
-use std::collections::HashMap;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum KVariantClass {
