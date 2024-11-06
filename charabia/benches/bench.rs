@@ -1,6 +1,7 @@
 use charabia::{Language, Script, Segment, Tokenize};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
+#[cfg(any(all(target_os = "linux", any(target_arch = "x86_64", target_arch = "aarch64", all(target_arch = "powerpc64", target_endian = "little"))), all(target_os = "macos", target_arch = "aarch64")))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
