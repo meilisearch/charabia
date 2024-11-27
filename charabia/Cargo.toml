@@ -79,10 +79,9 @@ german-segmentation = []
 
 [dev-dependencies]
 criterion = "0.5"
-jemallocator = "0.5.4"
 quickcheck = "1"
 quickcheck_macros = "1"
-
+mimalloc = "0.1.43"
 
 [[bench]]
 name = "bench"
