@@ -34,7 +34,7 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     // Original version of the text.
-    const TEXT: &str = "السلام عليكم، كيف حالكم؟ (أتمنى أن تكونوا بأفضل ٱلأحوال)";
+    const TEXT: &str = "السلام عليكم، كيف حالكم؟ (أتمنى أن تكونوا بأفضل ٱلأحوال) 123 456";
 
     // Segmented version of the text.
     const SEGMENTED: &[&str] = &[
@@ -61,6 +61,10 @@ mod test {
         "ٱل",
         "أحوال",
         ")",
+        " ",
+        "123",
+        " ",
+        "456",
     ];
 
     // Segmented and normalized version of the text.
@@ -88,6 +92,10 @@ mod test {
         "ال",
         "احوال",
         ")",
+        " ",
+        "123",
+        " ",
+        "456",
     ];
 
     // Macro that run several tests on the Segmenter.

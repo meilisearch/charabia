@@ -245,13 +245,22 @@ impl<'o, 'aho> Iterator for AhoSegmentedStrIter<'o, 'aho> {
         };
 
         if start < end {
-            Some((&self.text[start..end], match_type))
+            let text = &self.text[start..end];
+            if maybe_number(text) {
+                Some((text, MatchType::Match))
+            } else {
+                Some((text, match_type))
+            }
         } else if end < self.text.len() {
             self.next()
         } else {
             None
         }
     }
+}
+
+fn maybe_number(text: &str) -> bool {
+    text.chars().all(|c| c.is_numeric() || c.is_ascii_punctuation())
 }
 
 enum MatchType {
@@ -395,9 +404,21 @@ impl<'o> Segment<'o> for &'o str {
 mod test {
     macro_rules! test_segmenter {
     ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
+            use aho_corasick::{AhoCorasick, MatchKind};
+            use once_cell::sync::Lazy;
             use crate::{Token, Language, Script};
             use crate::segmenter::{Segment, AhoSegmentedStrIter, MatchType, DEFAULT_SEPARATOR_AHO};
             use super::*;
+
+            const NUMBER_SEPARATOR: &[&str] = &[" "];
+            const TEXT_NUMBER: &str = "123 -123 +123 12.3 -12.3 +12.3";
+            const SEGMENTED_NUMBER: &[&str] =
+                &["123", " ", "-123", " ", "+123", " ", "12.3", " ", "-12.3", " ", "+12.3"];
+            const TOKENIZED_NUMBER: &[&str] =
+                &["123", " ", "-123", " ", "+123", " ", "12.3", " ", "-12.3", " ", "+12.3"];
+            static NUMBER_SEPARATOR_AHO: Lazy<AhoCorasick> = Lazy::new(|| {
+                AhoCorasick::builder().match_kind(MatchKind::LeftmostLongest).build(NUMBER_SEPARATOR).unwrap()
+            });
 
             #[test]
             fn segmenter_segment_str() {
@@ -453,6 +474,38 @@ Make sure that normalized text is valid or change the trigger condition of the n
             fn segmentor_not_panic_for_random_input(text: String) {
                 let _ = $segmenter.segment_str(&text).collect::<Vec<_>>();
             }
+
+            #[test]
+            fn segmenter_segment_number() {
+
+                let segmented_text: Vec<_> = AhoSegmentedStrIter::new(TEXT_NUMBER, &NUMBER_SEPARATOR_AHO).flat_map(|m| match m {
+                    (text, MatchType::Match) => Box::new(Some(text).into_iter()),
+                    (text, MatchType::Interleave) => $segmenter.segment_str(text),
+                }).collect();
+                assert_eq!(&segmented_text[..], SEGMENTED_NUMBER, r#"
+Segmenter {} didn't segment the text as expected.
+
+help: the `segmented` text provided to `test_segmenter!` does not corresponds to the output of the tested segmenter, it's probably due to a bug in the segmenter or a mistake in the provided segmented text.
+"#, stringify!($segmenter));
+            }
+
+            #[test]
+            fn tokenize_number() {
+
+                let mut builder = crate::TokenizerBuilder::default();
+                builder.separators(NUMBER_SEPARATOR);
+                let tokenizer = builder.build();
+                let tokens: Vec<_> = tokenizer.tokenize_with_allow_list(TEXT_NUMBER, Some(&[$language])).collect();
+                let tokenized_text: Vec<_> = tokens.iter().map(|t| t.lemma()).collect();
+
+                assert_eq!(&tokenized_text[..], TOKENIZED_NUMBER, r#"
+Global tokenize() function didn't tokenize the text as expected.
+
+help: The normalized version of the segmented text is probably wrong, the used normalizers make unexpeted changes to the provided text.
+Make sure that normalized text is valid or change the trigger condition of the noisy normalizers by updating `should_normalize`.
+"#);
+            }
+
         }
     }
     pub(crate) use test_segmenter;
