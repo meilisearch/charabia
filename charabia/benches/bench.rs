@@ -1,8 +1,9 @@
 use charabia::{Language, Script, Segment, Tokenize};
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use mimalloc::MiMalloc;
 
 #[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static GLOBAL: MiMalloc = MiMalloc;
 
 static DATA_SET: &[((usize, Script, Language), &str)] = &[
     // short texts (~130 bytes)
