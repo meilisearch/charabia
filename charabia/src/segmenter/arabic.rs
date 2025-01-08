@@ -7,7 +7,6 @@ use super::Segmenter;
 /// One possible solution is to segment any word that starts with `ال` into two words. The `ال` and the rest of the word.
 /// with this solution, we will have `الشجرة` (the tree) segmented into `ال` (the) and `شجرة` (tree). and if we search for `شجرة` (tree) or `الشجرة` (thetree) we will find results.
 /// Some Arabic text starts with `ال` and not meant to be (the) like `البانيا` (Albania). In this case, we will have `ال` and `بانيا` segmented. and if we search for `البانيا` we will find results.
-
 pub struct ArabicSegmenter;
 
 // All specialized segmenters only need to implement the method `segment_str` of the `Segmenter` trait.

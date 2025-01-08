@@ -10,7 +10,6 @@ use crate::{Script, Token};
 /// - Normalizing the arabic Taa Marbuta 'ة' to 'ه'
 ///   https://en.wikipedia.org/wiki/Arabic_alphabet
 ///   https://en.wikipedia.org/wiki/Kashida
-
 pub struct ArabicNormalizer;
 
 // All normalizers only need to implement the method `normalize_char` and the method `should_normalize` of the `CharNormalizer` trait.
