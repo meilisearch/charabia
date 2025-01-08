@@ -177,7 +177,7 @@ impl<'o, 'aho, 'lang> SegmentedStrIter<'o, 'aho, 'lang> {
     }
 }
 
-impl<'o, 'aho, 'lang> Iterator for SegmentedStrIter<'o, 'aho, 'lang> {
+impl<'o> Iterator for SegmentedStrIter<'o, '_, '_> {
     type Item = &'o str;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -220,7 +220,7 @@ impl<'o, 'aho> AhoSegmentedStrIter<'o, 'aho> {
     }
 }
 
-impl<'o, 'aho> Iterator for AhoSegmentedStrIter<'o, 'aho> {
+impl<'o> Iterator for AhoSegmentedStrIter<'o, '_> {
     type Item = (&'o str, MatchType);
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -103,7 +103,7 @@ pub struct Tokenizer<'tb> {
     normalizer_option: Cow<'tb, NormalizerOption<'tb>>,
 }
 
-impl<'tb> Tokenizer<'tb> {
+impl Tokenizer<'_> {
     /// Creates an Iterator over [`Token`]s.
     ///
     /// The provided text is segmented creating tokens,
