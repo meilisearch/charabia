@@ -3,7 +3,6 @@ use std::{env, path::PathBuf};
 
 #[cfg(not(feature = "korean-segmentation-external"))]
 use lindera::DictionaryKind;
-
 use lindera::{DictionaryConfig, Mode, Penalty, Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 

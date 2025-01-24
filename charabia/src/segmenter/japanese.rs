@@ -1,5 +1,6 @@
 #[cfg(feature = "japanese-segmentation-external")]
 use std::{env, path::PathBuf};
+
 #[cfg(not(feature = "japanese-segmentation-external"))]
 use lindera::DictionaryKind;
 #[cfg(feature = "japanese-segmentation-ipadic")]
