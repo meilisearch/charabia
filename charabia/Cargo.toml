@@ -50,7 +50,7 @@ japanese-segmentation-external = ["lindera/compress"]
 japanese-transliteration = ["dep:wana_kana"]
 
 # allow korean specialized tokenization
-korean = ["korean-segmentation-external", "lindera/compress"]
+korean = ["korean-segmentation-kodic", "lindera/compress"]
 korean-segmentation-kodic = ["lindera/ko-dic"]
 korean-segmentation-external = []
 

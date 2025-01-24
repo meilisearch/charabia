@@ -1,3 +1,4 @@
+#[cfg(feature = "korean-segmentation-external")]
 use std::{env, path::PathBuf};
 
 #[cfg(not(feature = "korean-segmentation-external"))]
