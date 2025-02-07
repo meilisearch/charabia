@@ -27,7 +27,7 @@ impl CharNormalizer for LowercaseNormalizer {
 
     fn should_normalize(&self, token: &Token) -> bool {
         // https://en.wikipedia.org/wiki/Letter_case#Capitalisation
-        matches!(token.script, Script::Latin | Script::Cyrillic | Script::Greek | Script::Georgian)
+        matches!(token.script, Script::Latin | Script::Cyrillic | Script::Greek | Script::Georgian | Script::Armenian)
             && token.lemma.chars().any(char::is_uppercase)
     }
 }
