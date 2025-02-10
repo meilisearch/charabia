@@ -9,3 +9,4 @@ charabia/target
 /data.ms
 Cargo.lock
 .idea
+.DS_Store
