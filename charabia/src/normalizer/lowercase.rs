@@ -44,57 +44,77 @@ mod test {
 
     fn tokens() -> Vec<Token<'static>> {
         vec![Token {
-            lemma: Owned("PascalCase".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Latin,
-            ..Default::default()
-        }]
+                lemma: Owned("PascalCase".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Latin,
+                ..Default::default()
+            }, Token {
+                lemma: Owned("ֆիզիկոսը".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Armenian,
+                ..Default::default()
+            }]
     }
 
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![Token {
-            lemma: Owned("pascalcase".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Latin,
-            char_map: Some(vec![
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-            ]),
-            ..Default::default()
-        }]
+                lemma: Owned("pascalcase".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Latin,
+                char_map: Some(vec![
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                ]),
+                ..Default::default()
+            }, Token {
+                lemma: Owned("ֆիզիկոսը".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Armenian,
+                ..Default::default()
+            }]
     }
 
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![Token {
-            lemma: Owned("pascalcase".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Latin,
-            kind: TokenKind::Word,
-            char_map: Some(vec![
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-            ]),
-            ..Default::default()
-        }]
+                lemma: Owned("pascalcase".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Latin,
+                kind: TokenKind::Word,
+                char_map: Some(vec![
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                ]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("ֆիզիկոսը".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Armenian,
+                kind: TokenKind::Word,
+                ..Default::default()
+            }]
     }
 
     test_normalizer!(LowercaseNormalizer, tokens(), normalizer_result(), normalized_tokens());
