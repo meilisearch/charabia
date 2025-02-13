@@ -43,23 +43,27 @@ mod test {
     use crate::token::TokenKind;
 
     fn tokens() -> Vec<Token<'static>> {
-        vec![Token {
+        vec![
+            Token {
                 lemma: Owned("PascalCase".to_string()),
                 char_end: 10,
                 byte_end: 10,
                 script: Script::Latin,
                 ..Default::default()
-            }, Token {
+            },
+            Token {
                 lemma: Owned("ֆիզիկոսը".to_string()),
                 char_end: 8,
                 byte_end: 16,
                 script: Script::Armenian,
                 ..Default::default()
-            }]
+            },
+        ]
     }
 
     fn normalizer_result() -> Vec<Token<'static>> {
-        vec![Token {
+        vec![
+            Token {
                 lemma: Owned("pascalcase".to_string()),
                 char_end: 10,
                 byte_end: 10,
@@ -77,17 +81,20 @@ mod test {
                     (1, 1),
                 ]),
                 ..Default::default()
-            }, Token {
+            },
+            Token {
                 lemma: Owned("ֆիզիկոսը".to_string()),
                 char_end: 8,
                 byte_end: 16,
                 script: Script::Armenian,
                 ..Default::default()
-            }]
+            },
+        ]
     }
 
     fn normalized_tokens() -> Vec<Token<'static>> {
-        vec![Token {
+        vec![
+            Token {
                 lemma: Owned("pascalcase".to_string()),
                 char_end: 10,
                 byte_end: 10,
@@ -114,7 +121,8 @@ mod test {
                 script: Script::Armenian,
                 kind: TokenKind::Word,
                 ..Default::default()
-            }]
+            },
+        ]
     }
 
     test_normalizer!(LowercaseNormalizer, tokens(), normalizer_result(), normalized_tokens());
