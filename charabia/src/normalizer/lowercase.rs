@@ -52,7 +52,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("ֆիզիկոսը".to_string()),
+                lemma: Owned("ՀայասՏան".to_string()),
                 char_end: 8,
                 byte_end: 16,
                 script: Script::Armenian,
@@ -83,10 +83,20 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("ֆիզիկոսը".to_string()),
+                lemma: Owned("հայաստան".to_string()),
                 char_end: 8,
                 byte_end: 16,
                 script: Script::Armenian,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
                 ..Default::default()
             },
         ]
@@ -115,11 +125,21 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("ֆիզիկոսը".to_string()),
+                lemma: Owned("հայաստան".to_string()),
                 char_end: 8,
                 byte_end: 16,
                 script: Script::Armenian,
                 kind: TokenKind::Word,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
                 ..Default::default()
             },
         ]
