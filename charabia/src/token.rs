@@ -113,7 +113,7 @@ impl Token<'_> {
 
     /// Returns true if the current token is a separator.
     pub fn is_separator(&self) -> bool {
-        self.separator_kind().map_or(false, |_| true)
+        self.separator_kind().is_some_and(|_| true)
     }
 
     /// Returns Some([`SeparatorKind`]) if the token is a separator and None if it's a word or a stop word.
