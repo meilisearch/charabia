@@ -1,4 +1,9 @@
-use lindera::{DictionaryConfig, DictionaryKind, Mode, Penalty, Tokenizer, TokenizerConfig};
+#[cfg(feature = "korean-segmentation-external")]
+use std::{env, path::PathBuf};
+
+#[cfg(not(feature = "korean-segmentation-external"))]
+use lindera::DictionaryKind;
+use lindera::{DictionaryConfig, Mode, Penalty, Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
@@ -9,11 +14,20 @@ use crate::segmenter::Segmenter;
 pub struct KoreanSegmenter;
 
 static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
+    #[cfg(not(feature = "korean-segmentation-external"))]
     let config = TokenizerConfig {
         dictionary: DictionaryConfig { kind: Some(DictionaryKind::KoDic), path: None },
         mode: Mode::Decompose(Penalty::default()),
         ..TokenizerConfig::default()
     };
+
+    #[cfg(feature = "korean-segmentation-external")]
+    let config = TokenizerConfig {
+        dictionary: DictionaryConfig { kind: None, path: Some(PathBuf::from(env::var("MEILISEARCH_KOREAN_EXTERNAL_DICTIONARY").expect("korean-segmentation-external feature requires MEILISEARCH_KOREAN_EXTERNAL_DICTIONARY env var to be set"))) },
+        mode: Mode::Decompose(Penalty::default()),
+        ..TokenizerConfig::default()
+    };
+
     Tokenizer::from_config(config).unwrap()
 });
 
@@ -25,6 +39,7 @@ impl Segmenter for KoreanSegmenter {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "korean-segmentation-external"))]
 mod test {
     use crate::segmenter::test::test_segmenter;
 
