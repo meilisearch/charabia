@@ -4,7 +4,6 @@ use crate::{Script, Token};
 /// This module contains the implementation of the `AeOeNormalizer` struct, which is a character normalizer
 /// that replaces the characters 'œ', 'æ', 'Œ', and 'Æ' with their respective replacements 'oe', 'ae', 'OE', and 'AE'.
 /// It also provides a test suite to validate the normalizer's functionality.
-
 pub struct AeOeNormalizer;
 
 // All normalizers only need to implement the method `normalize_char` and the method `should_normalize` of the `CharNormalizer` trait.
