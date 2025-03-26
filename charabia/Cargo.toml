@@ -46,10 +46,13 @@ hebrew = []
 japanese = ["japanese-segmentation-unidic", "japanese-transliteration"]
 japanese-segmentation-ipadic = ["lindera/ipadic", "lindera/compress"]
 japanese-segmentation-unidic = ["lindera/unidic", "lindera/compress"]
+japanese-segmentation-external = ["lindera/compress"]
 japanese-transliteration = ["dep:wana_kana"]
 
 # allow korean specialized tokenization
-korean = ["lindera/ko-dic", "lindera/compress"]
+korean = ["korean-segmentation-kodic", "lindera/compress"]
+korean-segmentation-kodic = ["lindera/ko-dic"]
+korean-segmentation-external = []
 
 # allow thai specialized tokenization
 thai = []

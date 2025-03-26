@@ -1,6 +1,11 @@
+#[cfg(feature = "japanese-segmentation-external")]
+use std::{env, path::PathBuf};
+
+#[cfg(not(feature = "japanese-segmentation-external"))]
+use lindera::DictionaryKind;
 #[cfg(feature = "japanese-segmentation-ipadic")]
 use lindera::Penalty;
-use lindera::{DictionaryConfig, DictionaryKind, Mode, Tokenizer, TokenizerConfig};
+use lindera::{DictionaryConfig, Mode, Tokenizer, TokenizerConfig};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
@@ -14,6 +19,12 @@ static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
     #[cfg(all(feature = "japanese-segmentation-ipadic", feature = "japanese-segmentation-unidic"))]
     compile_error!("Feature japanese-segmentation-ipadic and japanese-segmentation-unidic are mutually exclusive and cannot be enabled together");
 
+    #[cfg(all(
+        feature = "japanese-segmentation-external",
+        any(feature = "japanese-segmentation-ipadic", feature = "japanese-segmentation-unidic")
+    ))]
+    compile_error!("Feature japanese-segmentation-external and either japanese-segmentation-unidic or japanese-segmentation-ipadic are mutually exclusive and cannot be enabled together");
+
     #[cfg(feature = "japanese-segmentation-ipadic")]
     let config = TokenizerConfig {
         dictionary: DictionaryConfig { kind: Some(DictionaryKind::IPADIC), path: None },
@@ -26,6 +37,13 @@ static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
         mode: Mode::Normal,
         ..TokenizerConfig::default()
     };
+    #[cfg(feature = "japanese-segmentation-external")]
+    let config = TokenizerConfig {
+        dictionary: DictionaryConfig { kind: None, path: Some(PathBuf::from(env::var("MEILISEARCH_JAPANESE_EXTERNAL_DICTIONARY").expect("japanese-segmentation-external feature requires MEILISEARCH_JAPANESE_EXTERNAL_DICTIONARY env var to be set"))) },
+        mode: Mode::Normal,
+        ..TokenizerConfig::default()
+    };
+
     Tokenizer::from_config(config).unwrap()
 });
 
@@ -37,6 +55,7 @@ impl Segmenter for JapaneseSegmenter {
 }
 
 #[cfg(test)]
+#[cfg(not(feature = "japanese-segmentation-external"))]
 mod test {
     use crate::segmenter::test::test_segmenter;
 
