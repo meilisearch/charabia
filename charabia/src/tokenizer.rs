@@ -151,6 +151,15 @@ impl Tokenizer<'_> {
         )
     }
 
+    /// Segments the provided text creating an Iterator over [`Token`].
+    pub fn segment_with_allow_list<'t, 'o, 'lang>(
+        &'t self,
+        original: &'o str,
+        allow_list: Option<&'lang [Language]>,
+    ) -> SegmentedTokenIter<'o, 't, 'lang> {
+        original.segment_with_option(self.segmenter_option.aho.as_ref(), allow_list)
+    }
+
     /// Segments the provided text creating an Iterator over `&str`.
     pub fn segment_str<'t, 'o>(&'t self, original: &'o str) -> SegmentedStrIter<'o, 't, 't> {
         original.segment_str_with_option(
