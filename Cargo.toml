@@ -1,5 +1,5 @@
 [workspace]
 resolver = "2"
-members = ["charabia", "irg-kvariants"]
+members = ["charabia", "irg-kvariants", "cli"]
 default-members = ["charabia"]
 
