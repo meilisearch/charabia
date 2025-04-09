@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 charabia = { path = "../charabia" }
 clap = { version = "4.5.35", features = ["derive"] }
+tokenizers = { version = "0.21.1", features = ["http"] }
