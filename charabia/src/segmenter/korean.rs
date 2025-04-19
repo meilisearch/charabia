@@ -1,4 +1,9 @@
-use lindera::{DictionaryConfig, DictionaryKind, Mode, Penalty, Tokenizer, TokenizerConfig};
+use lindera::{
+    dictionary::{load_dictionary_from_kind, DictionaryKind},
+    mode::{Mode, Penalty},
+    segmenter::Segmenter as LinderaSegmenter,
+    tokenizer::Tokenizer,
+};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
@@ -9,18 +14,25 @@ use crate::segmenter::Segmenter;
 pub struct KoreanSegmenter;
 
 static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
-    let config = TokenizerConfig {
-        dictionary: DictionaryConfig { kind: Some(DictionaryKind::KoDic), path: None },
-        mode: Mode::Decompose(Penalty::default()),
-        ..TokenizerConfig::default()
-    };
-    Tokenizer::from_config(config).unwrap()
+    let dictionary = load_dictionary_from_kind(DictionaryKind::KoDic).unwrap();
+    let segmenter = LinderaSegmenter::new(Mode::Decompose(Penalty::default()), dictionary, None);
+    Tokenizer::new(segmenter)
 });
 
 impl Segmenter for KoreanSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let segment_iterator = LINDERA.tokenize(to_segment).unwrap();
-        Box::new(segment_iterator.into_iter().map(|token| token.text))
+        let tokens = LINDERA.tokenize(to_segment).unwrap();
+
+        let result: Vec<&'o str> = tokens
+            .into_iter()
+            .map(|token| {
+                let start = token.byte_start;
+                let end = token.byte_end;
+                &to_segment[start..end]
+            })
+            .collect();
+
+        Box::new(result.into_iter())
     }
 }
 
