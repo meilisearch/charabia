@@ -18,7 +18,7 @@ env:
 jobs:
   update-kvariants-dictionary:
     name: Update kVariants dictionary
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
