@@ -16,7 +16,7 @@ env:
 jobs:
   tests:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
 
   clippy:
     name: Run Clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
@@ -54,7 +54,7 @@ jobs:
 
   fmt:
     name: Run Rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
