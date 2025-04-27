@@ -11,7 +11,7 @@ pub struct ChineseSegmenter;
 
 impl Segmenter for ChineseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let segmented = JIEBA.cut(to_segment, false); // disable Hidden Markov Models.
+        let segmented = JIEBA.cut_for_search(to_segment, false); // disable Hidden Markov Models.
 
         Box::new(segmented.into_iter())
     }
@@ -25,13 +25,14 @@ mod test {
 
     // Original version of the text.
     const TEXT: &str =
-        "人人生而自由﹐在尊嚴和權利上一律平等。他們賦有理性和良心﹐並應以兄弟關係的精神互相對待 123 456。";
+        "人人生而自由,在尊嚴和權利上一律平等。他們富有理性和良心,並應以兄弟關係的精神互相對待 123 456。";
 
     // Segmented version of the text.
     const SEGMENTED: &[&str] = &[
         "人人",
+        "自由",
         "生而自由",
-        "﹐",
+        ",",
         "在",
         "尊",
         "嚴",
@@ -39,16 +40,17 @@ mod test {
         "權",
         "利",
         "上",
+        "一律",
+        "平等",
         "一律平等",
         "。",
         "他",
         "們",
-        "賦",
-        "有",
+        "富有",
         "理性",
         "和",
         "良心",
-        "﹐",
+        ",",
         "並",
         "應",
         "以",
@@ -111,6 +113,7 @@ mod test {
     #[cfg(not(feature = "chinese-normalization-pinyin"))]
     const TOKENIZED: &[&str] = &[
         "人人",
+        "自由",
         "生而自由",
         ",",
         "在",
@@ -120,12 +123,13 @@ mod test {
         "權",
         "利",
         "上",
+        "一律",
+        "平等",
         "一律平等",
         "。",
         "他",
         "們",
-        "賦",
-        "有",
+        "富有",
         "理性",
         "和",
         "良心",
