@@ -1,6 +1,11 @@
 #[cfg(feature = "japanese-segmentation-ipadic")]
 use lindera::Penalty;
-use lindera::{DictionaryConfig, DictionaryKind, Mode, Tokenizer, TokenizerConfig};
+use lindera::{
+    dictionary::{load_dictionary_from_kind, DictionaryKind},
+    mode::{Mode, Penalty},
+    segmenter::Segmenter as LinderaSegmenter,
+    tokenizer::Tokenizer,
+};
 use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
@@ -15,24 +20,35 @@ static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
     compile_error!("Feature japanese-segmentation-ipadic and japanese-segmentation-unidic are mutually exclusive and cannot be enabled together");
 
     #[cfg(feature = "japanese-segmentation-ipadic")]
-    let config = TokenizerConfig {
-        dictionary: DictionaryConfig { kind: Some(DictionaryKind::IPADIC), path: None },
-        mode: Mode::Decompose(Penalty::default()),
-        ..TokenizerConfig::default()
-    };
+    {
+        let dictionary = load_dictionary_from_kind(DictionaryKind::IPADIC).unwrap();
+        let segmenter =
+            LinderaSegmenter::new(Mode::Decompose(Penalty::default()), dictionary, None);
+        Tokenizer::new(segmenter)
+    }
     #[cfg(feature = "japanese-segmentation-unidic")]
-    let config = TokenizerConfig {
-        dictionary: DictionaryConfig { kind: Some(DictionaryKind::UniDic), path: None },
-        mode: Mode::Normal,
-        ..TokenizerConfig::default()
-    };
-    Tokenizer::from_config(config).unwrap()
+    {
+        let dictionary = load_dictionary_from_kind(DictionaryKind::UniDic).unwrap();
+        let segmenter =
+            LinderaSegmenter::new(Mode::Decompose(Penalty::default()), dictionary, None);
+        Tokenizer::new(segmenter)
+    }
 });
 
 impl Segmenter for JapaneseSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
-        let segment_iterator = LINDERA.tokenize(to_segment).unwrap();
-        Box::new(segment_iterator.into_iter().map(|token| token.text))
+        let tokens = LINDERA.tokenize(to_segment).unwrap();
+
+        let result: Vec<&'o str> = tokens
+            .into_iter()
+            .map(|token| {
+                let start = token.byte_start;
+                let end = token.byte_end;
+                &to_segment[start..end]
+            })
+            .collect();
+
+        Box::new(result.into_iter())
     }
 }
 
