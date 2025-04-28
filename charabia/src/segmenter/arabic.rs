@@ -13,7 +13,7 @@ pub struct ArabicSegmenter;
 impl Segmenter for ArabicSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         // check if to_segment starts with 'ال', 'أل', 'إل', 'آل' or 'ٱل'
-        if to_segment.len() > 2
+        if to_segment.len() > 4
             && (to_segment.starts_with("ال")
                 || to_segment.starts_with("أل")
                 || to_segment.starts_with("إل")
