@@ -22,6 +22,7 @@ use self::swedish_recomposition::SwedishRecompositionNormalizer;
 pub use self::turkish::TurkishNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
+use crate::normalizer::character_converter::CharacterConverterNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
@@ -46,6 +47,7 @@ mod turkish;
 mod vietnamese;
 
 mod ae_oe_normalizer;
+mod character_converter;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
@@ -61,21 +63,22 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
 pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
     vec![
-        Box::new(LowercaseNormalizer),
-        Box::new(QuoteNormalizer),
-        Box::new(AeOeNormalizer),
+        // Box::new(LowercaseNormalizer),
+        // Box::new(QuoteNormalizer),
+        // Box::new(AeOeNormalizer),
+        Box::new(CharacterConverterNormalizer),
         #[cfg(feature = "chinese-normalization")]
         Box::new(ChineseNormalizer),
         #[cfg(feature = "japanese-transliteration")]
         Box::new(JapaneseNormalizer),
         #[cfg(feature = "greek")]
         Box::new(GreekNormalizer),
-        Box::new(ArabicNormalizer),
+        // Box::new(ArabicNormalizer),
         Box::new(NonspacingMarkNormalizer),
-        #[cfg(feature = "vietnamese")]
-        Box::new(VietnameseNormalizer),
-        #[cfg(feature = "turkish")]
-        Box::new(TurkishNormalizer),
+        // #[cfg(feature = "vietnamese")]
+        // Box::new(VietnameseNormalizer),
+        // #[cfg(feature = "turkish")]
+        // Box::new(TurkishNormalizer),
     ]
 });
 
@@ -223,6 +226,21 @@ where
 pub enum CharOrStr {
     Char(char),
     Str(String),
+}
+
+impl CharOrStr {
+    pub fn merge(&self, other: &Self) -> Self {
+        let mut result = String::new();
+        match self {
+            Self::Char(c) => result.push(*c),
+            Self::Str(s) => result.push_str(s),
+        }
+        match other {
+            Self::Char(c) => result.push(*c),
+            Self::Str(s) => result.push_str(s),
+        }
+        Self::Str(result)
+    }
 }
 
 impl From<char> for CharOrStr {
