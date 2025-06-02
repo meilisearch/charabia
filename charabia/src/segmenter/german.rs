@@ -138,4 +138,10 @@ mod test {
         &["Nahrungs", "mittel", "un", "verträglichkeits", "diagnose", "verfahren"],
         word12
     );
+    test_segmentation!("Volleyball", &["Volley", "ball"], word13);
+    test_segmentation!("Fußball", &["Fuß", "ball"], word14);
+    test_segmentation!("Beachvolleyball", &["Beach", "volley", "ball"], word15);
+    test_segmentation!("Basketball", &["Basket", "ball"], word16);
+    test_segmentation!("Handball", &["Hand", "ball"], word17);
+    test_segmentation!("Spikeball", &["Spike", "ball"], word18);
 }

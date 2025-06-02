@@ -1947,12 +1947,11 @@ Basal
 Basalt
 Basar
 Base
-Baseball
 Basilika
 Basilikum
 Basis
 Basken
-Basketball
+Basket
 Basler
 Bass
 Bassin
@@ -1978,6 +1977,7 @@ Bauten
 Bauxit
 Bazillen
 Bazillus
+Beach
 Beachten
 Beamte
 Beamten
@@ -14592,6 +14592,7 @@ Volatilität
 Volk
 Volks
 Voll
+Volley
 Vollkommenheit
 Vollmacht
 Vollstreckung
@@ -17447,12 +17448,11 @@ basal
 basalt
 basar
 base
-baseball
 basilika
 basilikum
 basis
 basken
-basketball
+basket
 basler
 bass
 bassin
@@ -17478,6 +17478,7 @@ bauten
 bauxit
 bazillen
 bazillus
+beach
 beachten
 beamte
 beamten
@@ -30092,6 +30093,7 @@ volatilität
 volk
 volks
 voll
+volley
 vollkommenheit
 vollmacht
 vollstreckung
