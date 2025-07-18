@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use once_cell::sync::Lazy;
 
+pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese-normalization")]
 pub use self::chinese::ChineseNormalizer;
@@ -17,12 +18,12 @@ use self::nonspacing_mark::NonspacingMarkNormalizer;
 use self::quote::QuoteNormalizer;
 #[cfg(feature = "swedish-recomposition")]
 use self::swedish_recomposition::SwedishRecompositionNormalizer;
+#[cfg(feature = "turkish")]
+pub use self::turkish::TurkishNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
-
-pub use self::ae_oe_normalizer::AeOeNormalizer;
 
 mod arabic;
 #[cfg(feature = "chinese-normalization")]
@@ -39,6 +40,8 @@ mod nonspacing_mark;
 mod quote;
 #[cfg(feature = "swedish-recomposition")]
 mod swedish_recomposition;
+#[cfg(feature = "turkish")]
+mod turkish;
 #[cfg(feature = "vietnamese")]
 mod vietnamese;
 
@@ -72,6 +75,8 @@ pub static LOSSY_NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(NonspacingMarkNormalizer),
         #[cfg(feature = "vietnamese")]
         Box::new(VietnameseNormalizer),
+        #[cfg(feature = "turkish")]
+        Box::new(TurkishNormalizer),
     ]
 });
 

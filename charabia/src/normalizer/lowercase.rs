@@ -27,8 +27,10 @@ impl CharNormalizer for LowercaseNormalizer {
 
     fn should_normalize(&self, token: &Token) -> bool {
         // https://en.wikipedia.org/wiki/Letter_case#Capitalisation
-        matches!(token.script, Script::Latin | Script::Cyrillic | Script::Greek | Script::Georgian)
-            && token.lemma.chars().any(char::is_uppercase)
+        matches!(
+            token.script,
+            Script::Latin | Script::Cyrillic | Script::Greek | Script::Georgian | Script::Armenian
+        ) && token.lemma.chars().any(char::is_uppercase)
     }
 }
 
@@ -41,58 +43,106 @@ mod test {
     use crate::token::TokenKind;
 
     fn tokens() -> Vec<Token<'static>> {
-        vec![Token {
-            lemma: Owned("PascalCase".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Latin,
-            ..Default::default()
-        }]
+        vec![
+            Token {
+                lemma: Owned("PascalCase".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Latin,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("ՀայասՏան".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Armenian,
+                ..Default::default()
+            },
+        ]
     }
 
     fn normalizer_result() -> Vec<Token<'static>> {
-        vec![Token {
-            lemma: Owned("pascalcase".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Latin,
-            char_map: Some(vec![
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-            ]),
-            ..Default::default()
-        }]
+        vec![
+            Token {
+                lemma: Owned("pascalcase".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Latin,
+                char_map: Some(vec![
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                ]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("հայաստան".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Armenian,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                ..Default::default()
+            },
+        ]
     }
 
     fn normalized_tokens() -> Vec<Token<'static>> {
-        vec![Token {
-            lemma: Owned("pascalcase".to_string()),
-            char_end: 10,
-            byte_end: 10,
-            script: Script::Latin,
-            kind: TokenKind::Word,
-            char_map: Some(vec![
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-                (1, 1),
-            ]),
-            ..Default::default()
-        }]
+        vec![
+            Token {
+                lemma: Owned("pascalcase".to_string()),
+                char_end: 10,
+                byte_end: 10,
+                script: Script::Latin,
+                kind: TokenKind::Word,
+                char_map: Some(vec![
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                    (1, 1),
+                ]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("հայաստան".to_string()),
+                char_end: 8,
+                byte_end: 16,
+                script: Script::Armenian,
+                kind: TokenKind::Word,
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                ]),
+                ..Default::default()
+            },
+        ]
     }
 
     test_normalizer!(LowercaseNormalizer, tokens(), normalizer_result(), normalized_tokens());

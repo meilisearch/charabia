@@ -1,5 +1,8 @@
+use std::env;
+use std::error::Error;
+use std::path::Path;
+
 use serde::Deserialize;
-use std::{env, error::Error, path::Path};
 
 #[derive(Deserialize)]
 pub struct TsvRow {

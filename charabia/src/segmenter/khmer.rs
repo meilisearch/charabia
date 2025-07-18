@@ -18,7 +18,7 @@ use once_cell::sync::Lazy;
 static WORDS_FST: Lazy<Fst<&[u8]>> =
     Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/khmer/words.fst")[..]).unwrap());
 
-static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST));
+static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST, None, true));
 
 // Make a small documentation of the specialized Segmenter like below.
 /// <Script/Language> specialized [`Segmenter`].
@@ -49,13 +49,13 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     // Original version of the text.
-    const TEXT: &str = "សួស្តីពិភពលោក";
+    const TEXT: &str = "សួស្តីពិភពលោក 123 456";
 
     // Segmented version of the text.
-    const SEGMENTED: &[&str] = &["សួស្តី", "ពិភពលោក"];
+    const SEGMENTED: &[&str] = &["សួស្តី", "ពិភពលោក", " ", "123", " ", "456"];
 
     // Segmented and normalized version of the text.
-    const TOKENIZED: &[&str] = &["សួស្តី", "ពិភពលោក"];
+    const TOKENIZED: &[&str] = &["សួស្តី", "ពិភពលោក", " ", "123", " ", "456"];
 
     // Macro that run several tests on the Segmenter.
     test_segmenter!(KhmerSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Khmer, Language::Khm);
