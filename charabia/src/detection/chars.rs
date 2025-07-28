@@ -42,6 +42,31 @@ pub(crate) fn is_arabic(ch: char) -> bool {
     )
 }
 
+// Based on: https://en.wikipedia.org/wiki/Persian_alphabet
+pub(crate) fn is_persian(ch: char) -> bool {
+    matches!(ch,
+        // Basic Arabic letters used in Persian
+        '\u{0621}'..='\u{063A}' // Hamza to Ghain
+        | '\u{0641}'..='\u{064A}' // Feh to Yeh (some overlap with Arabic)
+
+        // Persian-specific letters
+        | '\u{067E}' // Peh
+        | '\u{0686}' // Tcheh
+        | '\u{0698}' // Jeh
+        | '\u{06A9}' // Keheh (Persian Kaf)
+        | '\u{06AF}' // Gaf
+        | '\u{06CC}' // Farsi Yeh
+
+        // Persian digits
+        | '\u{06F0}'..='\u{06F9}' // zero to nine
+
+        // Optional: Space and punctuation used in Persian
+        | '\u{060C}' // Arabic comma
+        | '\u{061B}' // Arabic semicolon
+        | '\u{061F}' // Arabic question mark
+    )
+}
+
 // Based on https://en.wikipedia.org/wiki/Devanagari#Unicode
 pub(crate) fn is_devanagari(ch: char) -> bool {
     matches!(ch, '\u{0900}'..='\u{097F}' | '\u{A8E0}'..='\u{A8FF}' | '\u{1CD0}'..='\u{1CFF}')
