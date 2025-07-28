@@ -47,7 +47,7 @@ pub(crate) fn is_persian(ch: char) -> bool {
     matches!(ch,
         // Basic Arabic letters used in Persian
         '\u{0621}'..='\u{063A}' // Hamza to Ghain
-        | '\u{0641}'..='\u{064A}' // Feh to Yeh (some overlap with Arabic)
+        | '\u{0641}'..='\u{064A}' // Feh to Yeh
 
         // Persian-specific letters
         | '\u{067E}' // Peh
@@ -56,14 +56,22 @@ pub(crate) fn is_persian(ch: char) -> bool {
         | '\u{06A9}' // Keheh (Persian Kaf)
         | '\u{06AF}' // Gaf
         | '\u{06CC}' // Farsi Yeh
+        | '\u{06C0}' // Yeh with Hamza above (used in Dari)
+
+        // Persian diacritics
+        | '\u{064B}'..='\u{0652}' // Fatha to Sukun
 
         // Persian digits
-        | '\u{06F0}'..='\u{06F9}' // zero to nine
-
-        // Optional: Space and punctuation used in Persian
+        | '\u{06F0}'..='\u{06F9}' // Zero to nine
+        
+        // Punctuation used in Persian
         | '\u{060C}' // Arabic comma
         | '\u{061B}' // Arabic semicolon
         | '\u{061F}' // Arabic question mark
+        | '\u{066B}' // Arabic decimal separator
+        | '\u{066C}' // Arabic thousands separator
+        | '\u{00AB}' // Left-pointing double angle quotation mark
+        | '\u{00BB}' // Right-pointing double angle quotation mark
     )
 }
 
