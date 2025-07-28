@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
 use once_cell::sync::Lazy;
-use crate::normalizer::persian::PersianNormalizer;
 pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
+pub use self::persian::PersianNormalizer;
 #[cfg(feature = "chinese-normalization")]
 pub use self::chinese::ChineseNormalizer;
 pub use self::classify::{Classifier, ClassifierOption};
