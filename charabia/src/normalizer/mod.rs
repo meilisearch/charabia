@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use once_cell::sync::Lazy;
-
+use crate::normalizer::persian::PersianNormalizer;
 pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese-normalization")]
@@ -56,6 +56,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(SwedishRecompositionNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(Classifier),
+        Box::new(PersianNormalizer),
     ]
 });
 
