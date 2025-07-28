@@ -80,6 +80,8 @@ pub static SEGMENTERS: Lazy<SegmenterMap> = Lazy::new(|| {
         ((Script::Khmer, Some(Language::Khm)), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
         // arabic segmenter
         ((Script::Arabic, Some(Language::Ara)), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
+        // persian segmenter
+        ((Script::Arabic, Some(Language::Pes)), Box::new(PersianSegmenter) as Box<dyn Segmenter>),
         // german segmenter
         #[cfg(feature = "german-segmentation")]
         ((Script::Latin, Some(Language::Deu)), Box::new(GermanSegmenter) as Box<dyn Segmenter>),
