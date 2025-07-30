@@ -188,7 +188,9 @@ impl From<char> for Script {
             Script::Latin
         } else if chars::is_cyrillic(other) {
             Script::Cyrillic
-        } else if chars::is_arabic(other) {
+        } else if chars::is_arabic(other)
+            || chars::is_persian(other)
+        {
             Script::Arabic
         } else if chars::is_devanagari(other) {
             Script::Devanagari

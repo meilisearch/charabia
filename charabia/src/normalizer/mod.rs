@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
 use once_cell::sync::Lazy;
-
 pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
+pub use self::persian::PersianNormalizer;
 #[cfg(feature = "chinese-normalization")]
 pub use self::chinese::ChineseNormalizer;
 pub use self::classify::{Classifier, ClassifierOption};
@@ -46,6 +46,7 @@ mod turkish;
 mod vietnamese;
 
 mod ae_oe_normalizer;
+mod persian;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
@@ -55,6 +56,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(SwedishRecompositionNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(Classifier),
+        Box::new(PersianNormalizer),
     ]
 });
 
