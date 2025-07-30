@@ -19,10 +19,10 @@ impl CharNormalizer for PersianNormalizer {
         normalize_persian_char(c)
     }
 
-    fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Arabic &&
-            token.language.map_or(true, |lang| lang == Language::Pes) &&
-            token.lemma.chars().any(|c| is_should_normalize(c))
+   fn should_normalize(&self, token: &Token) -> bool {
+    token.script == Script::Arabic &&
+        token.language == Some(Language::Pes) &&
+        token.lemma.chars().any(|c| is_should_normalize(c))
     }
 }
 
