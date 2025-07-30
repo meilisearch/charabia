@@ -43,6 +43,9 @@ fn normalize_persian_char(c: char) -> Option<CharOrStr> {
         '۷' => Some('7'.into()),
         '۸' => Some('8'.into()),
         '۹' => Some('9'.into()),
+        // Normalize Persian/Arabic punctuation to ASCII
+        '،' => Some(','.into()), // Persian comma to ASCII comma
+        '؟' => Some('?'.into()), // Arabic question mark to ASCII question mark
         // Normalize Rial sign to "RIAL"
         '\u{FDFC}' => Some(CharOrStr::Str("RIAL".into())),
         // Remove ZWNJ
@@ -57,6 +60,7 @@ fn is_should_normalize(c: char) -> bool {
         'ي' | 'ی' | 'ى' | 'ۀ' | // Yeh variants
         'ك' | 'ک' | // Kaf variants
         '۰'..='۹' | // Persian digits
+        '،' | '؟' | // Persian/Arabic punctuation
         '\u{FDFC}' | // Rial sign
         '\u{200C}' // ZWNJ
     )
