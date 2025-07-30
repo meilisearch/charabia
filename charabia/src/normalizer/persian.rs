@@ -7,13 +7,9 @@ use crate::{Script, Token, detection::Language};
 /// - Normalizing the Persian Yeh 'ی', 'ي', 'ى', 'ۀ' to 'ی'
 /// - Normalizing the Persian Kaf 'ک' and 'ك' to 'ک'
 /// - Normalizing the Persian numbers '۰'-'۹' to '0'-'9'
-/// - Normalizing Alef variants 'أ', 'إ', 'آ', 'ٱ' to 'ا'
-/// - Normalizing Taa Marbuta 'ة' to 'ه'
-/// - Removing Arabic Tatweel 'ـ'
 /// - Removing diacritics '◌َ' to '◌ْ' (Fatha to Sukun)
 /// - Normalizing Rial sign '﷼' to 'RIAL'
 /// - Removing ZWNJ '‌'
-/// - Normalizing punctuation (e.g., '،' to ',', '٫' to '.') to ASCII
 ///   https://en.wikipedia.org/wiki/Persian_alphabet
 
 pub struct PersianNormalizer;
@@ -47,26 +43,10 @@ fn normalize_persian_char(c: char) -> Option<CharOrStr> {
         '۷' => Some('7'.into()),
         '۸' => Some('8'.into()),
         '۹' => Some('9'.into()),
-        // Alef variants to standard Alef
-        'أ' | 'إ' | 'آ' | 'ٱ' => Some('ا'.into()),
-        // Taa Marbuta to Heh
-        'ة' => Some('ه'.into()),
-        // Remove Tatweel
-        'ـ' => None,
-        // Remove diacritics
-        '\u{064B}'..='\u{0652}' => None,
         // Normalize Rial sign to "RIAL"
         '\u{FDFC}' => Some(CharOrStr::Str("RIAL".into())),
         // Remove ZWNJ
         '\u{200C}' => None,
-        // Normalize punctuation to ASCII
-        '\u{060C}' => Some(','.into()),
-        '\u{061B}' => Some(';'.into()),
-        '\u{061F}' => Some('?'.into()),
-        '\u{066B}' => Some('.'.into()),
-        '\u{066C}' => Some(','.into()),
-        '\u{00AB}' => Some('"'.into()),
-        '\u{00BB}' => Some('"'.into()),
         // Preserve all other characters
         _ => Some(c.into()),
     }
@@ -77,12 +57,8 @@ fn is_should_normalize(c: char) -> bool {
         'ي' | 'ی' | 'ى' | 'ۀ' | // Yeh variants
         'ك' | 'ک' | // Kaf variants
         '۰'..='۹' | // Persian digits
-        'أ' | 'إ' | 'آ' | 'ٱ' | // Alef variants
-        'ة' | 'ـ' | // Taa Marbuta, Tatweel
-        '\u{064B}'..='\u{0652}' | // Diacritics
         '\u{FDFC}' | // Rial sign
-        '\u{200C}' | // ZWNJ
-        '\u{060C}' | '\u{061B}' | '\u{061F}' | '\u{066B}' | '\u{066C}' | '\u{00AB}' | '\u{00BB}' // Punctuation
+        '\u{200C}' // ZWNJ
     )
 }
 
@@ -96,7 +72,6 @@ mod test {
 
     fn tokens() -> Vec<Token<'static>> {
         vec![
-            // Arabic Yeh
             Token {
                 lemma: Owned("علي".to_string()),
                 char_end: 3,
@@ -105,7 +80,6 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
-            // Arabic Kaf
             Token {
                 lemma: Owned("كتاب".to_string()),
                 char_end: 4,
@@ -114,7 +88,6 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
-            // Persian digits
             Token {
                 lemma: Owned("۱۲۳۴۵۶۷۸۹۰".to_string()),
                 char_end: 10,
@@ -123,7 +96,6 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
-            // Mixed Arabic/Persian forms
             Token {
                 lemma: Owned("كیك ۱۲۳ یک کتاب".to_string()),
                 char_end: 13,
@@ -132,18 +104,8 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
-            // Non-Persian Arabic script
             Token {
                 lemma: Owned("سلام".to_string()),
-                char_end: 4,
-                byte_end: 8,
-                script: Script::Arabic,
-                language: Some(Language::Pes),
-                ..Default::default()
-            },
-            // Alef variants
-            Token {
-                lemma: Owned("آرام".to_string()),
                 char_end: 4,
                 byte_end: 8,
                 script: Script::Arabic,
@@ -159,16 +121,6 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
-            // Taa Marbuta
-            Token {
-                lemma: Owned("جامعة".to_string()),
-                char_end: 5,
-                byte_end: 10,
-                script: Script::Arabic,
-                language: Some(Language::Pes),
-                ..Default::default()
-            },
-            // Test for گژ پژ
             Token {
                 lemma: Owned("گژ پژ".to_string()),
                 char_end: 5,
@@ -177,7 +129,6 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
-            // Test for another Persian sentence
             Token {
                 lemma: Owned("قنات قصبه شهر گناباد عمیق‌ترین و قدیمی‌ترین کاریز جهان است.".to_string()),
                 char_end: 56,
@@ -245,29 +196,11 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("ارام".to_string()),
-                char_end: 4,
-                byte_end: 8, // 4 chars * 2 bytes
-                script: Script::Arabic,
-                language: Some(Language::Pes),
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
-                ..Default::default()
-            },
-            Token {
                 lemma: Owned("خانه".to_string()),
                 char_end: 4,
                 byte_end: 8, // 4 chars * 2 bytes
                 script: Script::Arabic,
                 language: Some(Language::Pes),
-                ..Default::default()
-            },
-            Token {
-                lemma: Owned("جامعه".to_string()),
-                char_end: 5,
-                byte_end: 10, // 5 chars * 2 bytes
-                script: Script::Arabic,
-                language: Some(Language::Pes),
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
                 ..Default::default()
             },
             Token {
@@ -351,32 +284,12 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("ارام".to_string()),
-                char_end: 4,
-                byte_end: 8,
-                script: Script::Arabic,
-                language: Some(Language::Pes),
-                kind: TokenKind::Word,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2)]),
-                ..Default::default()
-            },
-            Token {
                 lemma: Owned("خانه".to_string()),
                 char_end: 4,
                 byte_end: 8,
                 script: Script::Arabic,
                 language: Some(Language::Pes),
                 kind: TokenKind::Word,
-                ..Default::default()
-            },
-            Token {
-                lemma: Owned("جامعه".to_string()),
-                char_end: 5,
-                byte_end: 10,
-                script: Script::Arabic,
-                language: Some(Language::Pes),
-                kind: TokenKind::Word,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
                 ..Default::default()
             },
             Token {
