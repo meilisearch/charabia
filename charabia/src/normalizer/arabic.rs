@@ -27,7 +27,7 @@ impl CharNormalizer for ArabicNormalizer {
 fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
     match c {
         'ـ' => None,
-        'ٱ' => Some('ا'.into()),
+        'أ' | 'إ' | 'آ' | 'ٱ' => Some('ا'.into()), // All Alef variants to Alef
         'ى' => Some('ي'.into()),
         'ة' => Some('ه'.into()),
         _ => Some(c.into()),
@@ -35,7 +35,7 @@ fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
 }
 
 fn is_shoud_normalize(c: char) -> bool {
-    matches!(c, 'ـ' | 'ٱ' | 'ى' | 'ة')
+    matches!(c, 'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'ة')
 }
 
 #[cfg(test)]
