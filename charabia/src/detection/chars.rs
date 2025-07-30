@@ -45,10 +45,6 @@ pub(crate) fn is_arabic(ch: char) -> bool {
 // Based on: https://en.wikipedia.org/wiki/Persian_alphabet
 pub(crate) fn is_persian(ch: char) -> bool {
     matches!(ch,
-        // Basic Arabic letters used in Persian
-        '\u{0621}'..='\u{063A}' // Hamza to Ghain
-        | '\u{0641}'..='\u{064A}' // Feh to Yeh
-
         // Persian-specific letters
         | '\u{067E}' // Peh
         | '\u{0686}' // Tcheh
@@ -58,20 +54,8 @@ pub(crate) fn is_persian(ch: char) -> bool {
         | '\u{06CC}' // Farsi Yeh
         | '\u{06C0}' // Yeh with Hamza above (used in Dari)
 
-        // Persian diacritics
-        | '\u{064B}'..='\u{0652}' // Fatha to Sukun
-
         // Persian digits
         | '\u{06F0}'..='\u{06F9}' // Zero to nine
-        
-        // Punctuation used in Persian
-        | '\u{060C}' // Arabic comma
-        | '\u{061B}' // Arabic semicolon
-        | '\u{061F}' // Arabic question mark
-        | '\u{066B}' // Arabic decimal separator
-        | '\u{066C}' // Arabic thousands separator
-        | '\u{00AB}' // Left-pointing double angle quotation mark
-        | '\u{00BB}' // Right-pointing double angle quotation mark
     )
 }
 
@@ -319,5 +303,18 @@ mod tests {
         assert!(is_hebrew('ת'));
         assert!(is_hebrew('ׇ'));
         assert!(!is_hebrew('s'));
+    }
+
+    #[test]
+    fn test_is_persian() {
+        assert_eq!(is_persian('پ'), true); // Peh
+        assert_eq!(is_persian('ژ'), true); // Zheh
+        assert_eq!(is_persian('گ'), true); // Gaf
+        assert_eq!(is_persian('ک'), true); // Kaf
+        assert_eq!(is_persian('ی'), true); // Yeh
+        assert_eq!(is_persian('۱'), true); // Latin '1'
+        assert_eq!(is_persian('۲'), true); // Latin '2'
+
+        assert_eq!(is_persian('z'), false); // Latin 'z'
     }
 }
