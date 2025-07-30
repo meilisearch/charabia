@@ -168,6 +168,25 @@ mod test {
                 language: Some(Language::Pes),
                 ..Default::default()
             },
+            // Test for گژ پژ
+            Token {
+                lemma: Owned("گژ پژ".to_string()),
+                char_end: 5,
+                byte_end: 10,
+                script: Script::Arabic,
+                language: Some(Language::Pes),
+                ..Default::default()
+            },
+            // Test for another Persian sentence
+            Token {
+                lemma: Owned("قنات قصبه شهر گناباد عمیق‌ترین و قدیمی‌ترین کاریز جهان است.".to_string()),
+                char_end: 56,
+                byte_end: 112,
+                script: Script::Arabic,
+                language: Some(Language::Pes),
+                kind: TokenKind::Word,
+                ..Default::default()
+            },
         ]
     }
 
@@ -249,6 +268,24 @@ mod test {
                 script: Script::Arabic,
                 language: Some(Language::Pes),
                 char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("گژ پژ".to_string()),
+                char_end: 5,
+                byte_end: 10, // 5 chars * 2 bytes
+                script: Script::Arabic,
+                language: Some(Language::Pes),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string()),
+                char_end: 56,
+                byte_end: 112,
+                script: Script::Arabic,
+                language: Some(Language::Pes),
+                kind: TokenKind::Word,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1)]),
                 ..Default::default()
             },
         ]
@@ -340,6 +377,25 @@ mod test {
                 language: Some(Language::Pes),
                 kind: TokenKind::Word,
                 char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (2, 2)]),
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("گژ پژ".to_string()),
+                char_end: 5,
+                byte_end: 10,
+                script: Script::Arabic,
+                language: Some(Language::Pes),
+                kind: TokenKind::Word,
+                ..Default::default()
+            },
+            Token {
+                lemma: Owned("قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string()),
+                char_end: 56,
+                byte_end: 112,
+                script: Script::Arabic,
+                language: Some(Language::Pes),
+                kind: TokenKind::Word,
+                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1)]),
                 ..Default::default()
             },
         ]
