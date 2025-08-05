@@ -1,5 +1,5 @@
 use super::{CharNormalizer, CharOrStr};
-use crate::{Script, Token, detection::Language};
+use crate::{detection::Language, Script, Token};
 
 /// A global [`Normalizer`] for the Persian language.
 /// Persian alphabet: ا,ب,پ,ت,ث,ج,چ,ح,خ,د,ذ,ر,ز,ژ,س,ش,ص,ض,ط,ظ,ع,غ,ف,ق,ک,گ,ل,م,ن,و,ه,ی
@@ -19,10 +19,10 @@ impl CharNormalizer for PersianNormalizer {
         normalize_persian_char(c)
     }
 
-   fn should_normalize(&self, token: &Token) -> bool {
-    token.script == Script::Arabic &&
-        token.language == Some(Language::Pes) &&
-        token.lemma.chars().any(|c| is_should_normalize(c))
+    fn should_normalize(&self, token: &Token) -> bool {
+        token.script == Script::Arabic
+            && token.language == Some(Language::Pes)
+            && token.lemma.chars().any(|c| is_should_normalize(c))
     }
 }
 
@@ -56,10 +56,12 @@ fn normalize_persian_char(c: char) -> Option<CharOrStr> {
 }
 
 fn is_should_normalize(c: char) -> bool {
-    matches!(c,
+    matches!(
+        c,
         'ي' | 'ی' | 'ى' | 'ۀ' | // Yeh variants
         'ك' | 'ک' | // Kaf variants
-        '۰'..='۹' | // Persian digits
+        '۰'
+            ..='۹' | // Persian digits
         '،' | '؟' | // Persian/Arabic punctuation
         '\u{FDFC}' | // Rial sign
         '\u{200C}' // ZWNJ
@@ -134,7 +136,9 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("قنات قصبه شهر گناباد عمیق‌ترین و قدیمی‌ترین کاریز جهان است.".to_string()),
+                lemma: Owned(
+                    "قنات قصبه شهر گناباد عمیق‌ترین و قدیمی‌ترین کاریز جهان است.".to_string(),
+                ),
                 char_end: 56,
                 byte_end: 112,
                 script: Script::Arabic,
@@ -181,13 +185,21 @@ mod test {
                 script: Script::Arabic,
                 language: Some(Language::Pes),
                 char_map: Some(vec![
-                    (2, 2), (2, 2), (2, 2), // کیک
+                    (2, 2),
+                    (2, 2),
+                    (2, 2), // کیک
                     (1, 1), // space
-                    (2, 1), (2, 1), (2, 1), // ۱۲۳ (Persian digits, normalized to ASCII)
+                    (2, 1),
+                    (2, 1),
+                    (2, 1), // ۱۲۳ (Persian digits, normalized to ASCII)
                     (1, 1), // space
-                    (2, 2), (2, 2), // یک
+                    (2, 2),
+                    (2, 2), // یک
                     (1, 1), // space
-                    (2, 2), (2, 2), (2, 2), (2, 2), // کتاب
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2), // کتاب
                 ]),
                 ..Default::default()
             },
@@ -216,13 +228,75 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string()),
+                lemma: Owned(
+                    "قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string(),
+                ),
                 char_end: 56,
                 byte_end: 112,
                 script: Script::Arabic,
                 language: Some(Language::Pes),
                 kind: TokenKind::Word,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1)]),
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (3, 0),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (3, 0),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                ]),
                 ..Default::default()
             },
         ]
@@ -268,13 +342,21 @@ mod test {
                 language: Some(Language::Pes),
                 kind: TokenKind::Word,
                 char_map: Some(vec![
-                    (2, 2), (2, 2), (2, 2), // کیک
+                    (2, 2),
+                    (2, 2),
+                    (2, 2), // کیک
                     (1, 1), // space
-                    (2, 1), (2, 1), (2, 1), // ۱۲۳ (Persian digits, normalized to ASCII)
+                    (2, 1),
+                    (2, 1),
+                    (2, 1), // ۱۲۳ (Persian digits, normalized to ASCII)
                     (1, 1), // space
-                    (2, 2), (2, 2), // یک
+                    (2, 2),
+                    (2, 2), // یک
                     (1, 1), // space
-                    (2, 2), (2, 2), (2, 2), (2, 2), // کتاب
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2), // کتاب
                 ]),
                 ..Default::default()
             },
@@ -306,22 +388,79 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string()),
+                lemma: Owned(
+                    "قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string(),
+                ),
                 char_end: 56,
                 byte_end: 112,
                 script: Script::Arabic,
                 language: Some(Language::Pes),
                 kind: TokenKind::Word,
-                char_map: Some(vec![(2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (3, 0), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (2, 2), (1, 1), (2, 2), (2, 2), (2, 2), (1, 1)]),
+                char_map: Some(vec![
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (3, 0),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (3, 0),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                    (2, 2),
+                    (2, 2),
+                    (2, 2),
+                    (1, 1),
+                ]),
                 ..Default::default()
             },
         ]
     }
 
-    test_normalizer!(
-        PersianNormalizer,
-        tokens(),
-        normalizer_result(),
-        normalized_tokens()
-    );
+    test_normalizer!(PersianNormalizer, tokens(), normalizer_result(), normalized_tokens());
 }

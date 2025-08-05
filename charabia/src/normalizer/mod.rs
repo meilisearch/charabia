@@ -1,9 +1,7 @@
 use std::borrow::Cow;
 
-use once_cell::sync::Lazy;
 pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
-pub use self::persian::PersianNormalizer;
 #[cfg(feature = "chinese-normalization")]
 pub use self::chinese::ChineseNormalizer;
 pub use self::classify::{Classifier, ClassifierOption};
@@ -15,6 +13,7 @@ use self::greek::GreekNormalizer;
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
+pub use self::persian::PersianNormalizer;
 use self::quote::QuoteNormalizer;
 #[cfg(feature = "swedish-recomposition")]
 use self::swedish_recomposition::SwedishRecompositionNormalizer;
@@ -24,6 +23,7 @@ pub use self::turkish::TurkishNormalizer;
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
+use once_cell::sync::Lazy;
 
 mod arabic;
 #[cfg(feature = "chinese-normalization")]

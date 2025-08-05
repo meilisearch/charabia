@@ -14,10 +14,7 @@ impl Segmenter for PersianSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
         // Simple approach: split on ZWNJ and filter out empty parts
         if to_segment.contains(ZWNJ) {
-            let parts: Vec<&str> = to_segment
-                .split(ZWNJ)
-                .filter(|part| !part.is_empty())
-                .collect();
+            let parts: Vec<&str> = to_segment.split(ZWNJ).filter(|part| !part.is_empty()).collect();
             Box::new(parts.into_iter())
         } else {
             Box::new(Some(to_segment).into_iter())

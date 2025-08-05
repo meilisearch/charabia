@@ -16,10 +16,10 @@ pub use khmer::KhmerSegmenter;
 pub use korean::KoreanSegmenter;
 pub use latin::LatinSegmenter;
 use once_cell::sync::Lazy;
+pub use persian::PersianSegmenter;
 use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
-pub use persian::PersianSegmenter;
 
 use crate::detection::{Detect, Language, Script, StrDetection};
 use crate::separators::DEFAULT_SEPARATORS;
@@ -37,11 +37,11 @@ mod khmer;
 #[cfg(feature = "korean")]
 mod korean;
 mod latin;
+mod persian;
 #[cfg(feature = "thai")]
 mod thai;
 #[cfg(any(feature = "thai", feature = "khmer"))]
 mod utils;
-mod persian;
 
 pub type SegmenterMap = HashMap<(Script, Option<Language>), Box<dyn Segmenter>>;
 

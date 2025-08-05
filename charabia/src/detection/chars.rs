@@ -44,7 +44,8 @@ pub(crate) fn is_arabic(ch: char) -> bool {
 
 // Based on: https://en.wikipedia.org/wiki/Persian_alphabet
 pub(crate) fn is_persian(ch: char) -> bool {
-    matches!(ch,
+    matches!(
+        ch,
         // Persian-specific letters
         | '\u{067E}' // Peh
         | '\u{0686}' // Tcheh
