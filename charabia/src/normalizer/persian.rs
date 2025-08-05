@@ -11,7 +11,6 @@ use crate::{detection::Language, Script, Token};
 /// - Normalizing Rial sign '﷼' to 'RIAL'
 /// - Removing ZWNJ '‌'
 ///   https://en.wikipedia.org/wiki/Persian_alphabet
-
 pub struct PersianNormalizer;
 
 impl CharNormalizer for PersianNormalizer {
@@ -22,7 +21,7 @@ impl CharNormalizer for PersianNormalizer {
     fn should_normalize(&self, token: &Token) -> bool {
         token.script == Script::Arabic
             && token.language == Some(Language::Pes)
-            && token.lemma.chars().any(|c| is_should_normalize(c))
+            && token.lemma.chars().any(is_should_normalize)
     }
 }
 
