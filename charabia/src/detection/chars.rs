@@ -42,6 +42,24 @@ pub(crate) fn is_arabic(ch: char) -> bool {
     )
 }
 
+// Based on: https://en.wikipedia.org/wiki/Persian_alphabet
+pub(crate) fn is_persian(ch: char) -> bool {
+    matches!(
+        ch,
+        // Persian-specific letters
+        | '\u{067E}' // Peh
+        | '\u{0686}' // Tcheh
+        | '\u{0698}' // Jeh
+        | '\u{06A9}' // Keheh (Persian Kaf)
+        | '\u{06AF}' // Gaf
+        | '\u{06CC}' // Farsi Yeh
+        | '\u{06C0}' // Yeh with Hamza above (used in Dari)
+
+        // Persian digits
+        | '\u{06F0}'..='\u{06F9}' // Zero to nine
+    )
+}
+
 // Based on https://en.wikipedia.org/wiki/Devanagari#Unicode
 pub(crate) fn is_devanagari(ch: char) -> bool {
     matches!(ch, '\u{0900}'..='\u{097F}' | '\u{A8E0}'..='\u{A8FF}' | '\u{1CD0}'..='\u{1CFF}')
@@ -286,5 +304,18 @@ mod tests {
         assert!(is_hebrew('ת'));
         assert!(is_hebrew('ׇ'));
         assert!(!is_hebrew('s'));
+    }
+
+    #[test]
+    fn test_is_persian() {
+        assert_eq!(is_persian('پ'), true); // Peh
+        assert_eq!(is_persian('ژ'), true); // Zheh
+        assert_eq!(is_persian('گ'), true); // Gaf
+        assert_eq!(is_persian('ک'), true); // Kaf
+        assert_eq!(is_persian('ی'), true); // Yeh
+        assert_eq!(is_persian('۱'), true); // Latin '1'
+        assert_eq!(is_persian('۲'), true); // Latin '2'
+
+        assert_eq!(is_persian('z'), false); // Latin 'z'
     }
 }
