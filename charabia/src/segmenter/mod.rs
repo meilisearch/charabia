@@ -16,7 +16,6 @@ pub use khmer::KhmerSegmenter;
 pub use korean::KoreanSegmenter;
 pub use latin::LatinSegmenter;
 use once_cell::sync::Lazy;
-pub use persian::PersianSegmenter;
 use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
@@ -37,7 +36,6 @@ mod khmer;
 #[cfg(feature = "korean")]
 mod korean;
 mod latin;
-mod persian;
 #[cfg(feature = "thai")]
 mod thai;
 #[cfg(any(feature = "thai", feature = "khmer"))]
@@ -80,8 +78,6 @@ pub static SEGMENTERS: Lazy<SegmenterMap> = Lazy::new(|| {
         ((Script::Khmer, Some(Language::Khm)), Box::new(KhmerSegmenter) as Box<dyn Segmenter>),
         // arabic segmenter
         ((Script::Arabic, Some(Language::Ara)), Box::new(ArabicSegmenter) as Box<dyn Segmenter>),
-        // persian segmenter
-        ((Script::Arabic, Some(Language::Pes)), Box::new(PersianSegmenter) as Box<dyn Segmenter>),
         // german segmenter
         #[cfg(feature = "german-segmentation")]
         ((Script::Latin, Some(Language::Deu)), Box::new(GermanSegmenter) as Box<dyn Segmenter>),
