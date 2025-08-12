@@ -1,7 +1,5 @@
 use std::borrow::Cow;
 
-use once_cell::sync::Lazy;
-
 pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
 #[cfg(feature = "chinese-normalization")]
@@ -15,6 +13,7 @@ use self::greek::GreekNormalizer;
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
+pub use self::persian::PersianNormalizer;
 use self::quote::QuoteNormalizer;
 #[cfg(feature = "swedish-recomposition")]
 use self::swedish_recomposition::SwedishRecompositionNormalizer;
@@ -24,6 +23,7 @@ pub use self::turkish::TurkishNormalizer;
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
+use once_cell::sync::Lazy;
 
 mod arabic;
 #[cfg(feature = "chinese-normalization")]
@@ -46,6 +46,7 @@ mod turkish;
 mod vietnamese;
 
 mod ae_oe_normalizer;
+mod persian;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
@@ -55,6 +56,7 @@ pub static NORMALIZERS: Lazy<Vec<Box<dyn Normalizer>>> = Lazy::new(|| {
         Box::new(SwedishRecompositionNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(Classifier),
+        Box::new(PersianNormalizer),
     ]
 });
 
