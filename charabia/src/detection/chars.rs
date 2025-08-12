@@ -308,14 +308,14 @@ mod tests {
 
     #[test]
     fn test_is_persian() {
-        assert_eq!(is_persian('پ'), true); // Peh
-        assert_eq!(is_persian('ژ'), true); // Zheh
-        assert_eq!(is_persian('گ'), true); // Gaf
-        assert_eq!(is_persian('ک'), true); // Kaf
-        assert_eq!(is_persian('ی'), true); // Yeh
-        assert_eq!(is_persian('۱'), true); // Latin '1'
-        assert_eq!(is_persian('۲'), true); // Latin '2'
+        assert!(is_persian('پ')); // Peh
+        assert!(is_persian('ژ')); // Zheh
+        assert!(is_persian('گ')); // Gaf
+        assert!(is_persian('ک')); // Kaf
+        assert!(is_persian('ی')); // Yeh
+        assert!(is_persian('۱')); // Latin '1'
+        assert!(is_persian('۲')); // Latin '2'
 
-        assert_eq!(is_persian('z'), false); // Latin 'z'
+        assert!(!is_persian('z')); // Latin 'z'
     }
 }
