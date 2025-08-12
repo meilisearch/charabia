@@ -53,7 +53,7 @@ pub trait Tokenize<'o> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn tokenize(&self) -> NormalizedTokenIter;
+    fn tokenize(&self) -> NormalizedTokenIter<'_, '_, '_, '_>;
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
     ///
@@ -81,15 +81,15 @@ pub trait Tokenize<'o> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn reconstruct(&self) -> ReconstructedTokenIter;
+    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, '_, '_>;
 }
 
 impl Tokenize<'_> for &str {
-    fn tokenize(&self) -> NormalizedTokenIter {
+    fn tokenize(&self) -> NormalizedTokenIter<'_, '_, '_, '_> {
         self.segment().normalize(&crate::normalizer::DEFAULT_NORMALIZER_OPTION)
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter {
+    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, '_, '_> {
         ReconstructedTokenIter { original: self, token_iter: self.tokenize() }
     }
 }
@@ -338,7 +338,7 @@ impl<'tb, A: AsRef<[u8]>> TokenizerBuilder<'tb, A> {
     }
 
     /// Build the configurated `Tokenizer`.
-    pub fn build(&mut self) -> Tokenizer {
+    pub fn build(&mut self) -> Tokenizer<'_> {
         // If a custom list of separators or/and a custom list of words have been given,
         // then an Aho-Corasick automaton is created to pre-segment the text during the tokenization process
         // TODO: avoid recreating the automaton if nothing changed
