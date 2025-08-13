@@ -17,6 +17,7 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
     ((130, Script::Greek, Language::Ell), "Οι θερμοκρασίες είναι σπάνια υπερβολικές στις παραθαλάσσιες περιοχές."),
     ((132, Script::Khmer, Language::Khm), "ធ្វេីមនុស្សត្រូវចេះស្រលាញ់នឹងជួយគ្នាទៅវិញទៅមក ព្រោះពិភពលោកនេះមានទុកច្រេីនហេីយគួយតែមានអំពេីល្អច្រេីនមិនថាជួយបាន១រឺ២នាក់ច្រេីនរឺតិចទេ៕"),
     ((132, Script::Arabic, Language::Ara), "اللُّغَةُ العربية هي أكثر اللغات السامية تحدثا، ومن أكثر اللغات انتشارا"),
+    ((128, Script::Arabic, Language::Pes), "قنات قصبه شهر گناباد عمیق‌ترین و قدیمی‌ترین کاریز جهان است."),
     ((134, Script::Arabic, Language::Vie), "Các nhà nước trong lịch sử Việt Nam có những quốc hiệu khác nhau như Xích Quỷ, Văn Lang, Đại Việt, Đại"),
     ((131, Script::Latin, Language::Deu), "Deutschland vereint Alpen, Küsten und Städte wie Berlin. Kultur und Geschichte prägen das Land, das Natur und Moderne verbindet."),
 
@@ -31,6 +32,7 @@ static DATA_SET: &[((usize, Script, Language), &str)] = &[
     ((364, Script::Greek, Language::Ell), "Η άνοιξη έχει μικρή διάρκεια, διότι ο μεν χειμώνας είναι όψιμος, το δε καλοκαίρι αρχίζει πρώιμα. Το φθινόπωρο είναι μακρύ και θερμό και πολλές φορές παρατείνεται στη νότια Ελλάδα και τα νησιά μέχρι τα"),
     ((327, Script::Khmer, Language::Khm), "រឿងពីរដែលមនុស្សហាមចិត្តខ្លួនឯងមិនបានគឺ សើច និង ស្រឡាញ់។ តែសម្រាប់ខ្ញុំ ប្រាក់ ចន្ទធីតា រឿងមួយទៀតដែលខ្ញុំហាមចិត្តខ្លួនឯងមិនបាននោះ គឺញ៉ាំ គេគ្រប់គ្នាពេលខូចចិត្តបាយទឹកមិនបានទេ តែខ្ញុំពេលខូចចិត្តដឹងតែឃ្លាន ញ៉ាំច្រើនឬតិចក៏អាស្រ័យលើថាទំហំនៃការខូចចិត្តខ្លាំងឬខ្សោយ។"),
     ((366, Script::Arabic, Language::Ara), "العربية لغةٌ رسمية في كل دول الوطن العربي (إضافة إلى كونها لغة رسمية في تشاد وإريتريا). وهي إحدى اللغات الرسمية الست في منظمة الأمم المتحدة، ويُحتفل بالعربية في 18 ديسمبر كذكرى اعتمادها في الأمم المتحدة."),
+    ((366, Script::Arabic, Language::Pes), "فارسی یکی از زبان‌های هندواروپایی و زبان رسمی ایران، افغانستان (با نام دری) و تاجیکستان (با نام تاجیکی) است. این زبان دارای پیشینه‌ای کهن و ادبیاتی غنی می‌باشد و در طول تاریخ، شاعران و نویسندگان بزرگی به این زبان آثار خود را خلق کرده‌اند. فارسی همچنین یکی از زبان‌های مهم منطقه به شمار می‌رود و در سازمان‌های بین‌المللی نیز جایگاه ویژه‌ای دارد."),
     ((365, Script::Latin, Language::Vie), "Lãnh thổ Việt Nam xuất hiện con người sinh sống từ thời đại đồ đá cũ, khởi đầu với các nhà nước Văn Lang, Âu Lạc. Âu Lạc bị nhà Triệu ở phương Bắc thôn tính vào đầu thế kỷ thứ 2 TCN sau đó là thời kỳ Bắc thuộc kéo dài hơn một thiên niên kỷ.Chế độ quân chủ độc lập"),
     ((354, Script::Latin, Language::Deu), "Magdeburg, die Hauptstadt Sachsen-Anhalts, beeindruckt mit dem Magdeburger Dom, dem Jahrtausendturm im Elbauenpark und dem Wasserstraßenkreuz. Der Domplatz ist umgeben von Bauwerken, wie dem Hundertwasserhaus. Der Elbauenpark bietet viele Freizeitmöglichkeiten, während die Magdeburger Börde für fruchtbare Ackerflächen für z.B. Zuckerrüben bekannt ist."),
 ];
