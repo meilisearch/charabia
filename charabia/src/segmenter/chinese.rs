@@ -21,6 +21,9 @@ fn cut_for_search<'a>(s: &'a str) -> Box<dyn Iterator<Item = &'a str> + 'a> {
     if s.chars().count() <= 2 {
         return Box::new(std::iter::once(s));
     }
+    if s.chars().all(|c| c.is_ascii_alphanumeric()) {
+        return Box::new(std::iter::once(s));
+    }
     let mut subwords = Vec::new();
     let mut index = 0;
     loop {
@@ -334,4 +337,11 @@ mod test {
 
     // Macro that run several tests on the Segmenter.
     test_segmenter!(ChineseSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Cj, Language::Cmn);
+
+    #[test]
+    fn test_mix_number_and_letter() {
+        let seg = ChineseSegmenter;
+        let words: Vec<&str> = seg.segment_str("我从2025年开始学习Rust语言。").collect();
+        assert_eq!(words, vec!["我", "从", "2025", "年", "开始", "学习", "Rust", "语言", "。"]);
+    }
 }
