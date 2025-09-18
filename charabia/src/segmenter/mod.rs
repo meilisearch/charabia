@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 use aho_corasick::{AhoCorasick, FindIter, MatchKind};
 pub use arabic::ArabicSegmenter;
@@ -15,7 +16,6 @@ pub use khmer::KhmerSegmenter;
 #[cfg(feature = "korean")]
 pub use korean::KoreanSegmenter;
 pub use latin::LatinSegmenter;
-use once_cell::sync::Lazy;
 use slice_group_by::StrGroupBy;
 #[cfg(feature = "thai")]
 pub use thai::ThaiSegmenter;
@@ -54,7 +54,7 @@ pub type SegmenterMap = HashMap<(Script, Option<Language>), Box<dyn Segmenter>>;
 /// A segmenter assigned to `Language::Other` is considered as the default `Segmenter` for any `Language` that uses the assigned `Script`.
 /// For example, [`LatinSegmenter`] is assigned to `(Script::Latin, Language::Other)`,
 /// meaning that `LatinSegmenter` is the default `Segmenter` for any `Language` that uses `Latin` `Script`.
-pub static SEGMENTERS: Lazy<SegmenterMap> = Lazy::new(|| {
+pub static SEGMENTERS: LazyLock<SegmenterMap> = LazyLock::new(|| {
     vec![
         // latin segmenter
         ((Script::Latin, None), Box::new(LatinSegmenter) as Box<dyn Segmenter>),
@@ -89,9 +89,10 @@ pub static SEGMENTERS: Lazy<SegmenterMap> = Lazy::new(|| {
 });
 
 /// Picked [`Segmenter`] when no segmenter is specialized to the detected [`Script`].
-pub static DEFAULT_SEGMENTER: Lazy<Box<dyn Segmenter>> = Lazy::new(|| Box::new(LatinSegmenter));
+pub static DEFAULT_SEGMENTER: LazyLock<Box<dyn Segmenter>> =
+    LazyLock::new(|| Box::new(LatinSegmenter));
 
-pub static DEFAULT_SEPARATOR_AHO: Lazy<AhoCorasick> = Lazy::new(|| {
+pub static DEFAULT_SEPARATOR_AHO: LazyLock<AhoCorasick> = LazyLock::new(|| {
     AhoCorasick::builder().match_kind(MatchKind::LeftmostLongest).build(DEFAULT_SEPARATORS).unwrap()
 });
 
@@ -407,7 +408,7 @@ mod test {
     macro_rules! test_segmenter {
     ($segmenter:expr, $text:expr, $segmented:expr, $tokenized:expr, $script:expr, $language:expr) => {
             use aho_corasick::{AhoCorasick, MatchKind};
-            use once_cell::sync::Lazy;
+            use std::sync::LazyLock;
             use crate::{Token, Language, Script};
             use crate::segmenter::{Segment, AhoSegmentedStrIter, MatchType, DEFAULT_SEPARATOR_AHO};
             use super::*;
@@ -418,7 +419,7 @@ mod test {
                 &["123", " ", "-123", " ", "+123", " ", "12.3", " ", "-12.3", " ", "+12.3"];
             const TOKENIZED_NUMBER: &[&str] =
                 &["123", " ", "-123", " ", "+123", " ", "12.3", " ", "-12.3", " ", "+12.3"];
-            static NUMBER_SEPARATOR_AHO: Lazy<AhoCorasick> = Lazy::new(|| {
+            static NUMBER_SEPARATOR_AHO: LazyLock<AhoCorasick> = LazyLock::new(|| {
                 AhoCorasick::builder().match_kind(MatchKind::LeftmostLongest).build(NUMBER_SEPARATOR).unwrap()
             });
 

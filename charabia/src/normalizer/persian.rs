@@ -1,5 +1,6 @@
 use super::{CharNormalizer, CharOrStr};
-use crate::{detection::Language, Script, Token};
+use crate::detection::Language;
+use crate::{Script, Token};
 
 /// A global [`Normalizer`] for the Persian language.
 /// Persian alphabet: ا,ب,پ,ت,ث,ج,چ,ح,خ,د,ذ,ر,ز,ژ,س,ش,ص,ض,ط,ظ,ع,غ,ف,ق,ک,گ,ل,م,ن,و,ه,ی

@@ -1,10 +1,9 @@
-use lindera::{
-    dictionary::{load_dictionary_from_kind, DictionaryKind},
-    mode::{Mode, Penalty},
-    segmenter::Segmenter as LinderaSegmenter,
-    tokenizer::Tokenizer,
-};
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
+use lindera::dictionary::{load_dictionary_from_kind, DictionaryKind};
+use lindera::mode::{Mode, Penalty};
+use lindera::segmenter::Segmenter as LinderaSegmenter;
+use lindera::tokenizer::Tokenizer;
 
 use crate::segmenter::Segmenter;
 
@@ -13,7 +12,7 @@ use crate::segmenter::Segmenter;
 /// This Segmenter uses lindera internally to segment the provided text.
 pub struct KoreanSegmenter;
 
-static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
+static LINDERA: LazyLock<Tokenizer> = LazyLock::new(|| {
     let dictionary = load_dictionary_from_kind(DictionaryKind::KoDic).unwrap();
     let segmenter = LinderaSegmenter::new(Mode::Decompose(Penalty::default()), dictionary, None);
     Tokenizer::new(segmenter)

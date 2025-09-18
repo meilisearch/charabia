@@ -1,13 +1,12 @@
 use std::collections::HashSet;
-
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use super::CharNormalizer;
 use crate::detection::Script;
 use crate::normalizer::CharOrStr;
 use crate::Token;
 
-static NONSPACING_MARKS: Lazy<HashSet<u32>> = Lazy::new(|| {
+static NONSPACING_MARKS: LazyLock<HashSet<u32>> = LazyLock::new(|| {
     let bytes = include_bytes!("../../dictionaries/bin/nonspacing_mark/marks.bin");
 
     HashSet::from_iter(

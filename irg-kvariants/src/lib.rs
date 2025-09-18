@@ -1,6 +1,6 @@
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
-use once_cell::sync::Lazy;
 use serde::Deserialize;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -26,7 +26,7 @@ pub struct TsvRow {
     rhs: String,
 }
 
-pub static KVARIANTS: Lazy<HashMap<char, KVariant>> = Lazy::new(|| {
+pub static KVARIANTS: LazyLock<HashMap<char, KVariant>> = LazyLock::new(|| {
     // The tab separated format is like:
     //
     //   㨲 (U+3A32)	wrong!	㩍 (U+3A4D)
