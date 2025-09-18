@@ -1,5 +1,6 @@
+use std::sync::LazyLock;
+
 use jieba_rs::Jieba;
-use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
 
@@ -56,7 +57,7 @@ impl Segmenter for ChineseSegmenter {
     }
 }
 
-static JIEBA: Lazy<Jieba> = Lazy::new(Jieba::new);
+static JIEBA: LazyLock<Jieba> = LazyLock::new(Jieba::new);
 
 #[cfg(test)]
 mod test {
