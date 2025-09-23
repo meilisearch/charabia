@@ -1,6 +1,6 @@
 [package]
 name = "charabia"
-version = "0.9.7"
+version = "0.9.8"
 license = "MIT"
 authors = ["Many <many@meilisearch.com>"]
 edition = "2021"
