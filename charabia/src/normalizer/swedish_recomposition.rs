@@ -1,13 +1,13 @@
 use std::borrow::Cow;
+use std::sync::LazyLock;
 
 use aho_corasick::AhoCorasick;
-use once_cell::sync::Lazy;
 
 use super::Normalizer;
 use crate::normalizer::NormalizerOption;
 use crate::{Language, Token};
 
-static MATCHING_STR: Lazy<AhoCorasick> = Lazy::new(|| {
+static MATCHING_STR: LazyLock<AhoCorasick> = LazyLock::new(|| {
     AhoCorasick::new(["A\u{30a}", "a\u{30a}", "A\u{308}", "a\u{308}", "O\u{308}", "o\u{308}"])
         .unwrap()
 });

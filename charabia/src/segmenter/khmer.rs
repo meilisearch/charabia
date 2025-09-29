@@ -12,13 +12,15 @@ extern crate alloc; // required as my-data-mod is written for #[no_std]
 //     Otherwise, just remove below lines.
 //
 // Put this import at the top of the file.
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 // dictionary source - https://github.com/unicode-org/icu/blob/main/icu4c/source/data/brkitr/dictionaries/khmerdict.txt
-static WORDS_FST: Lazy<Fst<&[u8]>> =
-    Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/khmer/words.fst")[..]).unwrap());
+static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
+    Fst::new(&include_bytes!("../../dictionaries/fst/khmer/words.fst")[..]).unwrap()
+});
 
-static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST, None, true));
+static FST_SEGMENTER: LazyLock<FstSegmenter> =
+    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, None, true));
 
 // Make a small documentation of the specialized Segmenter like below.
 /// <Script/Language> specialized [`Segmenter`].

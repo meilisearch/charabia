@@ -1,12 +1,11 @@
+use std::sync::LazyLock;
+
+use lindera::dictionary::{load_dictionary_from_kind, DictionaryKind};
+use lindera::mode::{Mode, Penalty};
+use lindera::segmenter::Segmenter as LinderaSegmenter;
+use lindera::tokenizer::Tokenizer;
 #[cfg(feature = "japanese-segmentation-ipadic")]
 use lindera::Penalty;
-use lindera::{
-    dictionary::{load_dictionary_from_kind, DictionaryKind},
-    mode::{Mode, Penalty},
-    segmenter::Segmenter as LinderaSegmenter,
-    tokenizer::Tokenizer,
-};
-use once_cell::sync::Lazy;
 
 use crate::segmenter::Segmenter;
 
@@ -15,7 +14,7 @@ use crate::segmenter::Segmenter;
 /// This Segmenter uses lindera internally to segment the provided text.
 pub struct JapaneseSegmenter;
 
-static LINDERA: Lazy<Tokenizer> = Lazy::new(|| {
+static LINDERA: LazyLock<Tokenizer> = LazyLock::new(|| {
     #[cfg(all(feature = "japanese-segmentation-ipadic", feature = "japanese-segmentation-unidic"))]
     compile_error!("Feature japanese-segmentation-ipadic and japanese-segmentation-unidic are mutually exclusive and cannot be enabled together");
 

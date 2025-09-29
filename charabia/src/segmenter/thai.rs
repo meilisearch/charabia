@@ -1,6 +1,7 @@
 // Import `Segmenter` trait.
+use std::sync::LazyLock;
+
 use fst::raw::Fst;
-use once_cell::sync::Lazy;
 
 use crate::segmenter::utils::FstSegmenter;
 use crate::segmenter::Segmenter;
@@ -11,10 +12,12 @@ use crate::segmenter::Segmenter;
 /// Dictionary source: PyThaiNLP project on https://github.com/PyThaiNLP/nlpo3
 pub struct ThaiSegmenter;
 
-static WORDS_FST: Lazy<Fst<&[u8]>> =
-    Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap());
+static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
+    Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap()
+});
 
-static FST_SEGMENTER: Lazy<FstSegmenter> = Lazy::new(|| FstSegmenter::new(&WORDS_FST, None, true));
+static FST_SEGMENTER: LazyLock<FstSegmenter> =
+    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, None, true));
 
 impl Segmenter for ThaiSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
