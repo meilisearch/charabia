@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::sync::LazyLock;
 
 pub use self::arabic::ArabicNormalizer;
+pub use self::cjk::CjkNormalizer;
 pub use self::classify::{Classifier, ClassifierOption};
 pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
@@ -11,6 +12,7 @@ use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
 mod arabic;
+mod cjk;
 mod classify;
 mod compatibility_decomposition;
 mod lowercase;
@@ -28,8 +30,9 @@ pub static NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
 });
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
-pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> =
-    LazyLock::new(|| vec![Box::new(ArabicNormalizer), Box::new(NonspacingMarkNormalizer)]);
+pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
+    vec![Box::new(ArabicNormalizer), Box::new(CjkNormalizer), Box::new(NonspacingMarkNormalizer)]
+});
 
 pub(crate) const DEFAULT_NORMALIZER_OPTION: NormalizerOption = NormalizerOption {
     create_char_map: false,
