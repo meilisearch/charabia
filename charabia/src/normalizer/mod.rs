@@ -1,85 +1,35 @@
 use std::borrow::Cow;
 use std::sync::LazyLock;
 
-pub use self::ae_oe_normalizer::AeOeNormalizer;
 pub use self::arabic::ArabicNormalizer;
-#[cfg(feature = "chinese-normalization")]
-pub use self::chinese::ChineseNormalizer;
 pub use self::classify::{Classifier, ClassifierOption};
 pub use self::compatibility_decomposition::CompatibilityDecompositionNormalizer;
-pub use self::control_char::ControlCharNormalizer;
-#[cfg(feature = "greek")]
-use self::greek::GreekNormalizer;
-#[cfg(feature = "japanese-transliteration")]
-pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
-pub use self::persian::PersianNormalizer;
 use self::quote::QuoteNormalizer;
-#[cfg(feature = "swedish-recomposition")]
-use self::swedish_recomposition::SwedishRecompositionNormalizer;
-#[cfg(feature = "turkish")]
-pub use self::turkish::TurkishNormalizer;
-#[cfg(feature = "vietnamese")]
-pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
 mod arabic;
-#[cfg(feature = "chinese-normalization")]
-mod chinese;
 mod classify;
 mod compatibility_decomposition;
-mod control_char;
-#[cfg(feature = "greek")]
-mod greek;
-#[cfg(feature = "japanese-transliteration")]
-mod japanese;
 mod lowercase;
 mod nonspacing_mark;
 mod quote;
-#[cfg(feature = "swedish-recomposition")]
-mod swedish_recomposition;
-#[cfg(feature = "turkish")]
-mod turkish;
-#[cfg(feature = "vietnamese")]
-mod vietnamese;
-
-mod ae_oe_normalizer;
-mod persian;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
     vec![
         Box::new(CompatibilityDecompositionNormalizer),
-        #[cfg(feature = "swedish-recomposition")]
-        Box::new(SwedishRecompositionNormalizer),
-        Box::new(ControlCharNormalizer),
+        Box::new(LowercaseNormalizer),
+        Box::new(QuoteNormalizer),
         Box::new(Classifier),
-        Box::new(PersianNormalizer),
     ]
 });
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
-pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
-    vec![
-        Box::new(LowercaseNormalizer),
-        Box::new(QuoteNormalizer),
-        Box::new(AeOeNormalizer),
-        #[cfg(feature = "chinese-normalization")]
-        Box::new(ChineseNormalizer),
-        #[cfg(feature = "japanese-transliteration")]
-        Box::new(JapaneseNormalizer),
-        #[cfg(feature = "greek")]
-        Box::new(GreekNormalizer),
-        Box::new(ArabicNormalizer),
-        Box::new(NonspacingMarkNormalizer),
-        #[cfg(feature = "vietnamese")]
-        Box::new(VietnameseNormalizer),
-        #[cfg(feature = "turkish")]
-        Box::new(TurkishNormalizer),
-    ]
-});
+pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> =
+    LazyLock::new(|| vec![Box::new(ArabicNormalizer), Box::new(NonspacingMarkNormalizer)]);
 
 pub(crate) const DEFAULT_NORMALIZER_OPTION: NormalizerOption = NormalizerOption {
     create_char_map: false,
