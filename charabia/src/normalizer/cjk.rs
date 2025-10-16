@@ -11,12 +11,15 @@ pub struct CjkNormalizer;
 impl Normalizer for CjkNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>, _options: &NormalizerOption) -> Token<'o> {
         let mut chars = token.lemma.chars();
+        let mut new_lemma = String::new();
         while let Some(c) = chars.next() {
             let (normalized, skip_char) = normalize_cjk(c);
-
             if !skip_char {
-                token.lemma.as_mut().push_str(&normalized);
+                new_lemma.push_str(&normalized);
             }
+        }
+        if !new_lemma.is_empty() {
+            token.lemma = Cow::Owned(new_lemma);
         }
 
         token
