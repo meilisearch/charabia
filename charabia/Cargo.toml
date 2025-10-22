@@ -29,11 +29,11 @@ wana_kana = { version = "4.0.0", optional = true }
 unicode-normalization = "0.1.24"
 irg-kvariants = { path = "../irg-kvariants", version = "=0.1.1" }
 
+# !!!! Ignore this change !!!!
+# Change compilation flags to reduce compilation time
 [features]
 default = [
-    "chinese",
     "hebrew",
-    "japanese",
     "thai",
     "korean",
     "greek",
@@ -42,6 +42,7 @@ default = [
     "swedish-recomposition",
     "turkish",
     "german-segmentation",
+    "japanese-transliteration"
 ]
 
 # allow chinese specialized tokenization
