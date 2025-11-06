@@ -23,49 +23,93 @@ impl<'fst> FstSegmenter<'fst> {
     where
         'fst: 'o,
     {
+        let mut accumulated_start: Option<usize> = None;
+        let original_ptr = to_segment.as_ptr();
+        
         let iter = std::iter::from_fn(move || {
-            // if we reach the end of the text, we return None.
-            if to_segment.is_empty() {
-                return None;
-            }
-
-            let mut length = match find_longest_prefix(self.words_fst, to_segment.as_bytes()) {
-                Some((_, length)) => length,
-                None => {
-                    if self.allow_char_split {
-                        // if no sequence matches, we return the next character as a lemma.
-                        to_segment.chars().next().unwrap().len_utf8()
-                    } else {
-                        // if splitting is not allowed, return the whole input
-                        let result = to_segment;
-                        to_segment = "";
-                        return Some(result);
+            loop {
+                // if we reach the end of the text
+                if to_segment.is_empty() {
+                    // If we have accumulated characters, emit them before finishing
+                    if let Some(start) = accumulated_start.take() {
+                        let current_offset = unsafe { to_segment.as_ptr().offset_from(original_ptr) as usize };
+                        let accumulated_len = current_offset - start;
+                        let full_str = unsafe {
+                            std::str::from_utf8_unchecked(std::slice::from_raw_parts(
+                                original_ptr.add(start),
+                                accumulated_len,
+                            ))
+                        };
+                        return Some(full_str);
                     }
-                }
-            };
-
-            if let Some(min_len) = self.min_length {
-                // enforce minimum lemma length if specified
-                if length < min_len && to_segment.len() > length {
-                    length = min_len.min(to_segment.len());
+                    return None;
                 }
 
-                // prevent left over lemmas with a length fewer than min_len
-                if to_segment.len() - length < min_len {
-                    length = to_segment.len();
-                }
+                let current_offset = unsafe { to_segment.as_ptr().offset_from(original_ptr) as usize };
+
+                let mut length = match find_longest_prefix(self.words_fst, to_segment.as_bytes()) {
+                    Some((_, length)) => {
+                        // Found a match in the dictionary
+                        let mut adjusted_length = length;
+                        
+                        if let Some(min_len) = self.min_length {
+                            // enforce minimum lemma length if specified
+                            if adjusted_length < min_len && to_segment.len() > adjusted_length {
+                                adjusted_length = min_len.min(to_segment.len());
+                            }
+
+                            // prevent left over lemmas with a length fewer than min_len
+                            if to_segment.len() - adjusted_length < min_len {
+                                adjusted_length = to_segment.len();
+                            }
+                        }
+                        
+                        // If we had accumulated characters, emit them first
+                        if let Some(start) = accumulated_start.take() {
+                            let accumulated_len = current_offset - start;
+                            let accumulated = unsafe {
+                                std::str::from_utf8_unchecked(std::slice::from_raw_parts(
+                                    original_ptr.add(start),
+                                    accumulated_len,
+                                ))
+                            };
+                            return Some(accumulated);
+                        }
+                        
+                        adjusted_length
+                    }
+                    None => {
+                        // No match found - fallback behavior
+                        if self.allow_char_split {
+                            // Start or continue accumulating characters
+                            if accumulated_start.is_none() {
+                                accumulated_start = Some(current_offset);
+                            }
+                            
+                            // Take one character and continue the loop
+                            let char_len = to_segment.chars().next().unwrap().len_utf8();
+                            to_segment = &to_segment[char_len..];
+                            continue;  // Continue loop to try next position
+                        } else {
+                            // if splitting is not allowed, return the whole input
+                            let result = to_segment;
+                            to_segment = "";
+                            return Some(result);
+                        }
+                    }
+                };
+
+                // ensure the length is a valid character boundary
+                length = to_segment
+                    .char_indices()
+                    .find(|(idx, _)| *idx >= length)
+                    .map(|(idx, _)| idx)
+                    .unwrap_or(to_segment.len());
+
+                let (left, right) = to_segment.split_at(length);
+                to_segment = right;
+                return Some(left);
             }
-
-            // ensure the length is a valid character boundary
-            length = to_segment
-                .char_indices()
-                .find(|(idx, _)| *idx >= length)
-                .map(|(idx, _)| idx)
-                .unwrap_or(to_segment.len());
-
-            let (left, right) = to_segment.split_at(length);
-            to_segment = right;
-            Some(left)
         });
 
         Box::new(iter)

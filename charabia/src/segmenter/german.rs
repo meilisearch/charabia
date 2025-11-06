@@ -146,4 +146,7 @@ mod test {
     test_segmentation!("Basketball", &["Basket", "ball"], word16);
     test_segmentation!("Handball", &["Hand", "ball"], word17);
     test_segmentation!("Spikeball", &["Spike", "ball"], word18);
+    // Fallback when usual tokenization is not possible, no more bigrams allowed.
+    test_segmentation!("Feuchteschutz", &["Feuchte", "schutz"], word19);
+    test_segmentation!("insgesamt", &["ins", "gesamt"], word20);
 }
