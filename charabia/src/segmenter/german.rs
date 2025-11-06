@@ -15,7 +15,7 @@ static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
 });
 
 static FST_SEGMENTER: LazyLock<FstSegmenter> =
-    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, Some(2), true));
+    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, Some(2), false));
 
 impl Segmenter for GermanSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
@@ -29,7 +29,7 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     const TEXT: &str =
-        "Der Dampfschifffahrtskapitän fährt über den Mittellandkanal zur Strombrücke Magdeburg 123 456.";
+        "Der Dampfschifffahrtskapitän fährt über den Mittellandkanal zur Strombrücke Magdeburg 123 456. Feuchteschutz insgesamt";
 
     const SEGMENTED: &[&str] = &[
         "Der",
@@ -58,7 +58,10 @@ mod test {
         "123",
         " ",
         "456",
-        ".",
+        ". ",
+        "Feuchteschutz",
+        " ",
+        "insgesamt",
     ];
 
     const TOKENIZED: &[&str] = &[
@@ -88,7 +91,10 @@ mod test {
         "123",
         " ",
         "456",
-        ".",
+        ". ",
+        "feuchteschutz",
+        " ",
+        "insgesamt",
     ];
 
     // Macro that runs several tests on the Segmenter.
@@ -137,7 +143,7 @@ mod test {
     );
     test_segmentation!(
         "Nahrungsmittelunverträglichkeitsdiagnoseverfahren",
-        &["Nahrungs", "mittel", "un", "verträglichkeits", "diagnose", "verfahren"],
+        &["Nahrungs", "mittel", "unverträglichkeitsdiagnoseverfahren"],
         word12
     );
     test_segmentation!("Volleyball", &["Volley", "ball"], word13);
