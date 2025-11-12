@@ -1,76 +1,103 @@
+use std::num::NonZero;
+
 use fst::raw::{Fst, Output};
 
 /// Final-state-transducer (FST) Segmenter
 pub(crate) struct FstSegmenter<'fst> {
     words_fst: &'fst Fst<&'fst [u8]>,
-    min_length: Option<usize>, // Optional minimum length for a word to be segmented
-    allow_char_split: bool,    // Flag to allow or disallow splitting words into characters
+    unmatched_split_strategy: UnmatchedSplitStrategy, // Strategy to use when no sequence matches
 }
 
 impl<'fst> FstSegmenter<'fst> {
     pub(crate) fn new(
         words_fst: &'fst Fst<&'fst [u8]>,
-        min_length: Option<usize>,
-        allow_char_split: bool,
+        unmatched_split_strategy: UnmatchedSplitStrategy,
     ) -> Self {
-        Self { words_fst, min_length, allow_char_split }
+        Self { words_fst, unmatched_split_strategy }
     }
 
     pub fn segment_str<'o>(
         &'fst self,
-        mut to_segment: &'o str,
+        to_segment: &'o str,
     ) -> Box<dyn Iterator<Item = &'o str> + 'o>
     where
         'fst: 'o,
     {
+        let mut buffering_match_offset = None;
+        let mut offset = 0;
         let iter = std::iter::from_fn(move || {
-            // if we reach the end of the text, we return None.
-            if to_segment.is_empty() {
-                return None;
-            }
+            loop {
+                let Some(next_to_segment) = to_segment.get(offset..).filter(|s| !s.is_empty())
+                else {
+                    // if we reach the end of the text, we return the buffered match if any.
+                    return buffering_match_offset
+                        .take() // take the buffered match offset and clear it
+                        .and_then(|offset| to_segment.get(offset..))
+                        .filter(|s| !s.is_empty());
+                };
 
-            let mut length = match find_longest_prefix(self.words_fst, to_segment.as_bytes()) {
-                Some((_, length)) => length,
-                None => {
-                    if self.allow_char_split {
-                        // if no sequence matches, we return the next character as a lemma.
-                        to_segment.chars().next().unwrap().len_utf8()
-                    } else {
-                        // if splitting is not allowed, return the whole input
-                        let result = to_segment;
-                        to_segment = "";
-                        return Some(result);
+                let match_kind =
+                    match find_longest_prefix(self.words_fst, next_to_segment.as_bytes()) {
+                        Some((_, length)) => {
+                            MatchKind::Match(fix_length_boundary(next_to_segment, length))
+                        }
+                        None => {
+                            match self.unmatched_split_strategy {
+                                UnmatchedSplitStrategy::NextMatch { max_char_count } => {
+                                    // buffer the match offset if it is not already buffered
+                                    let buffered_match_offset =
+                                        *buffering_match_offset.get_or_insert(offset);
+
+                                    // if the max char count is reached, return the match
+                                    match max_char_count {
+                                        Some(max_char_count)
+                                            if to_segment[buffered_match_offset..offset]
+                                                .chars()
+                                                .count()
+                                                >= max_char_count.get() =>
+                                        {
+                                            // return 1 character match to indicate that the max char count is reached
+                                            MatchKind::Match(1)
+                                        }
+                                        _ => {
+                                            // get the length of the first character and return it
+                                            MatchKind::BufferingMatch(
+                                                next_to_segment.chars().next().unwrap().len_utf8(),
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    };
+
+                match match_kind {
+                    MatchKind::Match(length) => match buffering_match_offset.take() {
+                        Some(buffering_match_offset) => {
+                            // return the buffered match instead of the next match
+                            return Some(&to_segment[buffering_match_offset..offset]);
+                        }
+                        None => {
+                            // otherwise, return the next match
+                            offset += length;
+                            return Some(&next_to_segment[..length]);
+                        }
+                    },
+                    MatchKind::BufferingMatch(length) => {
+                        offset += length;
                     }
                 }
-            };
-
-            if let Some(min_len) = self.min_length {
-                // enforce minimum lemma length if specified
-                if length < min_len && to_segment.len() > length {
-                    length = min_len.min(to_segment.len());
-                }
-
-                // prevent left over lemmas with a length fewer than min_len
-                if to_segment.len() - length < min_len {
-                    length = to_segment.len();
-                }
             }
-
-            // ensure the length is a valid character boundary
-            length = to_segment
-                .char_indices()
-                .find(|(idx, _)| *idx >= length)
-                .map(|(idx, _)| idx)
-                .unwrap_or(to_segment.len());
-
-            let (left, right) = to_segment.split_at(length);
-            to_segment = right;
-            Some(left)
         });
 
         Box::new(iter)
     }
 }
+
+fn fix_length_boundary(s: &str, length: usize) -> usize {
+    s.char_indices().find(|(idx, _)| *idx >= length).map(|(idx, _)| idx).unwrap_or(s.len())
+}
+
 /// find the longest key that is prefix of the given value.
 #[inline]
 fn find_longest_prefix(fst: &Fst<&[u8]>, value: &[u8]) -> Option<(u64, usize)> {
@@ -90,4 +117,15 @@ fn find_longest_prefix(fst: &Fst<&[u8]>, value: &[u8]) -> Option<(u64, usize)> {
         }
     }
     last_match
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnmatchedSplitStrategy {
+    // accumulate characters until the next match is found or the max char count is reached
+    NextMatch { max_char_count: Option<NonZero<usize>> },
+}
+
+enum MatchKind {
+    Match(usize),
+    BufferingMatch(usize),
 }

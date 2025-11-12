@@ -1,9 +1,10 @@
+use std::num::NonZero;
 // Import `Segmenter` trait.
 use std::sync::LazyLock;
 
 use fst::raw::Fst;
 
-use crate::segmenter::utils::FstSegmenter;
+use crate::segmenter::utils::{FstSegmenter, UnmatchedSplitStrategy};
 use crate::segmenter::Segmenter;
 
 /// Thai specialized [`Segmenter`].
@@ -16,8 +17,13 @@ static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
     Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap()
 });
 
-static FST_SEGMENTER: LazyLock<FstSegmenter> =
-    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, None, true));
+static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
+    // max char count of 1, so the segmenter will buffer the characters 1 by 1 or until the next match is found
+    FstSegmenter::new(
+        &WORDS_FST,
+        UnmatchedSplitStrategy::NextMatch { max_char_count: Some(NonZero::new(1).unwrap()) },
+    )
+});
 
 impl Segmenter for ThaiSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
