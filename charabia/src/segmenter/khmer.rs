@@ -1,12 +1,13 @@
+use std::num::NonZero;
+
 use fst::raw::Fst;
 
 // Import `Segmenter` trait.
-use crate::segmenter::utils::{FstSegmenter, UnmatchedSplitStrategy};
+use crate::segmenter::utils::{BufferingStrategy, FstSegmenter};
 use crate::segmenter::Segmenter;
 
 extern crate alloc; // required as my-data-mod is written for #[no_std]
 
-use std::num::NonZero;
 //TIP: Some segmentation Libraries need to initialize a instance of the Segmenter.
 //     This initialization could be time-consuming and shouldn't be done at each call of `segment_str`.
 //     In this case, you may want to store the initialized instance in a lazy static like below and call it in `segment_str`.
@@ -24,7 +25,7 @@ static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
     // max char count of 1, so the segmenter will buffer the characters 1 by 1 or until the next match is found
     FstSegmenter::new(
         &WORDS_FST,
-        UnmatchedSplitStrategy::NextMatch { max_char_count: Some(NonZero::new(1).unwrap()) },
+        BufferingStrategy::UntilNextMatch { max_char_count: Some(NonZero::<usize>::MIN) },
     )
 });
 

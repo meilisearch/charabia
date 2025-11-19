@@ -1,10 +1,10 @@
 use std::num::NonZero;
-// Import `Segmenter` trait.
 use std::sync::LazyLock;
 
 use fst::raw::Fst;
 
-use crate::segmenter::utils::{FstSegmenter, UnmatchedSplitStrategy};
+// Import `Segmenter` trait.
+use crate::segmenter::utils::{BufferingStrategy, FstSegmenter};
 use crate::segmenter::Segmenter;
 
 /// Thai specialized [`Segmenter`].
@@ -21,7 +21,7 @@ static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
     // max char count of 1, so the segmenter will buffer the characters 1 by 1 or until the next match is found
     FstSegmenter::new(
         &WORDS_FST,
-        UnmatchedSplitStrategy::NextMatch { max_char_count: Some(NonZero::new(1).unwrap()) },
+        BufferingStrategy::UntilNextMatch { max_char_count: Some(NonZero::<usize>::MIN) },
     )
 });
 

@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use fst::raw::Fst;
 
-use crate::segmenter::utils::{FstSegmenter, UnmatchedSplitStrategy};
+use crate::segmenter::utils::{BufferingStrategy, FstSegmenter};
 use crate::segmenter::Segmenter;
 
 /// German specialized [`Segmenter`].
@@ -16,7 +16,7 @@ static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
 
 static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
     // no max char count, so the segmenter will buffer the sequence until the next match is found
-    FstSegmenter::new(&WORDS_FST, UnmatchedSplitStrategy::NextMatch { max_char_count: None })
+    FstSegmenter::new(&WORDS_FST, BufferingStrategy::UntilNextMatch { max_char_count: None })
 });
 
 impl Segmenter for GermanSegmenter {
