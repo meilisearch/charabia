@@ -1,7 +1,9 @@
+use std::num::NonZero;
+
 use fst::raw::Fst;
 
 // Import `Segmenter` trait.
-use crate::segmenter::utils::FstSegmenter;
+use crate::segmenter::utils::{BufferingStrategy, FstSegmenter};
 use crate::segmenter::Segmenter;
 
 extern crate alloc; // required as my-data-mod is written for #[no_std]
@@ -19,8 +21,13 @@ static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
     Fst::new(&include_bytes!("../../dictionaries/fst/khmer/words.fst")[..]).unwrap()
 });
 
-static FST_SEGMENTER: LazyLock<FstSegmenter> =
-    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, None, true));
+static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
+    // max char count of 1, so the segmenter will buffer the characters 1 by 1 or until the next match is found
+    FstSegmenter::new(
+        &WORDS_FST,
+        BufferingStrategy::UntilNextMatch { max_char_count: Some(NonZero::<usize>::MIN) },
+    )
+});
 
 // Make a small documentation of the specialized Segmenter like below.
 /// <Script/Language> specialized [`Segmenter`].

@@ -2,7 +2,7 @@ use std::sync::LazyLock;
 
 use fst::raw::Fst;
 
-use crate::segmenter::utils::FstSegmenter;
+use crate::segmenter::utils::{BufferingStrategy, FstSegmenter};
 use crate::segmenter::Segmenter;
 
 /// German specialized [`Segmenter`].
@@ -14,8 +14,10 @@ static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
     Fst::new(&include_bytes!("../../dictionaries/fst/german/words.fst")[..]).unwrap()
 });
 
-static FST_SEGMENTER: LazyLock<FstSegmenter> =
-    LazyLock::new(|| FstSegmenter::new(&WORDS_FST, Some(2), false));
+static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
+    // no max char count, so the segmenter will buffer the sequence until the next match is found
+    FstSegmenter::new(&WORDS_FST, BufferingStrategy::UntilNextMatch { max_char_count: None })
+});
 
 impl Segmenter for GermanSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
@@ -38,7 +40,8 @@ mod test {
         "schifffahrts",
         "kapitän",
         " ",
-        "fährt",
+        "fähr",
+        "t",
         " ",
         "über",
         " ",
@@ -59,9 +62,11 @@ mod test {
         " ",
         "456",
         ". ",
-        "Feuchteschutz",
+        "Feuchte",
+        "schutz",
         " ",
-        "insgesamt",
+        "ins",
+        "gesamt",
     ];
 
     const TOKENIZED: &[&str] = &[
@@ -71,7 +76,8 @@ mod test {
         "schifffahrts",
         "kapitan",
         " ",
-        "fahrt",
+        "fahr",
+        "t",
         " ",
         "uber",
         " ",
@@ -92,9 +98,11 @@ mod test {
         " ",
         "456",
         ". ",
-        "feuchteschutz",
+        "feuchte",
+        "schutz",
         " ",
-        "insgesamt",
+        "ins",
+        "gesamt",
     ];
 
     // Macro that runs several tests on the Segmenter.
@@ -143,7 +151,7 @@ mod test {
     );
     test_segmentation!(
         "Nahrungsmittelunverträglichkeitsdiagnoseverfahren",
-        &["Nahrungs", "mittel", "unverträglichkeitsdiagnoseverfahren"],
+        &["Nahrungs", "mittel", "un", "verträglichkeits", "diagnose", "verfahren"],
         word12
     );
     test_segmentation!("Volleyball", &["Volley", "ball"], word13);
