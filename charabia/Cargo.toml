@@ -1,6 +1,6 @@
 [package]
 name = "charabia"
-version = "0.9.7"
+version = "0.9.8"
 license = "MIT"
 authors = ["Many <many@meilisearch.com>"]
 edition = "2021"
@@ -14,15 +14,14 @@ exclude = ["dictionaries/txt/thai/words.txt"]
 [dependencies]
 aho-corasick = "1.1.3"
 csv = "1.3.1"
-either = "1.13.0"
+either = "1.15.0"
 finl_unicode = { version = "1.3.0", optional = true }
 fst = "0.4"
-jieba-rs = { version = "0.7.3", optional = true }
-once_cell = "1.20.2"
-serde = "1.0.217"
+jieba-rs = { version = "0.8.1", optional = true }
+serde = "1.0.223"
 slice-group-by = "0.3.1"
 whatlang = "0.16.4"
-lindera = { version = "0.43.0", default-features = false, optional = true }
+lindera = { version = "0.43.3", default-features = false, optional = true }
 pinyin = { version = "0.10", default-features = false, features = [
     "with_tone",
 ], optional = true }
@@ -90,10 +89,10 @@ turkish = []
 german-segmentation = []
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.7"
 quickcheck = "1"
 quickcheck_macros = "1"
-mimalloc = "0.1.43"
+mimalloc = "0.1.48"
 
 [[bench]]
 name = "bench"

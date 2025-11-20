@@ -17,7 +17,7 @@ pub enum SeparatorKind {
 }
 
 /// Define the kind of a [`Token`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
     Word,
     /// the token is a stop word,
@@ -26,6 +26,7 @@ pub enum TokenKind {
     /// the token is a separator,
     /// meaning that it shouldn't be indexed but used to determine word proximity
     Separator(SeparatorKind),
+    #[default]
     Unknown,
 }
 
@@ -39,12 +40,6 @@ impl Arbitrary for TokenKind {
             Self::Separator(SeparatorKind::Soft),
         ])
         .unwrap()
-    }
-}
-
-impl Default for TokenKind {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 

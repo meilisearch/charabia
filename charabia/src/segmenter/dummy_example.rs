@@ -29,9 +29,9 @@ impl Segmenter for DummySegmenter {
 //     Otherwise, just remove below lines.
 //
 // Put this import at the top of the file.
-// use once_cell::sync::Lazy;
+// use std::sync::LazyLock;
 //
-// static LIBRARY_SEGMENTER: Lazy<LibrarySegmenter> = Lazy::new(|| LibrarySegmenter::new());
+// static LIBRARY_SEGMENTER: LazyLock<LibrarySegmenter> = LazyLock::new(|| LibrarySegmenter::new());
 
 // Publish the newly implemented Segmenter:
 //	   - import module by adding `mod dummy;` (filename) in `segmenter/mod.rs`

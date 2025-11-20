@@ -1,7 +1,8 @@
-use fst::raw::Fst;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
-use crate::segmenter::utils::FstSegmenter;
+use fst::raw::Fst;
+
+use crate::segmenter::utils::{BufferingStrategy, FstSegmenter};
 use crate::segmenter::Segmenter;
 
 /// German specialized [`Segmenter`].
@@ -9,11 +10,14 @@ use crate::segmenter::Segmenter;
 /// This Segmenter uses a dictionary encoded as an FST to segment the provided text.
 pub struct GermanSegmenter;
 
-static WORDS_FST: Lazy<Fst<&[u8]>> =
-    Lazy::new(|| Fst::new(&include_bytes!("../../dictionaries/fst/german/words.fst")[..]).unwrap());
+static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
+    Fst::new(&include_bytes!("../../dictionaries/fst/german/words.fst")[..]).unwrap()
+});
 
-static FST_SEGMENTER: Lazy<FstSegmenter> =
-    Lazy::new(|| FstSegmenter::new(&WORDS_FST, Some(2), true));
+static FST_SEGMENTER: LazyLock<FstSegmenter> = LazyLock::new(|| {
+    // no max char count, so the segmenter will buffer the sequence until the next match is found
+    FstSegmenter::new(&WORDS_FST, BufferingStrategy::UntilNextMatch { max_char_count: None })
+});
 
 impl Segmenter for GermanSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
@@ -27,7 +31,7 @@ mod test {
     use crate::segmenter::test::test_segmenter;
 
     const TEXT: &str =
-        "Der Dampfschifffahrtskapitän fährt über den Mittellandkanal zur Strombrücke Magdeburg 123 456.";
+        "Der Dampfschifffahrtskapitän fährt über den Mittellandkanal zur Strombrücke Magdeburg 123 456. Feuchteschutz insgesamt";
 
     const SEGMENTED: &[&str] = &[
         "Der",
@@ -36,7 +40,8 @@ mod test {
         "schifffahrts",
         "kapitän",
         " ",
-        "fährt",
+        "fähr",
+        "t",
         " ",
         "über",
         " ",
@@ -56,7 +61,12 @@ mod test {
         "123",
         " ",
         "456",
-        ".",
+        ". ",
+        "Feuchte",
+        "schutz",
+        " ",
+        "ins",
+        "gesamt",
     ];
 
     const TOKENIZED: &[&str] = &[
@@ -66,7 +76,8 @@ mod test {
         "schifffahrts",
         "kapitan",
         " ",
-        "fahrt",
+        "fahr",
+        "t",
         " ",
         "uber",
         " ",
@@ -86,7 +97,12 @@ mod test {
         "123",
         " ",
         "456",
-        ".",
+        ". ",
+        "feuchte",
+        "schutz",
+        " ",
+        "ins",
+        "gesamt",
     ];
 
     // Macro that runs several tests on the Segmenter.

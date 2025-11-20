@@ -1,7 +1,7 @@
 use std::collections::HashSet;
+use std::sync::LazyLock;
 
 use fst::Set;
-use once_cell::sync::Lazy;
 
 use super::{Normalizer, NormalizerOption};
 use crate::{SeparatorKind, Token, TokenKind};
@@ -62,11 +62,11 @@ fn separator_kind(lemma: &str) -> SeparatorKind {
     }
 }
 
-pub static DEFAULT_SEPARATOR_SET: Lazy<HashSet<&str>> =
-    Lazy::new(|| crate::separators::DEFAULT_SEPARATORS.iter().copied().collect());
+pub static DEFAULT_SEPARATOR_SET: LazyLock<HashSet<&str>> =
+    LazyLock::new(|| crate::separators::DEFAULT_SEPARATORS.iter().copied().collect());
 
-pub static CONTEXT_SEPARATOR_SET: Lazy<HashSet<&str>> =
-    Lazy::new(|| crate::separators::CONTEXT_SEPARATORS.iter().copied().collect());
+pub static CONTEXT_SEPARATOR_SET: LazyLock<HashSet<&str>> =
+    LazyLock::new(|| crate::separators::CONTEXT_SEPARATORS.iter().copied().collect());
 
 #[cfg(test)]
 mod test {
