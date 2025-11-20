@@ -96,9 +96,16 @@ fn find_longest_prefix(fst: &Fst<&[u8]>, value: &[u8]) -> Option<(u64, usize)> {
     last_match
 }
 
+/// Strategy for handling unmatched sequences during segmentation.
+///
+/// Controls how the segmenter behaves when encountering character sequences
+/// that don't match any entries in the FST dictionary.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BufferingStrategy {
-    // accumulate characters until the next match is found or the max char count is reached
+    /// Accumulate characters until the next match is found or the max char count is reached.
+    ///
+    /// - `Some(n)`: Buffer up to `n` characters before emitting the buffered sequence
+    /// - `None`: Buffer indefinitely until a dictionary match is found
     UntilNextMatch { max_char_count: Option<NonZero<usize>> },
 }
 
