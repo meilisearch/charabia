@@ -55,15 +55,14 @@ pub static NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
         #[cfg(feature = "swedish-recomposition")]
         Box::new(SwedishRecompositionNormalizer),
         Box::new(ControlCharNormalizer),
+        Box::new(LowercaseNormalizer),
         Box::new(Classifier),
-        Box::new(PersianNormalizer),
     ]
 });
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are considered lossy.
 pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
     vec![
-        Box::new(LowercaseNormalizer),
         Box::new(QuoteNormalizer),
         Box::new(AeOeNormalizer),
         #[cfg(feature = "chinese-normalization")]
@@ -72,6 +71,7 @@ pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new
         Box::new(JapaneseNormalizer),
         #[cfg(feature = "greek")]
         Box::new(GreekNormalizer),
+        Box::new(PersianNormalizer),
         Box::new(ArabicNormalizer),
         Box::new(NonspacingMarkNormalizer),
         #[cfg(feature = "vietnamese")]
