@@ -1,3 +1,0 @@
-status = ['tests', 'Run Clippy', 'Run Rustfmt']
-# 4 hours timeout
-timeout-sec = 14400
