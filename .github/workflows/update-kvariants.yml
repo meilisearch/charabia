@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Fetch latest version
         run: ./irg-kvariants/bin/sync_dictionaries.sh
       - name: Create Pull Request
