@@ -27,32 +27,57 @@ pub struct ThaiNormalizer;
 
 /// Recompose any occurrences of Nikhahit (U+0E4D) + Sara Aa (U+0E32) back into
 /// Sara Am (ำ, U+0E33) which is the correct composed form of the vowel.
+///
+/// Allocation is deferred: a `String` is only created when an actual
+/// recomposition is performed. Until that point the function returns
+/// `Cow::Borrowed(s)` without any heap work.
 fn recompose_sara_am(s: &str) -> Cow<'_, str> {
-    // Fast path: if neither character is present, return as-is
+    // Fast path: if Nikhahit is not present at all, nothing to do.
     if !s.contains('\u{e4d}') {
         return Cow::Borrowed(s);
     }
 
-    let mut result = String::with_capacity(s.len());
-    let mut chars = s.chars().peekable();
-    let mut modified = false;
+    // Walk the string looking for U+0E4D followed by U+0E32.
+    // We defer allocation until the first replacement is found.
+    let mut result: Option<String> = None;
+    let mut chars = s.char_indices().peekable();
 
-    while let Some(c) = chars.next() {
+    while let Some((byte_pos, c)) = chars.next() {
         if c == '\u{e4d}' {
-            // Nikhahit — check if followed by Sara Aa
-            if chars.peek() == Some(&'\u{e32}') {
-                chars.next(); // consume Sara Aa
-                result.push('\u{e33}'); // push Sara Am
-                modified = true;
+            // Peek at the next character to see if it is Sara Aa (U+0E32).
+            if let Some(&(_, '\u{e32}')) = chars.peek() {
+                // Consume Sara Aa.
+                chars.next();
+
+                // Allocate the result buffer now – only on the first replacement.
+                let buf = result.get_or_insert_with(|| {
+                    // Copy everything processed so far (before the Nikhahit).
+                    String::with_capacity(s.len())
+                });
+
+                // If this is the very first replacement the prefix has not been
+                // copied yet; write the slice that precedes the Nikhahit.
+                if buf.is_empty() && byte_pos > 0 {
+                    buf.push_str(&s[..byte_pos]);
+                }
+
+                buf.push('\u{e33}'); // Sara Am
             } else {
-                result.push(c);
+                if let Some(buf) = &mut result {
+                    buf.push(c);
+                }
+                // else: still borrowing – nothing to write
             }
-        } else {
-            result.push(c);
+        } else if let Some(buf) = &mut result {
+            buf.push(c);
         }
+        // else: still borrowing – nothing to write
     }
 
-    if modified { Cow::Owned(result) } else { Cow::Borrowed(s) }
+    match result {
+        Some(buf) => Cow::Owned(buf),
+        None => Cow::Borrowed(s),
+    }
 }
 
 impl Normalizer for ThaiNormalizer {
@@ -145,6 +170,36 @@ mod test {
         assert_eq!(result.lemma(), "\u{e19}\u{e49}\u{e33}\u{e22}\u{e32}");
     }
 
+    /// Verify that Sara Am recomposition works correctly even when the token
+    /// already carries a `char_map` (e.g., produced by a prior normalizer with
+    /// `create_char_map: true`).  The recomposition branch sets
+    /// `token.char_map = None` because the byte-length change invalidates any
+    /// existing mapping; this test ensures neither a panic nor a stale mapping
+    /// survives.
+    #[test]
+    fn test_sara_am_recomposition_with_existing_char_map() {
+        // Decomposed น้ำ: น(3 bytes) + ้(3 bytes) + U+0E4D(3 bytes) + า(3 bytes)
+        let decomposed = "\u{e19}\u{e49}\u{e4d}\u{e32}";
+        let token = Token {
+            lemma: Owned(decomposed.to_string()),
+            char_end: decomposed.chars().count(),
+            byte_end: decomposed.len(),
+            script: Script::Thai,
+            language: Some(Language::Tha),
+            // Simulate a char_map that a previous normalizer produced.
+            // Each source char maps 3 input bytes → 3 output bytes.
+            char_map: Some(vec![(3, 3), (3, 3), (3, 3), (3, 3)]),
+            ..Default::default()
+        };
+
+        let result = normalize(token);
+
+        // Lemma must be recomposed (3 chars: น + ้ + ำ).
+        assert_eq!(result.lemma(), "\u{e19}\u{e49}\u{e33}");
+        // char_map must be cleared because recomposition changed the byte length.
+        assert!(result.char_map.is_none(), "stale char_map must be cleared after recomposition");
+    }
+
     // --- Integration test: full normalization pipeline ---
 
     #[test]
@@ -212,5 +267,61 @@ mod test {
         };
         let normalized = token.normalize(&options);
         assert_eq!(normalized.lemma(), "น้ำ", "Sara Am (ำ) must not be decomposed");
+    }
+
+    /// Complement to `full_pipeline_preserves_thai_marks` that runs the full
+    /// normalizer pipeline with `create_char_map: true`.  This ensures that
+    /// Sara Am recomposition and any char_map-related paths do not regress or panic
+    /// when the pipeline is asked to produce position mappings.
+    #[test]
+    fn full_pipeline_preserves_thai_marks_with_char_map() {
+        use crate::normalizer::Normalize;
+
+        let options =
+            NormalizerOption { create_char_map: true, lossy: true, ..Default::default() };
+
+        // น้ำ — Sara Am must survive full pipeline even with char_map enabled.
+        let token = Token {
+            lemma: Owned("น้ำ".to_string()),
+            char_end: "น้ำ".chars().count(),
+            byte_end: "น้ำ".len(),
+            script: Script::Thai,
+            language: Some(Language::Tha),
+            ..Default::default()
+        };
+        let normalized = token.normalize(&options);
+        assert_eq!(normalized.lemma(), "น้ำ", "Sara Am (ำ) must not be decomposed (char_map path)");
+
+        // วิทยุ — vowels preserved with char_map enabled.
+        let token = Token {
+            lemma: Owned("วิทยุ".to_string()),
+            char_end: "วิทยุ".chars().count(),
+            byte_end: "วิทยุ".len(),
+            script: Script::Thai,
+            language: Some(Language::Tha),
+            ..Default::default()
+        };
+        let normalized = token.normalize(&options);
+        assert_eq!(
+            normalized.lemma(),
+            "วิทยุ",
+            "trailing sara u (ุ) must be preserved (char_map path)"
+        );
+
+        // มนุษย์ — silence mark preserved with char_map enabled.
+        let token = Token {
+            lemma: Owned("มนุษย์".to_string()),
+            char_end: "มนุษย์".chars().count(),
+            byte_end: "มนุษย์".len(),
+            script: Script::Thai,
+            language: Some(Language::Tha),
+            ..Default::default()
+        };
+        let normalized = token.normalize(&options);
+        assert_eq!(
+            normalized.lemma(),
+            "มนุษย์",
+            "thanthakhat (์) must be preserved (char_map path)"
+        );
     }
 }
