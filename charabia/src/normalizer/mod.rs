@@ -22,6 +22,8 @@ use self::swedish_recomposition::SwedishRecompositionNormalizer;
 pub use self::turkish::TurkishNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
+#[cfg(feature = "thai")]
+use self::thai::ThaiNormalizer;
 use crate::segmenter::SegmentedTokenIter;
 use crate::Token;
 
@@ -47,6 +49,8 @@ mod vietnamese;
 
 mod ae_oe_normalizer;
 mod persian;
+#[cfg(feature = "thai")]
+mod thai;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
@@ -74,6 +78,8 @@ pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new
         Box::new(GreekNormalizer),
         Box::new(ArabicNormalizer),
         Box::new(NonspacingMarkNormalizer),
+        #[cfg(feature = "thai")]
+        Box::new(ThaiNormalizer),
         #[cfg(feature = "vietnamese")]
         Box::new(VietnameseNormalizer),
         #[cfg(feature = "turkish")]
