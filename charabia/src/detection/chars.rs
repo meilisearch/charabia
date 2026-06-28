@@ -26,6 +26,9 @@ pub(crate) fn is_latin(ch: char) -> bool {
         | '\u{2C60}'..='\u{2C7F}'
         | '\u{A720}'..='\u{A7FF}'
         | '\u{AB30}'..='\u{AB6F}'
+        // Fullwidth ASCII variants (digits, latin letters, punctuation) in the
+        // Halfwidth and Fullwidth Forms block.
+        | '\u{FF01}'..='\u{FF5E}'
     )
 }
 
@@ -104,7 +107,10 @@ pub(crate) fn is_hiragana(ch: char) -> bool {
 }
 
 pub(crate) fn is_katakana(ch: char) -> bool {
-    matches!(ch, '\u{30A0}'..='\u{30FF}')
+    // The second range covers the halfwidth katakana variants (middle dot, the
+    // halfwidth katakana letters, and the voiced/semi-voiced sound marks) in the
+    // Halfwidth and Fullwidth Forms block.
+    matches!(ch, '\u{30A0}'..='\u{30FF}' | '\u{FF65}'..='\u{FF9F}')
 }
 
 // Hangul is Korean Alphabet. Unicode ranges are taken from: https://en.wikipedia.org/wiki/Hangul
@@ -116,7 +122,10 @@ pub(crate) fn is_hangul(ch: char) -> bool {
         | '\u{3200}'..='\u{32FF}'
         | '\u{A960}'..='\u{A97F}'
         | '\u{D7B0}'..='\u{D7FF}'
-        | '\u{FF00}'..='\u{FFEF}'
+        // Halfwidth Hangul variants (filler and jamo). The rest of the Halfwidth
+        // and Fullwidth Forms block holds fullwidth ASCII and halfwidth katakana,
+        // which are not Hangul.
+        | '\u{FFA0}'..='\u{FFDC}'
     )
 }
 
@@ -191,6 +200,8 @@ mod tests {
         assert!(is_latin('č'));
         assert!(is_latin('š'));
         assert!(is_latin('Ĵ'));
+        assert!(is_latin('\u{FF21}')); // Fullwidth A.
+        assert!(is_latin('\u{FF10}')); // Fullwidth digit 0.
 
         assert!(!is_latin('ж'));
     }
@@ -230,6 +241,8 @@ mod tests {
     #[test]
     fn test_is_katakana() {
         assert!(is_katakana('カ'));
+        assert!(is_katakana('\u{FF76}')); // Halfwidth katakana ｶ.
+        assert!(is_katakana('\u{FF9E}')); // Halfwidth voiced sound mark.
         assert!(!is_katakana('f'));
     }
 
@@ -242,7 +255,10 @@ mod tests {
     #[test]
     fn test_is_hangul() {
         assert!(is_hangul('ᄁ'));
+        assert!(is_hangul('\u{FFA1}')); // Halfwidth hangul ﾡ.
         assert!(!is_hangul('t'));
+        assert!(!is_hangul('\u{FF76}')); // Halfwidth katakana ｶ is japanese.
+        assert!(!is_hangul('\u{FF21}')); // Fullwidth A is latin.
     }
 
     #[test]
