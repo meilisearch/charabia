@@ -462,4 +462,19 @@ mod test {
     }
 
     test_normalizer!(PersianNormalizer, tokens(), normalizer_result(), normalized_tokens());
+
+    #[test]
+    fn test_zwnj_pipeline() {
+        use crate::Tokenize;
+
+        let text = "عمیق‌ترین";
+        let tokens: Vec<_> = text.tokenize().collect();
+        assert_eq!(tokens.len(), 1, "ZWNJ should not split the word");
+        assert_eq!(tokens[0].lemma(), "عمیقترین", "ZWNJ should be removed from the token lemma");
+
+        let text2 = "من به مدرسه می‌روم";
+        let tokens2: Vec<_> = text2.tokenize().collect();
+        assert_eq!(tokens2.len(), 7, "Sentence should be split into 4 words and 3 spaces");
+        assert_eq!(tokens2[6].lemma(), "میروم", "ZWNJ should be removed from the token lemma");
+    }
 }
