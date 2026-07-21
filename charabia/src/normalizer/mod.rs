@@ -88,12 +88,16 @@ pub(crate) const DEFAULT_NORMALIZER_OPTION: NormalizerOption = NormalizerOption 
 };
 
 /// Iterator over Normalized [`Token`]s.
-pub struct NormalizedTokenIter<'o, 'aho, 'lang, 'tb> {
-    token_iter: SegmentedTokenIter<'o, 'aho, 'lang>,
+pub struct NormalizedTokenIter<'o, 'aho, 'tb, AllowList> {
+    token_iter: SegmentedTokenIter<'o, 'aho, AllowList>,
     options: &'tb NormalizerOption<'tb>,
 }
 
-impl<'o> Iterator for NormalizedTokenIter<'o, '_, '_, '_> {
+impl<'o, 'lang, AllowList, Lang> Iterator for NormalizedTokenIter<'o, '_, '_, AllowList>
+where
+    AllowList: IntoIterator<Item = Lang> + Copy,
+    Lang: std::borrow::Borrow<crate::Language>,
+{
     type Item = Token<'o>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -239,14 +243,14 @@ impl From<String> for CharOrStr {
     }
 }
 
-impl<'o, 'aho, 'lang> SegmentedTokenIter<'o, 'aho, 'lang> {
+impl<'o, 'aho, AllowList> SegmentedTokenIter<'o, 'aho, AllowList> {
     /// Normalize [`Token`]s using all the compatible Normalizers.
     ///
     /// A Latin `Token` would not be normalized the same as a Chinese `Token`.
     pub fn normalize<'tb>(
         self,
         options: &'tb NormalizerOption<'tb>,
-    ) -> NormalizedTokenIter<'o, 'aho, 'lang, 'tb> {
+    ) -> NormalizedTokenIter<'o, 'aho, 'tb, AllowList> {
         NormalizedTokenIter { token_iter: self, options }
     }
 }
