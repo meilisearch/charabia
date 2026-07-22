@@ -29,14 +29,13 @@ impl<'o, 'al> StrDetection<'o, 'al> {
             Some(lang) => Some(lang),
             None => match self.allow_list {
                 Some([unique_language]) => Some(*unique_language),
-                None => {
+                allow_list => {
                     if self.script() == Script::Latin {
                         None
                     } else {
-                        Self::detect_lang(inner, None)
+                        Self::detect_lang(inner, allow_list)
                     }
-                }
-                allow_list => Self::detect_lang(inner, allow_list),
+                },
             },
         };
 
