@@ -5,8 +5,8 @@ use crate::{Script, Token};
 /// A global [`Normalizer`] for the Persian language.
 /// Persian alphabet: ا,ب,پ,ت,ث,ج,چ,ح,خ,د,ذ,ر,ز,ژ,س,ش,ص,ض,ط,ظ,ع,غ,ف,ق,ک,گ,ل,م,ن,و,ه,ی
 /// Persian text should be normalized by:
-/// - Normalizing the Persian Yeh 'ی', 'ي', 'ى', 'ۀ' to 'ی'
-/// - Normalizing the Persian Kaf 'ک' and 'ك' to 'ک'
+/// - Normalizing the Persian Yeh 'ي', 'ى', 'ۀ' to 'ی'
+/// - Normalizing the Arabic Kaf 'ك' to 'ک'
 /// - Normalizing the Persian numbers '۰'-'۹' to '0'-'9'
 /// - Removing diacritics '◌َ' to '◌ْ' (Fatha to Sukun)
 /// - Normalizing Rial sign '﷼' to 'RIAL'
@@ -28,10 +28,10 @@ impl CharNormalizer for PersianNormalizer {
 
 fn normalize_persian_char(c: char) -> Option<CharOrStr> {
     match c {
-        // Arabic Yeh, Persian Yeh, Yeh without dots, Yeh with Hamza to Persian Yeh
-        'ي' | 'ی' | 'ى' | 'ۀ' => Some('ی'.into()),
-        // Arabic Kaf and Persian Kaf to Persian Kaf
-        'ك' | 'ک' => Some('ک'.into()),
+        // Arabic Yeh, Yeh without dots, Yeh with Hamza to Persian Yeh
+        'ي' | 'ى' | 'ۀ' => Some('ی'.into()),
+        // Arabic Kaf to Persian Kaf
+        'ك' => Some('ک'.into()),
         // Persian digits to ASCII digits
         '۰' => Some('0'.into()),
         '۱' => Some('1'.into()),
@@ -58,8 +58,8 @@ fn normalize_persian_char(c: char) -> Option<CharOrStr> {
 fn is_should_normalize(c: char) -> bool {
     matches!(
         c,
-        'ي' | 'ی' | 'ى' | 'ۀ' | // Yeh variants
-        'ك' | 'ک' | // Kaf variants
+        'ي' | 'ى' | 'ۀ' | // Yeh variants
+        'ك' | // Arabic Kaf
         '۰'
             ..='۹' | // Persian digits
         '،' | '؟' | // Persian/Arabic punctuation
@@ -305,7 +305,7 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("علی".to_string()),
+                lemma: Owned("علي".to_string()),
                 char_end: 3,
                 byte_end: 6,
                 script: Script::Arabic,
@@ -315,7 +315,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("کتاب".to_string()),
+                lemma: Owned("كتاب".to_string()),
                 char_end: 4,
                 byte_end: 8,
                 script: Script::Arabic,
@@ -335,7 +335,7 @@ mod test {
                 ..Default::default()
             },
             Token {
-                lemma: Owned("کیک 123 یک کتاب".to_string()),
+                lemma: Owned("كيك 123 يك كتاب".to_string()),
                 char_end: 13,
                 byte_end: 24,
                 script: Script::Arabic,
@@ -344,19 +344,19 @@ mod test {
                 char_map: Some(vec![
                     (2, 2),
                     (2, 2),
-                    (2, 2), // کیک
+                    (2, 2), // كيك
                     (1, 1), // space
                     (2, 1),
                     (2, 1),
                     (2, 1), // ۱۲۳ (Persian digits, normalized to ASCII)
                     (1, 1), // space
                     (2, 2),
-                    (2, 2), // یک
+                    (2, 2), // يك
                     (1, 1), // space
                     (2, 2),
                     (2, 2),
                     (2, 2),
-                    (2, 2), // کتاب
+                    (2, 2), // كتاب
                 ]),
                 ..Default::default()
             },
@@ -389,7 +389,7 @@ mod test {
             },
             Token {
                 lemma: Owned(
-                    "قنات قصبه شهر گناباد عمیقترین و قدیمیترین کاریز جهان است.".to_string(),
+                    "قنات قصبه شهر گناباد عميقترين و قديميترين كاريز جهان است.".to_string(),
                 ),
                 char_end: 56,
                 byte_end: 112,
