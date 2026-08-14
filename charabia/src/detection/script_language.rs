@@ -375,4 +375,18 @@ mod test {
         assert_eq!(Script::Cj.name(), "Mandarin");
         assert_eq!(Script::from_name("Mandarin"), Script::Cj);
     }
+
+    #[test]
+    fn script_from_halfwidth_and_fullwidth_forms() {
+        // Halfwidth katakana is japanese (Cj), fullwidth ASCII is latin, and
+        // only the halfwidth hangul range stays hangul.
+        assert_eq!(Script::from('\u{FF76}'), Script::Cj); // ｶ
+        assert_eq!(Script::from('\u{FF71}'), Script::Cj); // ｱ
+        assert_eq!(Script::from('\u{FF9D}'), Script::Cj); // ﾝ
+        assert_eq!(Script::from('\u{FF9E}'), Script::Cj); // voiced sound mark
+        assert_eq!(Script::from('\u{FF21}'), Script::Latin); // Ａ
+        assert_eq!(Script::from('\u{FF10}'), Script::Latin); // ０
+        assert_eq!(Script::from('\u{FFA1}'), Script::Hangul); // ﾡ
+        assert_eq!(Script::from('\u{AC00}'), Script::Hangul); // 가
+    }
 }
