@@ -10,12 +10,16 @@ use crate::separators::DEFAULT_SEPARATORS;
 use crate::Token;
 
 /// Iterator over tuples of [`&str`] (part of the original text) and [`Token`].
-pub struct ReconstructedTokenIter<'o, 'aho, 'lang, 'tb> {
-    token_iter: NormalizedTokenIter<'o, 'aho, 'lang, 'tb>,
+pub struct ReconstructedTokenIter<'o, 'aho, 'tb, AllowList> {
+    token_iter: NormalizedTokenIter<'o, 'aho, 'tb, AllowList>,
     original: &'o str,
 }
 
-impl<'o> Iterator for ReconstructedTokenIter<'o, '_, '_, '_> {
+impl<'o, 'lang, AllowList, Lang> Iterator for ReconstructedTokenIter<'o, '_, '_, AllowList>
+where
+    AllowList: IntoIterator<Item = Lang> + Copy,
+    Lang: std::borrow::Borrow<Language>,
+{
     type Item = (&'o str, Token<'o>);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -53,7 +57,7 @@ pub trait Tokenize<'o> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn tokenize(&self) -> NormalizedTokenIter<'_, '_, '_, '_>;
+    fn tokenize(&self) -> NormalizedTokenIter<'_, '_, '_, &'_ [Language]>;
 
     /// Same as [`tokenize`] but attaches each [`Token`] to its corresponding portion of the original text.
     ///
@@ -81,15 +85,15 @@ pub trait Tokenize<'o> {
     /// assert_eq!(lemma, "quick");
     /// assert_eq!(kind, TokenKind::Word);
     /// ```
-    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, '_, '_>;
+    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, '_, &'_ [Language]>;
 }
 
 impl Tokenize<'_> for &str {
-    fn tokenize(&self) -> NormalizedTokenIter<'_, '_, '_, '_> {
+    fn tokenize(&self) -> NormalizedTokenIter<'_, '_, '_, &[Language]> {
         self.segment().normalize(&crate::normalizer::DEFAULT_NORMALIZER_OPTION)
     }
 
-    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, '_, '_> {
+    fn reconstruct(&self) -> ReconstructedTokenIter<'_, '_, '_, &[Language]> {
         ReconstructedTokenIter { original: self, token_iter: self.tokenize() }
     }
 }
@@ -108,7 +112,10 @@ impl Tokenizer<'_> {
     ///
     /// The provided text is segmented creating tokens,
     /// then tokens are normalized and classified depending on the list of normalizers and classifiers in [`normalizer::NORMALIZERS`].
-    pub fn tokenize<'t, 'o>(&'t self, original: &'o str) -> NormalizedTokenIter<'o, 't, 't, 't> {
+    pub fn tokenize<'t, 'o>(
+        &'t self,
+        original: &'o str,
+    ) -> NormalizedTokenIter<'o, 't, 't, &'t [Language]> {
         original
             .segment_with_option(
                 self.segmenter_option.aho.as_ref(),
@@ -124,12 +131,42 @@ impl Tokenizer<'_> {
     ///
     /// # Arguments
     ///
-    /// * `allow_list` - a slice of [`Language`] to allow during autodetection.
-    pub fn tokenize_with_allow_list<'t, 'o, 'lang>(
+    /// * `allow_list` - a list of [`Language`]s to allow during autodetection.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use charabia::{TokenizerBuilder, Language};
+    ///
+    /// // text to tokenize.
+    /// let orig = "The quick (\"brown\") fox can't jump 32.3 feet, right? Brr, it's 29.3°F!";
+    ///
+    /// // create the tokenizer.
+    /// let mut builder = TokenizerBuilder::default();
+    /// let tokenizer = builder.build();
+    ///
+    /// // tokenize by passing a slice.
+    /// tokenizer.tokenize_with_allow_list(orig, Some(&[Language::Eng]));
+    ///
+    /// // tokenize by passing an optional.
+    /// let hint: Option<Language> = Some(Language::Eng);
+    /// tokenizer.tokenize_with_allow_list(orig, Some(&hint));
+    /// tokenizer.tokenize_with_allow_list(orig, Some(hint));
+    ///
+    /// // tokenize by passing a boxed slice.
+    /// let allow_list: Box<[Language]> = Box::from([Language::Eng]);
+    /// tokenizer.tokenize_with_allow_list(orig, Some(&allow_list));
+    /// tokenizer.tokenize_with_allow_list(orig, Some(allow_list));
+    /// ```
+    pub fn tokenize_with_allow_list<'t, 'o, 'lang, AllowList, Lang>(
         &'t self,
         original: &'o str,
-        allow_list: Option<&'lang [Language]>,
-    ) -> NormalizedTokenIter<'o, 't, 'lang, 't> {
+        allow_list: Option<AllowList>,
+    ) -> NormalizedTokenIter<'o, 't, 't, AllowList>
+    where
+        AllowList: IntoIterator<Item = Lang>,
+        Lang: std::borrow::Borrow<Language>,
+    {
         original
             .segment_with_option(self.segmenter_option.aho.as_ref(), allow_list)
             .normalize(&self.normalizer_option)
@@ -139,12 +176,15 @@ impl Tokenizer<'_> {
     pub fn reconstruct<'t, 'o>(
         &'t self,
         original: &'o str,
-    ) -> ReconstructedTokenIter<'o, 't, 't, 't> {
+    ) -> ReconstructedTokenIter<'o, 't, 't, &'t [Language]> {
         ReconstructedTokenIter { original, token_iter: self.tokenize(original) }
     }
 
     /// Segments the provided text creating an Iterator over [`Token`].
-    pub fn segment<'t, 'o>(&'t self, original: &'o str) -> SegmentedTokenIter<'o, 't, 't> {
+    pub fn segment<'t, 'o>(
+        &'t self,
+        original: &'o str,
+    ) -> SegmentedTokenIter<'o, 't, &'t [Language]> {
         original.segment_with_option(
             self.segmenter_option.aho.as_ref(),
             self.segmenter_option.allow_list,
@@ -152,7 +192,10 @@ impl Tokenizer<'_> {
     }
 
     /// Segments the provided text creating an Iterator over `&str`.
-    pub fn segment_str<'t, 'o>(&'t self, original: &'o str) -> SegmentedStrIter<'o, 't, 't> {
+    pub fn segment_str<'t, 'o>(
+        &'t self,
+        original: &'o str,
+    ) -> SegmentedStrIter<'o, 't, &'t [Language]> {
         original.segment_str_with_option(
             self.segmenter_option.aho.as_ref(),
             self.segmenter_option.allow_list,
