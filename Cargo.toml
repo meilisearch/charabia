@@ -3,3 +3,6 @@ resolver = "2"
 members = ["charabia", "irg-kvariants"]
 default-members = ["charabia"]
 
+[patch.crates-io]
+core2 = { path = "core2-shim" }
+

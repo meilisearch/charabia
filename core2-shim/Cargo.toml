@@ -1,0 +1,10 @@
+[package]
+name = "core2"
+version = "0.4.0"
+edition = "2021"
+description = "Local shim replacing the yanked core2 crate — re-exports std::io"
+
+[features]
+default = ["std"]
+std = []
+alloc = []
