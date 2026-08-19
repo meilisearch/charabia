@@ -62,23 +62,32 @@ mod test {
         "456",
     ];
 
+    // TOKENIZED contains the expected output after the full normalization pipeline.
+    //
+    // All Thai combining marks are preserved (ThaiNormalizer prevents stripping):
+    // - Vowels (e.g. ิ ั ี ื ุ ู ็): preserved
+    // - Tone marks (e.g. ่ ้ ๊ ๋): preserved
+    // - Silence mark ์: preserved
+    //
+    // Sara Am (ำ, U+0E33) is preserved as-is (ThaiNormalizer recomposes it back
+    // after CompatibilityDecompositionNormalizer may have split it).
     const TOKENIZED: &[&str] = &[
         "ภาษาไทย",
-        "งาย",
-        "นดเดยว",
+        "ง่าย",
+        "นิดเดียว",
         " ",
-        "ไก",
-        "ขน",
-        "ตอนเชา",
+        "ไก่",
+        "ขัน",
+        "ตอนเช้า",
         "บน",
-        "ขนนา",
+        "ขันน้ำ",
         " ",
-        "ฉน",
+        "ฉัน",
         "สระผม",
-        "ท",
-        "สระนา",
-        "ดวย",
-        "นายา",
+        "ที่",
+        "สระน้ำ",
+        "ด้วย",
+        "น้ำยา",
         "สระผม",
         " ",
         "123",

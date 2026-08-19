@@ -16,7 +16,10 @@ static NONSPACING_MARKS: LazyLock<HashSet<u32>> = LazyLock::new(|| {
 
 /// A global [`Normalizer`] removing nonspacing marks.
 ///
-/// This normalizer uses built-in `HashSet` internally to check over the marks set
+/// This normalizer uses built-in `HashSet` internally to check over the marks set.
+/// Note: Thai tokens are handled by [`ThaiNormalizer`] which preserves all Thai
+/// combining marks (vowels, tone marks, silence marks) since they are semantically
+/// significant in Thai orthography.
 pub struct NonspacingMarkNormalizer;
 
 impl CharNormalizer for NonspacingMarkNormalizer {
@@ -27,7 +30,7 @@ impl CharNormalizer for NonspacingMarkNormalizer {
     fn should_normalize(&self, token: &Token) -> bool {
         matches!(
             token.script,
-            Script::Hebrew | Script::Thai | Script::Arabic | Script::Latin | Script::Greek
+            Script::Hebrew | Script::Arabic | Script::Latin | Script::Greek
         ) && token.lemma().chars().any(is_nonspacing_mark)
     }
 }
@@ -46,15 +49,10 @@ mod test {
     use crate::token::TokenKind;
 
     // base tokens to normalize.
+    // Note: Thai tokens are intentionally absent here because Thai has its own
+    // dedicated ThaiNormalizer that preserves all combining marks.
     fn tokens() -> Vec<Token<'static>> {
         vec![
-            Token {
-                lemma: Owned("ง่าย".to_string()),
-                char_end: "ง่าย".chars().count(),
-                byte_end: "ง่าย".len(),
-                script: Script::Thai,
-                ..Default::default()
-            },
             Token {
                 lemma: Owned("أَب".to_string()),
                 char_end: "أَب".chars().count(),
@@ -75,14 +73,6 @@ mod test {
     // expected result of the current Normalizer.
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![
-            Token {
-                lemma: Owned("งาย".to_string()),
-                char_end: 4,
-                byte_end: 12,
-                char_map: Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]),
-                script: Script::Thai,
-                ..Default::default()
-            },
             Token {
                 lemma: Owned("أب".to_string()),
                 char_end: "أَب".chars().count(),
@@ -105,15 +95,6 @@ mod test {
     // expected result of the complete Normalizer pipeline.
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
-            Token {
-                lemma: Owned("งาย".to_string()),
-                char_end: 4,
-                byte_end: 12,
-                char_map: Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]),
-                script: Script::Thai,
-                kind: TokenKind::Word,
-                ..Default::default()
-            },
             Token {
                 lemma: Owned("اب".to_string()),
                 char_end: "أَب".chars().count(),
