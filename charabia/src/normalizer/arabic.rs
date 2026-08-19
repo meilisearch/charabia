@@ -6,7 +6,8 @@ use crate::{Script, Token};
 /// Arabic text should be normalized by:
 /// - removing the arabic Tatweel ('ـ') characters.
 /// - normalizing the arabic Alef 'أ','إ','آ','ٱ' to 'ا'
-/// - normalizing the arabic Yeh 'ى' to 'ي'
+/// - normalizing the Persian Yeh and arabic Yeh(Alef Maksoora) 'ى' to 'ي'
+/// - Normalizing the Persian Kaf 'ک' to 'ك'
 /// - Normalizing the arabic Taa Marbuta 'ة' to 'ه'
 ///   https://en.wikipedia.org/wiki/Arabic_alphabet
 ///   https://en.wikipedia.org/wiki/Kashida
@@ -28,14 +29,15 @@ fn normalize_arabic_char(c: char) -> Option<CharOrStr> {
     match c {
         'ـ' => None,
         'أ' | 'إ' | 'آ' | 'ٱ' => Some('ا'.into()), // All Alef variants to Alef
-        'ى' => Some('ي'.into()),
+        'ی' | 'ى' => Some('ي'.into()),       // Alef Maksoora and Persian Yeh to Arabic Yeh
         'ة' => Some('ه'.into()),
+        'ک' => Some('ك'.into()), // Persian Kaf to Arabic Kaf
         _ => Some(c.into()),
     }
 }
 
 fn is_shoud_normalize(c: char) -> bool {
-    matches!(c, 'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'ة')
+    matches!(c, 'ـ' | 'أ' | 'إ' | 'آ' | 'ٱ' | 'ى' | 'ی' | 'ک' | 'ة')
 }
 
 #[cfg(test)]
