@@ -38,7 +38,7 @@ mod korean;
 mod latin;
 #[cfg(feature = "thai")]
 mod thai;
-#[cfg(feature = "khmer")]
+#[cfg(any(feature = "khmer", feature = "german-segmentation"))]
 mod utils;
 
 pub type SegmenterMap = HashMap<(Script, Option<Language>), Box<dyn Segmenter>>;
