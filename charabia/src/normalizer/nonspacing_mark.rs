@@ -9,9 +9,7 @@ use crate::Token;
 static NONSPACING_MARKS: LazyLock<HashSet<u32>> = LazyLock::new(|| {
     let bytes = include_bytes!("../../dictionaries/bin/nonspacing_mark/marks.bin");
 
-    HashSet::from_iter(
-        bytes.chunks_exact(4).map(|chunk| u32::from_ne_bytes(chunk.try_into().unwrap())),
-    )
+    HashSet::from_iter(bytes.as_chunks::<4>().0.iter().map(|chunk| u32::from_ne_bytes(*chunk)))
 });
 
 /// A global [`Normalizer`] removing nonspacing marks.
