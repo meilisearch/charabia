@@ -116,19 +116,26 @@ fn segment_boundaries(fst: &Fst<&[u8]>, text: &str) -> Vec<usize> {
 /// Calls `f` with the length, in chars, of each dictionary word that is a prefix of `chars`.
 ///
 /// Nikhahit (U+0E4D) followed by Sara Aa (U+0E32) is matched as Sara Am (U+0E33),
-/// because Sara Am is often typed this way.
+/// because Sara Am is often typed this way, and Nikhahit + tone mark + Sara Aa
+/// is matched as tone mark + Sara Am (e.g. นํ้า as น้ำ).
 fn for_each_dictionary_match(fst: &Fst<&[u8]>, chars: &[(usize, char)], mut f: impl FnMut(usize)) {
     let mut node = fst.root();
     let mut buffer = [0; 4];
     let mut len = 0;
     while let Some(&(_, c)) = chars.get(len) {
-        let (c, char_count) = match (c, chars.get(len + 1)) {
-            (NIKHAHIT, Some((_, SARA_AA))) => (SARA_AM, 2),
-            (c, _) => (c, 1),
+        let char_at = |i: usize| chars.get(i).map(|(_, c)| *c);
+        let (matched, char_count) = match (c, char_at(len + 1), char_at(len + 2)) {
+            (NIKHAHIT, Some(SARA_AA), _) => ([Some(SARA_AM), None], 2),
+            (NIKHAHIT, Some(tone @ '\u{e48}'..='\u{e4b}'), Some(SARA_AA)) => {
+                ([Some(tone), Some(SARA_AM)], 3)
+            }
+            (c, _, _) => ([Some(c), None], 1),
         };
-        for &byte in c.encode_utf8(&mut buffer).as_bytes() {
-            let Some(transition) = node.find_input(byte) else { return };
-            node = fst.node(node.transition_addr(transition));
+        for c in matched.into_iter().flatten() {
+            for &byte in c.encode_utf8(&mut buffer).as_bytes() {
+                let Some(transition) = node.find_input(byte) else { return };
+                node = fst.node(node.transition_addr(transition));
+            }
         }
         len += char_count;
         if node.is_final() {
@@ -294,9 +301,33 @@ mod test {
     }
 
     #[test]
+    fn sara_am_with_tone_mark_after_nikhahit_is_matched_as_sara_am() {
+        // Sara Am typed as Nikhahit (U+0E4D) + tone mark + Sara Aa (U+0E32), e.g. นํ้า.
+        assert_eq!(
+            segment_thai("น\u{e4d}\u{e49}\u{e32}ตาลหวาน"),
+            ["น\u{e4d}\u{e49}\u{e32}ตาล", "หวาน"]
+        );
+
+        let tokens: Vec<_> = crate::Tokenize::tokenize(&"น\u{e4d}\u{e49}\u{e32}ตาล")
+            .map(|t| t.lemma().to_string())
+            .collect();
+        assert_eq!(tokens, ["น้ำตาล"]);
+    }
+
+    #[test]
     fn segments_cover_the_whole_text() {
-        for text in ["", "a", "ๆๆ", "เ", "ั", "\u{e4d}", "กกกกกกกกกกกกกกกก", "ภาษาไทย123abc"]
-        {
+        for text in [
+            "",
+            "a",
+            "ๆๆ",
+            "เ",
+            "ั",
+            "\u{e4d}",
+            "\u{e4d}\u{e49}",
+            "ก\u{e4d}\u{e49}",
+            "กกกกกกกกกกกกกกกก",
+            "ภาษาไทย123abc",
+        ] {
             assert_eq!(segment_thai(text).concat(), text);
         }
     }
