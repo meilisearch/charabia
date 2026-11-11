@@ -13,6 +13,8 @@ use self::greek::GreekNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
+#[cfg(feature = "malayalam")]
+pub use self::malayalam::MalayalamNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
 pub use self::persian::PersianNormalizer;
 use self::quote::QuoteNormalizer;
@@ -36,6 +38,8 @@ mod greek;
 #[cfg(feature = "japanese-transliteration")]
 mod japanese;
 mod lowercase;
+#[cfg(feature = "malayalam")]
+mod malayalam;
 mod nonspacing_mark;
 mod quote;
 #[cfg(feature = "swedish-recomposition")]
@@ -78,6 +82,8 @@ pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new
         Box::new(VietnameseNormalizer),
         #[cfg(feature = "turkish")]
         Box::new(TurkishNormalizer),
+        #[cfg(feature = "malayalam")]
+        Box::new(MalayalamNormalizer),
     ]
 });
 

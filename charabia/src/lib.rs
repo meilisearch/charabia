@@ -41,6 +41,10 @@
 //! Charabia comes with default features that can be deactivated at compile time,
 //! this features are additional Language supports that need to download and/or build a specialized dictionary that impact the compilation time.
 //! Theses features are listed in charabia's `cargo.toml` and can be deactivated via [dependency features](https://doc.rust-lang.org/cargo/reference/features.html#dependency-features).
+//!
+//! The optional `malayalam` feature enables conservative lossy lemmatization using
+//! `mlmorph-rs`. It is disabled by default. With character maps enabled, matches
+//! on changed Malayalam lemmas map to the complete original word.
 
 #[cfg(test)]
 extern crate quickcheck;

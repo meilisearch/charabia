@@ -1,7 +1,7 @@
 use std::hint::black_box;
 
-use charabia::{Language, Script, Segment, Tokenize};
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use charabia::{Language, Script, Segment, Tokenize, TokenizerBuilder};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use mimalloc::MiMalloc;
 
 #[global_allocator]
@@ -50,6 +50,21 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     benchmark_texts!(c, segment);
     benchmark_texts!(c, tokenize);
+
+    let text =
+        "കേരളത്തിന്റെ വനങ്ങളിൽ കേരളം വനം. English 123, കേരളത്തിന്റെ! വനങ്ങളിൽ? ൺ ന്‍ ന്‌ കൊച്ചി അജ്ഞാതവാക്ക്‌xyz";
+    let mut group = c.benchmark_group("malayalam");
+    group.throughput(Throughput::Bytes(text.len() as u64));
+    for create_char_map in [false, true] {
+        let mut builder = TokenizerBuilder::default();
+        builder.create_char_map(create_char_map);
+        let tokenizer = builder.build();
+        tokenizer.tokenize(text).count();
+        group.bench_function(format!("char_map_{create_char_map}"), |b| {
+            b.iter(|| tokenizer.tokenize(black_box(text)).count());
+        });
+    }
+    group.finish();
 }
 
 fn tokenize(text: &str) {
