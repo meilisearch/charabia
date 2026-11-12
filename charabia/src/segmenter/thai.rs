@@ -5,6 +5,9 @@ use fst::raw::Fst;
 // Import `Segmenter` trait.
 use crate::segmenter::Segmenter;
 
+const MAI_HAN_AKAT: char = '\u{e31}';
+const THANTHAKHAT: char = '\u{e4c}';
+
 /// Thai specialized [`Segmenter`].
 ///
 /// This Segmenter uses a dictionary encoded as an FST to segment the provided text.
@@ -13,6 +16,8 @@ use crate::segmenter::Segmenter;
 /// The text is segmented by maximal matching: among the possible segmentations,
 /// the one with the fewest characters outside of dictionary words is chosen,
 /// then the one with the fewest segments.
+/// The text is only cut between Thai character clusters, so a vowel or a tone mark
+/// is never separated from its consonant.
 pub struct ThaiSegmenter;
 
 static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
@@ -90,11 +95,46 @@ fn find_best_segmentation(fst: &Fst<&[u8]>, text: &str, steps: &mut [Step]) {
     }
 }
 
-/// Marks the offsets where the text can be cut.
+/// Marks the offsets where the text can be cut, which are the ends of the character clusters.
 fn mark_breakable(text: &str, steps: &mut [Step]) {
-    for (i, _) in text.char_indices() {
-        steps[i].breakable = true;
+    // the chars preceding the current one, the closest first.
+    let mut previous = ['\0'; 4];
+    for (i, current) in text.char_indices() {
+        let [p1, p2, p3, p4] = previous;
+
+        // a leading vowel is always followed by its consonant.
+        let after_leading_vowel = is_leading_vowel(p1);
+        // Mai Han-Akat is always followed by a final consonant (e.g. กัน).
+        let after_mai_han_akat = p1 == MAI_HAN_AKAT;
+        // a consonant with a tone mark and without vowel is followed by its vowel or its
+        // final consonant (e.g. ก่อน, ก้น), unlike after a leading vowel (e.g. ไม่|มี, ไหว้|วัน).
+        let after_toned_consonant = matches!(p1, '\u{e48}'..='\u{e4b}')
+            && is_thai_consonant(p2)
+            && !is_leading_vowel(p3)
+            && !(is_thai_consonant(p3) && is_leading_vowel(p4));
+        // vowels, tone marks and diacritics are always attached to the preceding character.
+        let before_dependent_char =
+            matches!(current, '\u{e30}'..='\u{e3a}' | '\u{e45}' | '\u{e47}'..='\u{e4e}');
+
+        steps[i].breakable = !(after_leading_vowel
+            || after_mai_han_akat
+            || after_toned_consonant
+            || before_dependent_char);
+
+        // a silent consonant belongs to the preceding syllable (e.g. สัมพันธ์, ศักดิ์).
+        if current == THANTHAKHAT {
+            if is_thai_consonant(p1) {
+                steps[i - p1.len_utf8()].breakable = false;
+            } else if matches!(p1, '\u{e34}' | '\u{e38}') && is_thai_consonant(p2) {
+                steps[i - p1.len_utf8() - p2.len_utf8()].breakable = false;
+            }
+        }
+
+        previous = [current, p1, p2, p3];
     }
+
+    // the text can always be cut at its start and at its end.
+    steps[0].breakable = true;
     steps[text.len()].breakable = true;
 }
 
@@ -112,6 +152,14 @@ fn for_each_dictionary_match(fst: &Fst<&[u8]>, text: &str, mut f: impl FnMut(usi
             f(text.len() - chars.as_str().len());
         }
     }
+}
+
+fn is_leading_vowel(c: char) -> bool {
+    matches!(c, '\u{e40}'..='\u{e44}')
+}
+
+fn is_thai_consonant(c: char) -> bool {
+    matches!(c, '\u{e01}'..='\u{e2e}')
 }
 
 // Test the segmenter:
@@ -169,5 +217,24 @@ mod test {
         {
             assert_eq!(segment_thai(text).concat(), text);
         }
+    }
+
+    #[test]
+    fn vowels_and_tone_marks_are_not_split_from_their_consonant() {
+        for text in ["ช้อปปี้", "ฟ่อนฟั่น", "ก่อนก้นกิ่ง", "สัมพันธ์ศักดิ์"]
+        {
+            let segments = segment_thai(text);
+            assert_eq!(segments.concat(), text);
+            for segment in &segments[1..] {
+                let first = segment.chars().next().unwrap();
+                assert!(
+                    !matches!(first, '\u{e30}'..='\u{e3a}' | '\u{e45}' | '\u{e47}'..='\u{e4e}'),
+                    "{segments:?} starts a segment with a vowel or a diacritic"
+                );
+            }
+        }
+        assert_eq!(segment_thai("ก่อน"), ["ก่อน"]);
+        assert_eq!(segment_thai("สัมพันธ์"), ["สัมพันธ์"]);
+        assert_eq!(segment_thai("ไม่มีไหว้วัน"), ["ไม่", "มี", "ไหว้", "วัน"]);
     }
 }
