@@ -18,6 +18,7 @@ const THANTHAKHAT: char = '\u{e4c}';
 /// then the one with the fewest segments.
 /// The text is only cut between Thai character clusters, so a vowel or a tone mark
 /// is never separated from its consonant.
+/// Consecutive characters outside of dictionary words are kept together in a single segment.
 pub struct ThaiSegmenter;
 
 static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
@@ -41,11 +42,14 @@ struct Step {
     cost: (usize, usize),
     /// offset of the start of the last segment.
     start: usize,
+    /// whether the last segment is a dictionary word.
+    known: bool,
 }
 
 impl Step {
     /// The offset has not been reached.
-    const UNREACHED: Step = Step { breakable: false, cost: (usize::MAX, usize::MAX), start: 0 };
+    const UNREACHED: Step =
+        Step { breakable: false, cost: (usize::MAX, usize::MAX), start: 0, known: false };
 }
 
 /// Returns the byte offsets of the segment boundaries of the text, including `0` and `text.len()`.
@@ -56,12 +60,22 @@ fn segment_boundaries(fst: &Fst<&[u8]>, text: &str) -> Vec<usize> {
 
     find_best_segmentation(fst, text, &mut steps);
 
-    // backtrack the best segmentation.
+    // backtrack the best segmentation, merging consecutive unknown segments of the same kind.
     let mut boundaries = vec![text.len()];
+    let mut next_unknown_kind = None;
     let mut end = text.len();
     while end > 0 {
-        end = steps[end].start;
-        boundaries.push(end);
+        let Step { start, known, .. } = steps[end];
+        let unknown_kind = (!known).then(|| {
+            let c = text[start..].chars().next().unwrap();
+            (is_thai_letter(c), is_numeric(c))
+        });
+        if unknown_kind.is_some() && unknown_kind == next_unknown_kind {
+            boundaries.pop();
+        }
+        boundaries.push(start);
+        next_unknown_kind = unknown_kind;
+        end = start;
     }
     boundaries.reverse();
 
@@ -81,17 +95,17 @@ fn find_best_segmentation(fst: &Fst<&[u8]>, text: &str, steps: &mut [Step]) {
         // the text can always be cut at the end of the next character cluster.
         let cluster_end = (start + 1..=text.len()).find(|&i| steps[i].breakable).unwrap();
 
-        let mut relax = |end: usize, unknown: usize| {
+        let mut relax = |end: usize, unknown: usize, known: bool| {
             let cost = (unknown_chars + unknown, segments + 1);
             // on equal cost, prefer the latest start, i.e. the longest preceding segments.
             if steps[end].breakable && cost <= steps[end].cost {
-                steps[end] = Step { cost, start, ..steps[end] };
+                steps[end] = Step { cost, start, known, ..steps[end] };
             }
         };
 
-        for_each_dictionary_match(fst, &text[start..], |len| relax(start + len, 0));
+        for_each_dictionary_match(fst, &text[start..], |len| relax(start + len, 0, true));
 
-        relax(cluster_end, text[start..cluster_end].chars().count());
+        relax(cluster_end, text[start..cluster_end].chars().count(), false);
     }
 }
 
@@ -115,11 +129,14 @@ fn mark_breakable(text: &str, steps: &mut [Step]) {
         // vowels, tone marks and diacritics are always attached to the preceding character.
         let before_dependent_char =
             matches!(current, '\u{e30}'..='\u{e3a}' | '\u{e45}' | '\u{e47}'..='\u{e4e}');
+        // numbers are not split.
+        let inside_number = is_numeric(p1) && is_numeric(current);
 
         steps[i].breakable = !(after_leading_vowel
             || after_mai_han_akat
             || after_toned_consonant
-            || before_dependent_char);
+            || before_dependent_char
+            || inside_number);
 
         // a silent consonant belongs to the preceding syllable (e.g. สัมพันธ์, ศักดิ์).
         if current == THANTHAKHAT {
@@ -160,6 +177,21 @@ fn is_leading_vowel(c: char) -> bool {
 
 fn is_thai_consonant(c: char) -> bool {
     matches!(c, '\u{e01}'..='\u{e2e}')
+}
+
+/// Same as [`char::is_numeric`], without looking up the Unicode tables for the Thai chars,
+/// which are most of the chars of the text.
+fn is_numeric(c: char) -> bool {
+    match c {
+        '0'..='9' | '\u{e50}'..='\u{e59}' => true,
+        '\u{e00}'..='\u{e7f}' => false,
+        c => c.is_numeric(),
+    }
+}
+
+/// Returns `true` if the char is a Thai consonant, vowel, tone mark or diacritic.
+fn is_thai_letter(c: char) -> bool {
+    matches!(c, '\u{e01}'..='\u{e2e}' | '\u{e30}'..='\u{e3a}' | '\u{e40}'..='\u{e45}' | '\u{e47}'..='\u{e4e}')
 }
 
 // Test the segmenter:
@@ -236,5 +268,16 @@ mod test {
         assert_eq!(segment_thai("ก่อน"), ["ก่อน"]);
         assert_eq!(segment_thai("สัมพันธ์"), ["สัมพันธ์"]);
         assert_eq!(segment_thai("ไม่มีไหว้วัน"), ["ไม่", "มี", "ไหว้", "วัน"]);
+    }
+
+    #[test]
+    fn unknown_words_are_not_split_into_chars() {
+        assert_eq!(segment_thai("ฟฟฟฟฟ"), ["ฟฟฟฟฟ"]);
+        assert_eq!(segment_thai("ช้อปปี้"), ["ช้อป", "ปี้"]);
+    }
+
+    #[test]
+    fn numbers_are_not_split() {
+        assert_eq!(segment_thai("ปี2024ราคา๑๒๓บาท"), ["ปี", "2024", "ราคา", "๑๒๓", "บาท"]);
     }
 }
