@@ -97,7 +97,14 @@ fn segment_boundaries(fst: &Fst<Vec<u8>>, text: &str) -> Vec<usize> {
     mark_breakable(text, &mut steps);
     steps[0].cost = (0, 0);
 
-    find_best_segmentation(fst, text, &mut steps);
+    // most of the text is made of dictionary words, so first look for a segmentation without
+    // any unknown segment, which is much cheaper to find than the best segmentation.
+    if !find_best_segmentation(fst, text, &mut steps, false) {
+        for step in &mut steps[1..] {
+            step.cost = Step::UNREACHED.cost;
+        }
+        find_best_segmentation(fst, text, &mut steps, true);
+    }
 
     // backtrack the best segmentation, merging consecutive unknown segments of the same kind.
     let mut boundaries = vec![text.len()];
@@ -123,8 +130,14 @@ fn segment_boundaries(fst: &Fst<Vec<u8>>, text: &str) -> Vec<usize> {
 
 /// Computes, for each offset where the text can be cut, the best segmentation up to it.
 ///
-/// The segments are dictionary words, or the next character cluster.
-fn find_best_segmentation(fst: &Fst<Vec<u8>>, text: &str, steps: &mut [Step]) {
+/// The segments are dictionary words, and the next character cluster when `allow_unknown`.
+/// Returns `true` if the end of the text is reachable.
+fn find_best_segmentation(
+    fst: &Fst<Vec<u8>>,
+    text: &str,
+    steps: &mut [Step],
+    allow_unknown: bool,
+) -> bool {
     for start in 0..text.len() {
         let Step { cost: (unknown_chars, segments), .. } = steps[start];
         if unknown_chars == usize::MAX {
@@ -144,8 +157,12 @@ fn find_best_segmentation(fst: &Fst<Vec<u8>>, text: &str, steps: &mut [Step]) {
 
         for_each_dictionary_match(fst, &text[start..], |len| relax(start + len, 0, true));
 
-        relax(cluster_end, text[start..cluster_end].chars().count(), false);
+        if allow_unknown {
+            relax(cluster_end, text[start..cluster_end].chars().count(), false);
+        }
     }
+
+    steps[text.len()].cost.0 != usize::MAX
 }
 
 /// Marks the offsets where the text can be cut, which are the ends of the character clusters.
