@@ -177,6 +177,15 @@ mod test {
     }
 
     #[test]
+    fn vowels_and_tone_marks_are_kept_by_the_lossy_normalization() {
+        let options = NormalizerOption { lossy: true, ..Default::default() };
+        for word in ["วิทยุ", "ธาตุ", "มนุษย์", "ง่าย", "น้ำ"]
+        {
+            assert_eq!(thai_token(word).normalize(&options).lemma(), word);
+        }
+    }
+
+    #[test]
     fn sara_am_is_kept_by_the_non_lossy_normalization() {
         for create_char_map in [false, true] {
             for (word, expected) in

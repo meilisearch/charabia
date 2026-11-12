@@ -62,29 +62,9 @@ mod test {
         "456",
     ];
 
-    const TOKENIZED: &[&str] = &[
-        "ภาษาไทย",
-        "งาย",
-        "นดเดยว",
-        " ",
-        "ไก",
-        "ขน",
-        "ตอนเชา",
-        "บน",
-        "ขนนำ",
-        " ",
-        "ฉน",
-        "สระผม",
-        "ท",
-        "สระนำ",
-        "ดวย",
-        "นำยา",
-        "สระผม",
-        " ",
-        "123",
-        " ",
-        "456",
-    ];
+    // the normalization keeps the Thai vowels and tone marks.
+    const TOKENIZED: &[&str] = SEGMENTED;
+
     // Macro that run several tests on the Segmenter.
     test_segmenter!(ThaiSegmenter, TEXT, SEGMENTED, TOKENIZED, Script::Thai, Language::Tha);
 }
