@@ -62,6 +62,10 @@ same nonempty root. Unknown words, conflicting roots, multi-morpheme analyses,
 and analyser errors retain the existing lemma. Grammatical tags are never emitted.
 Segmentation and original token ranges are unchanged. Analysis uses composed
 Unicode text internally and returns roots in the pipeline's NFKD form.
+Legacy chillu spellings are canonicalized in a fixed order before analysis.
+The string `Normalize` API uses the same pipeline for a single Malayalam token;
+use tokenization for sentences and mixed-script text. Other string inputs keep
+their existing normalization behavior.
 
 **Highlighting:** mlmorph 1.4.3 provides no surface-to-root character alignment.
 When `create_char_map(true)` is configured or a token already has a character map,

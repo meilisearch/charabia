@@ -20,8 +20,11 @@ impl Normalizer for MalayalamNormalizer {
         let Ok(analyser) = Analyser::new() else {
             return token;
         };
-        // Analysis expects composed vowel signs; output follows the pipeline's NFKD form.
-        let word: String = token.lemma().nfc().collect();
+        let mut word: String = token.lemma().nfc().collect();
+        if word.contains("ന്\u{200d}") {
+            // Resolve overlapping chillu forms before mlmorph's unordered replacements.
+            word = word.replace("ന്\u{200d}", "ൻ").replace("ൻ്റ", "ന്റ");
+        }
         let Ok(analyses) = analyser.analyse(&word, false, false) else {
             return token;
         };
@@ -81,6 +84,100 @@ fn agreed_root(analyses: &[(String, i32)]) -> Option<String> {
 mod tests {
     use super::*;
     use crate::{Normalize, TokenKind, TokenizerBuilder};
+
+    #[test]
+    fn legacy_chillu_replacements_are_deterministic() {
+        let canonical = "കേരളത്തിന്റെ";
+        let modern = canonical.replace("ന്റ", "ൻ്റ");
+        let legacy = canonical.replace("ന്റ", "ന്\u{200d}\u{0d4d}റ");
+        for word in [modern.as_str(), legacy.as_str()] {
+            for create_char_map in [false, true] {
+                for lossy in [false, true] {
+                    let mut builder = TokenizerBuilder::default();
+                    builder.create_char_map(create_char_map).lossy_normalization(lossy);
+                    let tokenizer = builder.build();
+                    let expected =
+                        if lossy { "കേരളം".to_owned() } else { word.nfkd().collect() };
+                    for _ in 0..64 {
+                        let tokens: Vec<_> = tokenizer.tokenize(word).collect();
+                        assert_eq!(tokens.len(), 1);
+                        let token = &tokens[0];
+                        assert_eq!(token.lemma(), expected);
+                        assert_eq!((token.byte_start, token.byte_end), (0, word.len()));
+                        assert_eq!((token.char_start, token.char_end), (0, word.chars().count()));
+                        if lossy && create_char_map {
+                            assert_eq!(
+                                token.original_lengths(1),
+                                (word.chars().count(), word.len())
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn strings_use_the_malayalam_token_pipeline() {
+        for (word, root) in [
+            ("കേരളത്തിന്റെ", "കേരളം"),
+            ("വനങ്ങളിൽ", "വനം"),
+            ("കൊച്ചിയുടെ", "കൊച്ചി"),
+            ("കേരളം", "കേരളം"),
+            ("നീലത്താമര", "നീലത്താമര"),
+            ("അആഇഈഉഊഋഌ", "അആഇഈഉഊഋഌ"),
+            ("കേരളത്തിന്\u{200d}\u{0d4d}റെ", "കേരളം"),
+        ] {
+            for create_char_map in [false, true] {
+                for lossy in [false, true] {
+                    let options = NormalizerOption { create_char_map, lossy, ..Default::default() };
+                    let expected: String = if lossy { root } else { word }.nfkd().collect();
+                    assert_eq!(word.normalize(&options), expected, "{word}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn strings_respect_stop_words_and_custom_separators() {
+        let word = "കേരളത്തിന്റെ";
+        let stop_words = fst::Set::from_iter([word]).unwrap();
+        let separators = [word];
+        for create_char_map in [false, true] {
+            let mut options =
+                NormalizerOption { create_char_map, lossy: true, ..Default::default() };
+            options.classifier.stop_words =
+                Some(fst::Set::new(stop_words.as_fst().as_bytes()).unwrap());
+            assert_eq!(word.normalize(&options), word);
+            options.classifier.stop_words = None;
+            options.classifier.separators = Some(&separators);
+            assert_eq!(word.normalize(&options), word);
+        }
+    }
+
+    #[test]
+    fn multi_token_strings_keep_existing_behavior() {
+        let options = NormalizerOption { lossy: true, ..Default::default() };
+        for (text, expected) in [
+            ("കേരളത്തിന്റെ English", "കേരളതതിനറെ english"),
+            ("കേരളത്തിന്റെ വനം", "കേരളതതിനറെ വനം"),
+            ("കേരളത്തിന്റെ!", "കേരളതതിനറെ!"),
+            ("കേരളത്തിന്റെ\u{200c}", "കേരളതതിനറെ"),
+        ] {
+            assert_eq!(text.normalize(&options), expected);
+        }
+    }
+
+    #[quickcheck]
+    fn arbitrary_unicode_strings_do_not_panic(
+        text: String,
+        create_char_map: bool,
+        lossy: bool,
+    ) -> bool {
+        let options = NormalizerOption { create_char_map, lossy, ..Default::default() };
+        let _ = text.as_str().normalize(&options);
+        true
+    }
 
     #[test]
     fn selection_depends_on_script_and_word_kind_not_language_detection() {
