@@ -7,6 +7,9 @@ use crate::segmenter::Segmenter;
 
 const MAI_HAN_AKAT: char = '\u{e31}';
 const THANTHAKHAT: char = '\u{e4c}';
+const NIKHAHIT: char = '\u{e4d}';
+const SARA_AA: char = '\u{e32}';
+const SARA_AM: char = '\u{e33}';
 
 /// Thai specialized [`Segmenter`].
 ///
@@ -156,18 +159,45 @@ fn mark_breakable(text: &str, steps: &mut [Step]) {
 }
 
 /// Calls `f` with the length, in bytes, of each dictionary word that is a prefix of the text.
+///
+/// Nikhahit (U+0E4D) followed by Sara Aa (U+0E32) is matched as Sara Am (U+0E33),
+/// because Sara Am is often typed this way, and Nikhahit + tone mark + Sara Aa
+/// is matched as tone mark + Sara Am (e.g. นํ้า as น้ำ).
 fn for_each_dictionary_match(fst: &Fst<&[u8]>, text: &str, mut f: impl FnMut(usize)) {
     let mut node = fst.root();
     let mut buffer = [0; 4];
     let mut chars = text.chars();
     while let Some(c) = chars.next() {
-        for &byte in c.encode_utf8(&mut buffer).as_bytes() {
-            let Some(transition) = node.find_input(byte) else { return };
-            node = fst.node(node.transition_addr(transition));
+        let mut step = |c: char| {
+            for &byte in c.encode_utf8(&mut buffer).as_bytes() {
+                let Some(transition) = node.find_input(byte) else { return false };
+                node = fst.node(node.transition_addr(transition));
+            }
+            true
+        };
+        let matched = match (c == NIKHAHIT).then(|| recomposed_sara_am(chars.clone())).flatten() {
+            Some((tone, consumed)) => {
+                chars.nth(consumed - 1);
+                tone.is_none_or(&mut step) && step(SARA_AM)
+            }
+            None => step(c),
+        };
+        if !matched {
+            return;
         }
         if node.is_final() {
             f(text.len() - chars.as_str().len());
         }
+    }
+}
+
+/// Returns the optional tone mark and the number of chars following a Nikhahit,
+/// if they complete a Sara Am.
+fn recomposed_sara_am(mut following: std::str::Chars) -> Option<(Option<char>, usize)> {
+    match (following.next()?, following.next()) {
+        (SARA_AA, _) => Some((None, 1)),
+        (tone @ '\u{e48}'..='\u{e4b}', Some(SARA_AA)) => Some((Some(tone), 2)),
+        _ => None,
     }
 }
 
@@ -279,5 +309,33 @@ mod test {
     #[test]
     fn numbers_are_not_split() {
         assert_eq!(segment_thai("ปี2024ราคา๑๒๓บาท"), ["ปี", "2024", "ราคา", "๑๒๓", "บาท"]);
+    }
+
+    #[test]
+    fn decomposed_sara_am_is_matched_as_sara_am() {
+        // Sara Am typed as Nikhahit (U+0E4D) + Sara Aa (U+0E32).
+        assert_eq!(
+            segment_thai("น้\u{e4d}\u{e32}ตาลท\u{e4d}\u{e32}งาน"),
+            ["น้\u{e4d}\u{e32}ตาล", "ท\u{e4d}\u{e32}งาน"]
+        );
+
+        let tokens: Vec<_> = crate::Tokenize::tokenize(&"น้\u{e4d}\u{e32}ตาล")
+            .map(|t| t.lemma().to_string())
+            .collect();
+        assert_eq!(tokens, ["น้ำตาล"]);
+    }
+
+    #[test]
+    fn sara_am_with_tone_mark_after_nikhahit_is_matched_as_sara_am() {
+        // Sara Am typed as Nikhahit (U+0E4D) + tone mark + Sara Aa (U+0E32), e.g. นํ้า.
+        assert_eq!(
+            segment_thai("น\u{e4d}\u{e49}\u{e32}ตาลหวาน"),
+            ["น\u{e4d}\u{e49}\u{e32}ตาล", "หวาน"]
+        );
+
+        let tokens: Vec<_> = crate::Tokenize::tokenize(&"น\u{e4d}\u{e49}\u{e32}ตาล")
+            .map(|t| t.lemma().to_string())
+            .collect();
+        assert_eq!(tokens, ["น้ำตาล"]);
     }
 }
