@@ -1,6 +1,6 @@
 use std::sync::LazyLock;
 
-use fst::raw::Fst;
+use fst::raw::{Fst, Node};
 
 // Import `Segmenter` trait.
 use crate::segmenter::Segmenter;
@@ -55,6 +55,14 @@ fn encode(c: char) -> Option<u8> {
         _ => None,
     }
 }
+
+/// The node reached by each encoded first char of a word.
+static FIRST_NODES: LazyLock<Vec<Option<Node<'static>>>> = LazyLock::new(|| {
+    let root = WORDS_FST.root();
+    (0..=u8::MAX)
+        .map(|byte| root.find_input(byte).map(|t| WORDS_FST.node(root.transition_addr(t))))
+        .collect()
+});
 
 impl Segmenter for ThaiSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
@@ -194,6 +202,15 @@ fn mark_breakable(text: &str, steps: &mut [Step]) {
 fn for_each_dictionary_match(fst: &Fst<Vec<u8>>, text: &str, mut f: impl FnMut(usize)) {
     let mut node = fst.root();
     let mut chars = text.chars();
+    // every lookup starts with the first char, most of them fail on it.
+    if let Some(c) = chars.clone().next().filter(|&c| c != NIKHAHIT) {
+        let Some(first) = encode(c).and_then(|byte| FIRST_NODES[byte as usize]) else { return };
+        node = first;
+        chars.next();
+        if node.is_final() {
+            f(text.len() - chars.as_str().len());
+        }
+    }
     while let Some(c) = chars.next() {
         let mut step = |c: char| {
             let Some(transition) = encode(c).and_then(|byte| node.find_input(byte)) else {
