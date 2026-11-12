@@ -18,6 +18,8 @@ pub use self::persian::PersianNormalizer;
 use self::quote::QuoteNormalizer;
 #[cfg(feature = "swedish-recomposition")]
 use self::swedish_recomposition::SwedishRecompositionNormalizer;
+#[cfg(feature = "thai")]
+use self::thai::ThaiNormalizer;
 #[cfg(feature = "turkish")]
 pub use self::turkish::TurkishNormalizer;
 #[cfg(feature = "vietnamese")]
@@ -47,6 +49,8 @@ mod vietnamese;
 
 mod ae_oe_normalizer;
 mod persian;
+#[cfg(feature = "thai")]
+mod thai;
 
 /// List of [`Normalizer`]s used by [`Normalize::normalize`] that are not considered lossy.
 pub static NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
@@ -54,6 +58,8 @@ pub static NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new(|| {
         Box::new(CompatibilityDecompositionNormalizer),
         #[cfg(feature = "swedish-recomposition")]
         Box::new(SwedishRecompositionNormalizer),
+        #[cfg(feature = "thai")]
+        Box::new(ThaiNormalizer),
         Box::new(ControlCharNormalizer),
         Box::new(Classifier),
         Box::new(PersianNormalizer),
