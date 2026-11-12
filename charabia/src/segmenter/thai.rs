@@ -24,9 +24,37 @@ const SARA_AM: char = '\u{e33}';
 /// Consecutive characters outside of dictionary words are kept together in a single segment.
 pub struct ThaiSegmenter;
 
-static WORDS_FST: LazyLock<Fst<&[u8]>> = LazyLock::new(|| {
-    Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap()
+/// The dictionary, encoded with one byte per char, see [`encode`].
+///
+/// The dictionary words are made of Thai chars, which take 3 bytes in UTF-8 and so 3 transitions
+/// of the FST, and are looked up from every character cluster of the text.
+static WORDS_FST: LazyLock<Fst<Vec<u8>>> = LazyLock::new(|| {
+    use fst::Streamer;
+
+    let words = Fst::new(&include_bytes!("../../dictionaries/fst/thai/words.fst")[..]).unwrap();
+    let mut builder = fst::raw::Builder::memory();
+    let mut word = Vec::new();
+    let mut stream = words.stream();
+    while let Some((key, _)) = stream.next() {
+        // the encoding keeps the order of the words, the words that can't be encoded are ignored.
+        word.clear();
+        let mut chars = std::str::from_utf8(key).unwrap().chars();
+        if chars.all(|c| encode(c).map(|byte| word.push(byte)).is_some()) {
+            builder.add(&word).unwrap();
+        }
+    }
+
+    builder.into_fst()
 });
+
+/// Encodes an ASCII or Thai char with a single byte.
+fn encode(c: char) -> Option<u8> {
+    match c {
+        '\0'..='\x7f' => Some(c as u8),
+        '\u{e00}'..='\u{e7f}' => Some((c as u32 - 0xe00 + 0x80) as u8),
+        _ => None,
+    }
+}
 
 impl Segmenter for ThaiSegmenter {
     fn segment_str<'o>(&self, to_segment: &'o str) -> Box<dyn Iterator<Item = &'o str> + 'o> {
@@ -56,7 +84,7 @@ impl Step {
 }
 
 /// Returns the byte offsets of the segment boundaries of the text, including `0` and `text.len()`.
-fn segment_boundaries(fst: &Fst<&[u8]>, text: &str) -> Vec<usize> {
+fn segment_boundaries(fst: &Fst<Vec<u8>>, text: &str) -> Vec<usize> {
     let mut steps = vec![Step::UNREACHED; text.len() + 1];
     mark_breakable(text, &mut steps);
     steps[0].cost = (0, 0);
@@ -88,7 +116,7 @@ fn segment_boundaries(fst: &Fst<&[u8]>, text: &str) -> Vec<usize> {
 /// Computes, for each offset where the text can be cut, the best segmentation up to it.
 ///
 /// The segments are dictionary words, or the next character cluster.
-fn find_best_segmentation(fst: &Fst<&[u8]>, text: &str, steps: &mut [Step]) {
+fn find_best_segmentation(fst: &Fst<Vec<u8>>, text: &str, steps: &mut [Step]) {
     for start in 0..text.len() {
         let Step { cost: (unknown_chars, segments), .. } = steps[start];
         if unknown_chars == usize::MAX {
@@ -163,16 +191,15 @@ fn mark_breakable(text: &str, steps: &mut [Step]) {
 /// Nikhahit (U+0E4D) followed by Sara Aa (U+0E32) is matched as Sara Am (U+0E33),
 /// because Sara Am is often typed this way, and Nikhahit + tone mark + Sara Aa
 /// is matched as tone mark + Sara Am (e.g. นํ้า as น้ำ).
-fn for_each_dictionary_match(fst: &Fst<&[u8]>, text: &str, mut f: impl FnMut(usize)) {
+fn for_each_dictionary_match(fst: &Fst<Vec<u8>>, text: &str, mut f: impl FnMut(usize)) {
     let mut node = fst.root();
-    let mut buffer = [0; 4];
     let mut chars = text.chars();
     while let Some(c) = chars.next() {
         let mut step = |c: char| {
-            for &byte in c.encode_utf8(&mut buffer).as_bytes() {
-                let Some(transition) = node.find_input(byte) else { return false };
-                node = fst.node(node.transition_addr(transition));
-            }
+            let Some(transition) = encode(c).and_then(|byte| node.find_input(byte)) else {
+                return false;
+            };
+            node = fst.node(node.transition_addr(transition));
             true
         };
         let matched = match (c == NIKHAHIT).then(|| recomposed_sara_am(chars.clone())).flatten() {
