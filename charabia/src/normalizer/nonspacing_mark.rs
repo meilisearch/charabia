@@ -25,10 +25,9 @@ impl CharNormalizer for NonspacingMarkNormalizer {
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
-        matches!(
-            token.script,
-            Script::Hebrew | Script::Thai | Script::Arabic | Script::Latin | Script::Greek
-        ) && token.lemma().chars().any(is_nonspacing_mark)
+        // the Thai nonspacing marks are vowels and tone marks, they are not removed.
+        matches!(token.script, Script::Hebrew | Script::Arabic | Script::Latin | Script::Greek)
+            && token.lemma().chars().any(is_nonspacing_mark)
     }
 }
 
@@ -76,10 +75,9 @@ mod test {
     fn normalizer_result() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("งาย".to_string()),
+                lemma: Owned("ง่าย".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                char_map: Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]),
                 script: Script::Thai,
                 ..Default::default()
             },
@@ -106,10 +104,9 @@ mod test {
     fn normalized_tokens() -> Vec<Token<'static>> {
         vec![
             Token {
-                lemma: Owned("งาย".to_string()),
+                lemma: Owned("ง่าย".to_string()),
                 char_end: 4,
                 byte_end: 12,
-                char_map: Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]),
                 script: Script::Thai,
                 kind: TokenKind::Word,
                 ..Default::default()
