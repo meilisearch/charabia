@@ -6,16 +6,16 @@ use crate::{Script, Token};
 const NIKHAHIT: char = '\u{e4d}';
 const SARA_AA: char = '\u{e32}';
 const SARA_AM: char = '\u{e33}';
-const DECOMPOSED_SARA_AM: &str = "\u{e4d}\u{e32}";
 
 /// Thai specialized [`Normalizer`].
 ///
 /// This Normalizer recomposes Sara Am (ำ, U+0E33), which is decomposed into
 /// Nikhahit (U+0E4D) + Sara Aa (U+0E32) by the
 /// [`CompatibilityDecompositionNormalizer`](super::CompatibilityDecompositionNormalizer),
-/// and which is sometimes typed as these two characters.
+/// and which is sometimes typed as these two characters, with or without a tone mark
+/// between them: น้ำ can be typed as น + ้ + ํ + า or as น + ํ + ้ + า.
 ///
-/// Sara Am is a single vowel, so both forms must give the same lemma.
+/// Sara Am is a single vowel, so all the forms must give the same lemma.
 /// The recomposition is not lossy, so this Normalizer is not part of the lossy normalizers.
 pub struct ThaiNormalizer;
 
@@ -23,7 +23,7 @@ impl Normalizer for ThaiNormalizer {
     fn normalize<'o>(&self, mut token: Token<'o>, options: &NormalizerOption) -> Token<'o> {
         // `Normalize for &str` calls every normalizer without calling `should_normalize`,
         // so return early to avoid allocating when there is nothing to recompose.
-        if !token.lemma.contains(DECOMPOSED_SARA_AM) {
+        if !contains_decomposed_sara_am(&token.lemma) {
             return token;
         }
 
@@ -44,21 +44,39 @@ impl Normalizer for ThaiNormalizer {
     }
 
     fn should_normalize(&self, token: &Token) -> bool {
-        token.script == Script::Thai && token.lemma.contains(DECOMPOSED_SARA_AM)
+        token.script == Script::Thai && contains_decomposed_sara_am(&token.lemma)
+    }
+}
+
+/// Returns `true` if the lemma contains a Nikhahit that is followed by Sara Aa,
+/// with or without a tone mark between them.
+fn contains_decomposed_sara_am(lemma: &str) -> bool {
+    lemma.match_indices(NIKHAHIT).any(|(i, _)| completes_sara_am(&lemma[i + NIKHAHIT.len_utf8()..]))
+}
+
+/// Returns `true` if the text following a Nikhahit starts with Sara Aa,
+/// or with a tone mark and Sara Aa.
+fn completes_sara_am(rest: &str) -> bool {
+    let mut chars = rest.chars();
+    match chars.next() {
+        Some(SARA_AA) => true,
+        Some('\u{e48}'..='\u{e4b}') => chars.next() == Some(SARA_AA),
+        _ => false,
     }
 }
 
 /// Recomposes Nikhahit + Sara Aa into Sara Am.
 ///
 /// Yields, for each char of the lemma, its length and the char replacing it:
-/// Nikhahit is removed and Sara Aa is replaced by Sara Am.
+/// Nikhahit is removed, the tone mark following it is kept,
+/// and Sara Aa is replaced by Sara Am.
 fn recompose(lemma: &str) -> impl Iterator<Item = (usize, Option<char>)> + '_ {
-    let mut chars = lemma.chars().peekable();
+    let mut chars = lemma.chars();
     let mut after_nikhahit = false;
     std::iter::from_fn(move || {
         let c = chars.next()?;
         let recomposed = match c {
-            NIKHAHIT if chars.peek() == Some(&SARA_AA) => {
+            NIKHAHIT if completes_sara_am(chars.as_str()) => {
                 after_nikhahit = true;
                 None
             }
@@ -121,6 +139,10 @@ mod test {
             ("น\u{e49}\u{e4d}\u{e32}", "น้ำ"),
             ("ท\u{e4d}\u{e32}งาน", "ทำงาน"),
             ("น\u{e49}\u{e4d}\u{e32}ท\u{e4d}\u{e32}", "น้ำทำ"),
+            // the tone mark is typed after the Nikhahit.
+            ("น\u{e4d}\u{e49}\u{e32}", "น้ำ"),
+            ("ต\u{e4d}\u{e48}\u{e32}", "ต่ำ"),
+            ("น\u{e4d}\u{e49}\u{e32}ตาล", "น้ำตาล"),
         ] {
             for create_char_map in [false, true] {
                 let token = thai_token(decomposed);
@@ -135,7 +157,9 @@ mod test {
     #[test]
     fn text_without_decomposed_sara_am_is_not_reallocated() {
         // a Nikhahit that is not followed by Sara Aa is kept.
-        for lemma in ["น้ำ", "วิทยุ", "\u{e4d}", "น\u{e4d}", "hello"] {
+        for lemma in
+            ["น้ำ", "วิทยุ", "\u{e4d}", "น\u{e4d}", "น\u{e4d}\u{e49}", "น\u{e4d}\u{e49}ย", "hello"]
+        {
             let token = thai_token(lemma);
             assert!(!ThaiNormalizer.should_normalize(&token));
             let token = ThaiNormalizer.normalize(token, &options(true));
@@ -164,6 +188,15 @@ mod test {
     }
 
     #[test]
+    fn char_map_of_sara_am_typed_with_a_tone_mark_after_nikhahit() {
+        // นํ้า: the tone mark keeps its own entry.
+        let token = ThaiNormalizer.normalize(thai_token("น\u{e4d}\u{e49}\u{e32}"), &options(true));
+        assert_eq!(token.lemma(), "น้ำ");
+        assert_eq!(token.char_map, Some(vec![(3, 3), (3, 0), (3, 3), (3, 3)]));
+        assert_eq!(token.original_lengths(token.lemma().len()), (4, 12));
+    }
+
+    #[test]
     fn char_map_of_sara_am_decomposed_by_a_previous_normalizer() {
         // น้ำ: the original Sara Am (3 bytes) has been decomposed into 6 bytes.
         let token = Token {
@@ -188,9 +221,12 @@ mod test {
     #[test]
     fn sara_am_is_kept_by_the_non_lossy_normalization() {
         for create_char_map in [false, true] {
-            for (word, expected) in
-                [("น้ำ", "น้ำ"), ("ทำงาน", "ทำงาน"), ("น\u{e49}\u{e4d}\u{e32}", "น้ำ")]
-            {
+            for (word, expected) in [
+                ("น้ำ", "น้ำ"),
+                ("ทำงาน", "ทำงาน"),
+                ("น\u{e49}\u{e4d}\u{e32}", "น้ำ"),
+                ("น\u{e4d}\u{e49}\u{e32}", "น้ำ"),
+            ] {
                 let token = thai_token(word).normalize(&options(create_char_map));
                 assert_eq!(token.lemma(), expected);
                 if create_char_map {
