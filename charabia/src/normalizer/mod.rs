@@ -13,6 +13,8 @@ use self::greek::GreekNormalizer;
 #[cfg(feature = "japanese-transliteration")]
 pub use self::japanese::JapaneseNormalizer;
 pub use self::lowercase::LowercaseNormalizer;
+#[cfg(feature = "malayalam")]
+pub use self::malayalam::MalayalamNormalizer;
 use self::nonspacing_mark::NonspacingMarkNormalizer;
 pub use self::persian::PersianNormalizer;
 use self::quote::QuoteNormalizer;
@@ -23,6 +25,8 @@ pub use self::turkish::TurkishNormalizer;
 #[cfg(feature = "vietnamese")]
 pub use self::vietnamese::VietnameseNormalizer;
 use crate::segmenter::SegmentedTokenIter;
+#[cfg(feature = "malayalam")]
+use crate::Script;
 use crate::Token;
 
 mod arabic;
@@ -36,6 +40,8 @@ mod greek;
 #[cfg(feature = "japanese-transliteration")]
 mod japanese;
 mod lowercase;
+#[cfg(feature = "malayalam")]
+mod malayalam;
 mod nonspacing_mark;
 mod quote;
 #[cfg(feature = "swedish-recomposition")]
@@ -78,6 +84,8 @@ pub static LOSSY_NORMALIZERS: LazyLock<Vec<Box<dyn Normalizer>>> = LazyLock::new
         Box::new(VietnameseNormalizer),
         #[cfg(feature = "turkish")]
         Box::new(TurkishNormalizer),
+        #[cfg(feature = "malayalam")]
+        Box::new(MalayalamNormalizer),
     ]
 });
 
@@ -284,8 +292,21 @@ impl Normalize for Token<'_> {
 impl<'o> Normalize for &'o str {
     type Item = Cow<'o, str>;
 
-    /// Normalize an str.
+    /// Normalize an str. With `malayalam` enabled, a single Malayalam token uses
+    /// script-aware token normalization.
     fn normalize(self, options: &NormalizerOption) -> Self::Item {
+        #[cfg(feature = "malayalam")]
+        if self.chars().any(|c| Script::from(c) == Script::Malayalam)
+            && self.chars().all(|c| matches!(Script::from(c), Script::Malayalam | Script::Other))
+        {
+            use crate::segmenter::Segment;
+
+            if let Some(token) = self.segment().next() {
+                if token.script == Script::Malayalam && token.byte_end == self.len() {
+                    return token.normalize(options).lemma;
+                }
+            }
+        }
         let mut normalized = Token { lemma: Cow::Borrowed(self), ..Default::default() };
         for normalizer in NORMALIZERS.iter() {
             normalized = normalizer.normalize(normalized, options);
@@ -310,6 +331,27 @@ mod test {
         CompatibilityDecompositionNormalizer, LowercaseNormalizer, Normalizer,
     };
     use crate::Token;
+
+    #[test]
+    fn string_normalization_preserves_other_scripts() {
+        use super::{Normalize, NormalizerOption};
+
+        let options = NormalizerOption { lossy: true, ..Default::default() };
+        for (text, expected) in
+            [("Thé", "the"), ("ＡＢＣ", "abc"), ("Привет", "привет"), ("123", "123")]
+        {
+            assert_eq!(text.normalize(&options), expected);
+        }
+    }
+
+    #[cfg(not(feature = "malayalam"))]
+    #[test]
+    fn string_normalization_without_malayalam_keeps_existing_behavior() {
+        use super::{Normalize, NormalizerOption};
+
+        let options = NormalizerOption { lossy: true, ..Default::default() };
+        assert_eq!("കേരളത്തിന്റെ".normalize(&options), "കേരളതതിനറെ");
+    }
 
     macro_rules! test_normalizer {
         ($normalizer:expr, $tokens:expr, $normalizer_result:expr, $global_result:expr) => {

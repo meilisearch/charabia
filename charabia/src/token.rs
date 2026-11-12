@@ -56,6 +56,8 @@ pub struct Token<'o> {
     pub byte_end: usize,
     /// number of bytes used in the original string mapped to the number of bytes used in the normalized string by each char in the original string.
     /// The char_map must be the same length as the number of chars in the original lemma.
+    /// Whole-token rewrites may assign all output bytes to the final entry and zero to earlier
+    /// entries, so any nonempty normalized prefix maps to the complete original token.
     pub char_map: Option<Vec<(u8, u8)>>,
     /// script of the Token
     pub script: Script,
@@ -132,6 +134,7 @@ impl Token<'_> {
     /// by the de-unicoder, it counts the number of `(characters, bytes)` in self.lemma
     /// for the given number of bytes. A char is considered even if the number
     /// of bytes only covers a portion of it.
+    /// With a whole-token rewrite map, any positive `num_bytes` covers the complete original token.
     ///
     /// # Arguments
     ///

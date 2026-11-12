@@ -22,6 +22,7 @@ serde = "1.0.229"
 slice-group-by = "0.3.1"
 whatlang = "0.18.0"
 lindera = { version = "5.1.0", default-features = false, optional = true }
+mlmorph = { package = "mlmorph-rs", version = "1.4.3", default-features = false, optional = true }
 pinyin = { version = "0.11", default-features = false, features = [
     "with_tone",
 ], optional = true }
@@ -87,6 +88,9 @@ turkish = []
 
 # allow decomposition of German composite words
 german-segmentation = []
+
+# allow conservative Malayalam lemmatization
+malayalam = ["dep:mlmorph"]
 
 [dev-dependencies]
 criterion = "0.8"

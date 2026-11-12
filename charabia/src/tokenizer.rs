@@ -400,6 +400,24 @@ mod test {
 
     use crate::{Tokenize, TokenizerBuilder};
 
+    #[cfg(not(feature = "malayalam"))]
+    #[test]
+    fn malayalam_without_feature_preserves_inflections() {
+        for create_char_map in [false, true] {
+            let mut builder = TokenizerBuilder::default();
+            builder.create_char_map(create_char_map);
+            let tokenizer = builder.build();
+            let text = "കേരളത്തിന്റെ വനങ്ങളിൽ";
+            for (surface, token) in tokenizer.reconstruct(text) {
+                assert_eq!(token.lemma(), surface);
+                assert_eq!(
+                    token.original_lengths(token.byte_len()),
+                    (surface.chars().count(), surface.len())
+                );
+            }
+        }
+    }
+
     #[test]
     fn check_lifetimes() {
         let text = "Hello world! Pleased to see you.";
